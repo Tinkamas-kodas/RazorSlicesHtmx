@@ -15,10 +15,11 @@ The codebase is intentionally split so the core package handles feature registra
 Core package for:
 
 - feature discovery and registration
-- `IFeatureModule`, `PageDefinition`, `FeatureMetadata`
-- HTMX response composition and fluent result building
+- `IFeatureModule`, `PageDefinition`, `FeatureMetadata`, and `FeatureRegistry`
+- HTMX response composition through `FeatureResultBuilder`
 - OOB fragments, triggers, navigation, and location responses
-- technical slices that are not tied to a CSS framework
+- technical slices that are not tied to a CSS framework, such as `_Empty`, `HtmxFragment`, and `HtmxOob`
+- app-facing contracts such as `FeatureShellContext`, `IFeaturePageRenderer`, and `ITransientUiRenderer`
 
 Notably, this package does **not** own your app layout, branding, page shell, or navigation UI.
 
@@ -34,13 +35,55 @@ Bootstrap adapter for transient UI only:
 
 This package is intentionally **not** a full app shell or admin template.
 
+What it implements:
+
+- `ITransientUiRenderer` for Bootstrap dialog and toast rendering
+- Bootstrap validation message markup for field-level validation feedback
+- Bootstrap-specific helper extensions such as `InputClass(...)`
+- Bootstrap fallback defaults for `DialogClass` and `ToastDelayMilliseconds`
+
+How to use it:
+
+```csharp
+using RazorSlicesHtmx.Bootstrap5.Extensions;
+
+builder.Services.AddRazorSlicesHtmxBootstrap5();
+```
+
+Optional override example:
+
+```csharp
+builder.Services.AddRazorSlicesHtmxBootstrap5(options =>
+{
+  options.DialogClass = "modal-dialog modal-dialog-centered modal-lg";
+  options.ToastDelayMilliseconds = 3200;
+});
+```
+
+Use this package when you want Bootstrap-styled dialogs, toasts, and validation messages, but still want the app to own the full page shell.
+
 ### `RazorSlicesHtmx.FluentValidation`
 
 Validation integration package for:
 
-- validation result view contracts
-- validation helper extensions
 - mapping `FluentValidation.Results.ValidationResult` into UI-friendly dictionaries
+
+What it implements:
+
+- `ToErrorDictionary()` for transforming `ValidationResult` into the error structure used by the view layer
+
+How to use it:
+
+```csharp
+using FluentValidation.Results;
+using RazorSlicesHtmx.FluentValidation.Extensions;
+
+ValidationResult validationResult = validator.Validate(request);
+
+var errors = validationResult.ToErrorDictionary();
+```
+
+This package is intentionally narrow. It is meant to transform FluentValidation errors, not to own validation UI rendering.
 
 ### Demo app
 
@@ -78,8 +121,6 @@ The most important core contracts are:
   minimal shell context passed to the app-level page renderer: current page, all pages, and current detail slice
 - `IFeaturePageRenderer`
   implemented by the app; responsible for full-page shell rendering and navigation rendering
-- `ITransientUiRenderer`
-  implemented by a UI adapter package such as Bootstrap5; responsible for dialog and toast rendering
 - `FeatureResultBuilder`
   fluent orchestration API for feature endpoints
 

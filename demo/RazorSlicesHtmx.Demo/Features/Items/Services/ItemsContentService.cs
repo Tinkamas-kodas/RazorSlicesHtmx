@@ -143,13 +143,7 @@ public sealed class ItemsContentService
             isEdit ? $"/items/edit/{request.Id}" : "/items/create",
             CreateQuery(request).ToRoute("/items"),
             request,
-            validationResult.Errors
-                .GroupBy(error => error.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group
-                        .Select(error => (error.ErrorCode, error.ErrorMessage))
-                        .ToArray()));
+            validationResult.ToErrorDictionary());
     }
 
     public ItemDeleteDialogModel CreateDeleteDialogModel(Item item, ItemListQuery query) => new(

@@ -1,6 +1,6 @@
-using RazorSlicesHtmx.FluentValidation.Models;
+using RazorSlicesHtmx.AspNetCore.Models;
 
-namespace RazorSlicesHtmx.FluentValidation.Extensions;
+namespace RazorSlicesHtmx.AspNetCore.Extensions;
 
 public static class ValidationResultViewExtensions
 {

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
   </ItemGroup>
 

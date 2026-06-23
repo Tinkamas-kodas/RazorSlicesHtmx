@@ -1,4 +1,4 @@
-using RazorSlicesHtmx.FluentValidation.Models;
+using RazorSlicesHtmx.AspNetCore.Models;
 
 namespace RazorSlicesHtmx.Bootstrap5.Extensions;
 

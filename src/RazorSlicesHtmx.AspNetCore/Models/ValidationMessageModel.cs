@@ -1,4 +1,4 @@
-namespace RazorSlicesHtmx.FluentValidation.Models;
+namespace RazorSlicesHtmx.AspNetCore.Models;
 
 public sealed record ValidationMessageModel(
     IHaveValidationResult Result,

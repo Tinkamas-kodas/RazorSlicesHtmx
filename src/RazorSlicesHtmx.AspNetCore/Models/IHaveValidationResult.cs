@@ -1,4 +1,4 @@
-namespace RazorSlicesHtmx.FluentValidation.Models;
+namespace RazorSlicesHtmx.AspNetCore.Models;
 
 public interface IHaveValidationResult
 {

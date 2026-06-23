@@ -15,7 +15,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="RazorSlices" />
     <ProjectReference Include="..\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
-    <ProjectReference Include="..\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using FluentValidation.Results;
+using RazorSlicesHtmx.AspNetCore.Extensions;
+using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.FluentValidation.Extensions;
-using RazorSlicesHtmx.FluentValidation.Models;
 
 namespace RazorSlicesHtmx.FluentValidation.Tests;
 

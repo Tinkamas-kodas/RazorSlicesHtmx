@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 3</p>
+            <h3 class="howto-step-title">Use a service as the feature composition root</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">The service should know how to build metadata, page definitions, and any additional feature-specific pieces. Endpoint modules stay thin when all feature composition happens there.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Services/{Feature}ContentService.cs`.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Add `CreateMetadata()` and `CreatePageDefinition()` methods.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep nested feature decisions, default step selection, and helper methods in the service rather than inside endpoint classes.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">This gives each feature one clear place where its page definition and internal behavior are assembled.</p>
+        </div>
+    </div>
+</section>

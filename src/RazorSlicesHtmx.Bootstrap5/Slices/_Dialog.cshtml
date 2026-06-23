@@ -1,0 +1,7 @@
+@inherits RazorSlice<DialogModel>
+
+<div class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="@Model.DialogClass">
+        @await RenderPartialAsync(Model.Content)
+    </div>
+</div>

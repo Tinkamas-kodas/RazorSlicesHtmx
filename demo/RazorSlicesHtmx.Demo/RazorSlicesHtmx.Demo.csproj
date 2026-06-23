@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>razr_slices_htmx2</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\src\RazorSlicesHtmx.Bootstrap5\RazorSlicesHtmx.Bootstrap5.csproj" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="RazorSlices" />
+  </ItemGroup>
+
+</Project>

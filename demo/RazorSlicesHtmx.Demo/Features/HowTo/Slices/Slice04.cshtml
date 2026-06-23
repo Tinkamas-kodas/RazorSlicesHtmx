@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 4</p>
+            <h3 class="howto-step-title">Put rendering in feature-local slices</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">Feature UI belongs under `Features/{Feature}/Slices`. Shared shell concerns stay in `Shared/Slices`, while feature-specific content and partials stay beside the rest of the feature.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a local `_ViewImports.cshtml` only if the feature needs additional usings.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Create one main detail slice that the shared page shell can render.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Add feature-only partials next to the detail slice instead of pushing them into shared folders.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">Shared shell code stays stable, while each feature owns its own HTML and partial rendering strategy.</p>
+        </div>
+    </div>
+</section>

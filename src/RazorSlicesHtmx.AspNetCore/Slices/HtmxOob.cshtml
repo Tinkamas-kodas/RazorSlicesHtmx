@@ -1,0 +1,5 @@
+@inherits RazorSlice<HtmxOobModel>
+
+<div hx-swap-oob="@(Model.Swap + ":" + Model.Selector)">
+    @(await RenderPartialAsync(Model.Content))
+</div>

@@ -1,0 +1,6 @@
+@inherits RazorSlice<ValidationMessageModel>
+
+@if (Model.Result.HasError(Model.FieldName))
+{
+    <div class="invalid-feedback d-block">@Model.Result.FirstError(Model.FieldName)</div>
+}

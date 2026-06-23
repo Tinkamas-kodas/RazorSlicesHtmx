@@ -1,0 +1,49 @@
+@inherits RazorSlice<FormDetailModel>
+
+<article class="section-panel">
+    @await RenderPartialAsync(_SectionHero.Create(new(
+        "HTMX preview interaction",
+        "Form detail owns its own interaction surface",
+        "/form")))
+
+    <p class="section-summary">@Model.Summary</p>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-7">
+            <form class="content-card card border-0 shadow-sm p-4 form-surface"
+                  hx-post="/form/preview"
+                  hx-target="#form-preview"
+                  hx-swap="innerHTML">
+                <p class="card-kicker">Live preview</p>
+                <div class="mb-3">
+                    <label class="form-label" for="name">Name</label>
+                    <input class="form-control" id="name" name="Name" placeholder="Damian Edwards">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="team">Team</label>
+                    <input class="form-control" id="team" name="Team" placeholder="Platform Engineering">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="intent">Intent</label>
+                    <select class="form-select" id="intent" name="Intent">
+                        @foreach (var option in Model.IntentOptions)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="notes">Notes</label>
+                    <textarea class="form-control" id="notes" name="Notes" rows="4" placeholder="Describe what this page-specific slice should prove."></textarea>
+                </div>
+                <button class="btn btn-dark" type="submit">Render preview</button>
+            </form>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+                <p class="card-kicker">Preview target</p>
+                <p class="preview-copy">@Model.PreviewMessage</p>
+            </div>
+        </div>
+    </div>
+</article>

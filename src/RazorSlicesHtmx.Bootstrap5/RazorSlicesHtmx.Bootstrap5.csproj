@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RazorSlicesHtmx.Bootstrap5</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <PackageId>RazorSlicesHtmx.Bootstrap5</PackageId>
+    <Description>Bootstrap 5 transient UI adapter for RazorSlicesHtmx dialogs, toasts, and validation messages.</Description>
+    <PackageTags>htmx;razorslices;bootstrap;dialog;toast;validation</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="RazorSlices" />
+    <ProjectReference Include="..\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
+    <ProjectReference Include="..\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+  </ItemGroup>
+
+</Project>

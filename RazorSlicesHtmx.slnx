@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/demo/">
+    <Project Path="demo/RazorSlicesHtmx.Demo/RazorSlicesHtmx.Demo.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/RazorSlicesHtmx.AspNetCore/RazorSlicesHtmx.AspNetCore.csproj" />
+    <Project Path="src/RazorSlicesHtmx.Bootstrap5/RazorSlicesHtmx.Bootstrap5.csproj" />
+    <Project Path="src/RazorSlicesHtmx.FluentValidation/RazorSlicesHtmx.FluentValidation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RazorSlicesHtmx.AspNetCore.Tests/RazorSlicesHtmx.AspNetCore.Tests.csproj" />
+    <Project Path="tests/RazorSlicesHtmx.FluentValidation.Tests/RazorSlicesHtmx.FluentValidation.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,39 @@
+@inherits RazorSlice<AboutDetailModel>
+
+<article class="section-panel">
+    @await RenderPartialAsync(_SectionHero.Create(new(
+        "Architecture guide",
+        "Vertical slices with RazorSlices and HTMX",
+        "/about")))
+
+    <p class="section-summary">@Model.Summary</p>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-7">
+            <div class="content-card card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <p class="card-kicker">How it is organized</p>
+                    <ul class="detail-list">
+                        @foreach (var change in Model.Changes)
+                        {
+                            <li>@change</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div class="content-card card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <p class="card-kicker">Why this split works</p>
+                    <ol class="detail-steps mb-0">
+                        @foreach (var benefit in Model.Benefits)
+                        {
+                            <li>@benefit</li>
+                        }
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>

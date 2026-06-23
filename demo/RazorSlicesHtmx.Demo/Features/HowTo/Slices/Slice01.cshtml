@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 1</p>
+            <h3 class="howto-step-title">Start with feature metadata</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">Every new feature starts with a `FeatureMetadata` instance. That metadata drives the sidebar label, route, description, and order without mixing navigation concerns into rendering code.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a new folder under `Features/{FeatureName}` for the feature.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">In the feature service, add `CreateMetadata()` and define `Key`, `Label`, `Route`, `Description`, and `NavigationOrder`.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep metadata close to the feature so the sidebar configuration travels with that slice instead of leaking into `Program.cs`.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">Navigation becomes declarative and the registry can order features without knowing their implementation details.</p>
+        </div>
+    </div>
+</section>

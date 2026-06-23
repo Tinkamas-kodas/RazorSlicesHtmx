@@ -1,0 +1,8 @@
+@inherits RazorSlice<HtmxFragmentModel>
+
+@(await RenderPartialAsync(Model.Primary))
+
+@foreach (var part in Model.OobParts)
+{
+    @(await RenderPartialAsync(part))
+}

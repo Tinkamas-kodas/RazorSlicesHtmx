@@ -1,0 +1,38 @@
+@inherits RazorSlice
+
+@{
+    var path = HttpContext?.Request.Path.Value?.ToLowerInvariant() ?? "/howto";
+    var activeKey = path switch
+    {
+        var value when value.Contains("/howto/step/models") => "models",
+        var value when value.Contains("/howto/step/services") => "services",
+        var value when value.Contains("/howto/step/slices") => "slices",
+        var value when value.Contains("/howto/step/endpoints") => "endpoints",
+        var value when value.Contains("/howto/step/discovery") => "discovery",
+        _ => "metadata"
+    };
+
+    var pills = new[]
+    {
+        new { Key = "metadata", Label = "Step 1", FragmentRoute = "/howto/step/metadata" },
+        new { Key = "models", Label = "Step 2", FragmentRoute = "/howto/step/models" },
+        new { Key = "services", Label = "Step 3", FragmentRoute = "/howto/step/services" },
+        new { Key = "slices", Label = "Step 4", FragmentRoute = "/howto/step/slices" },
+        new { Key = "endpoints", Label = "Step 5", FragmentRoute = "/howto/step/endpoints" },
+        new { Key = "discovery", Label = "Step 6", FragmentRoute = "/howto/step/discovery" }
+    };
+}
+
+@foreach (var pill in pills)
+{
+    var isActive = string.Equals(activeKey, pill.Key, StringComparison.OrdinalIgnoreCase);
+    var pillClass = isActive ? "howto-pill active" : "howto-pill";
+
+    <a href="/howto"
+       hx-get="@pill.FragmentRoute"
+       hx-target="#howto-content"
+       hx-swap="outerHTML"
+       class="@pillClass">
+        @pill.Label
+    </a>
+}

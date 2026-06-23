@@ -1,0 +1,20 @@
+@inherits RazorSlice<FormPreviewModel>
+
+<div class="preview-shell-inner">
+    <p class="card-kicker">Generated preview</p>
+    <h3 class="preview-title">@Model.Title</h3>
+    <dl class="preview-grid mb-0">
+        <div>
+            <dt>Team</dt>
+            <dd>@Model.Team</dd>
+        </div>
+        <div>
+            <dt>Intent</dt>
+            <dd>@Model.Intent</dd>
+        </div>
+        <div class="preview-notes">
+            <dt>Notes</dt>
+            <dd>@Model.Notes</dd>
+        </div>
+    </dl>
+</div>

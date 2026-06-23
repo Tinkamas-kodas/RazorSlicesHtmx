@@ -1,0 +1,10 @@
+@inherits RazorSlice
+
+<article class="section-panel howto-shell">
+    @await RenderPartialAsync(_SectionHero.Create(new("Feature walkthrough", "How to create and register a new feature", "/howto")))
+
+    <p class="section-summary">Use this feature as the reference implementation for the current vertical-slice architecture. It shows the sequence for metadata, feature-local structure, service composition, slices, endpoint mapping, and automatic discovery.</p>
+
+    @(await RenderPartialAsync(_HowToPills.Create()))
+    @(await RenderPartialAsync(Slice01.Create()))
+</article>

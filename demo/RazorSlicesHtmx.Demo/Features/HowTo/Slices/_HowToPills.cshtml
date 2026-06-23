@@ -1,0 +1,5 @@
+@inherits RazorSlice
+
+<nav id="howto-pills" class="howto-pills" aria-label="HowTo steps">
+    @(await RenderPartialAsync(_HowToPillsBody.Create()))
+</nav>

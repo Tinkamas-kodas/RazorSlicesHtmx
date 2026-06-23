@@ -1,0 +1,32 @@
+@inherits RazorSlice<AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
+}
+
+<nav id="sidebar-nav" class="admin-sidebar" hx-swap-oob="@HtmxSwap.OuterHtml">
+    <div>
+        <p class="sidebar-kicker">RazorSlices</p>
+        <h2 class="sidebar-title">HTMX Patterns</h2>
+        <p class="sidebar-copy">A left-nav admin shell that swaps only the details pane.</p>
+    </div>
+
+    <div class="nav flex-column gap-2 mt-4">
+        @foreach (var item in Model.NavigationItems)
+        {
+            var isActive = string.Equals(Model.ActiveNavKey, item.Key, StringComparison.OrdinalIgnoreCase);
+            var itemClass = isActive ? "sidebar-link active" : "sidebar-link";
+
+            <a href="@item.Route"
+               hx-get="@item.Route"
+               hx-target="@detailTargetSelector"
+               hx-swap="@HtmxSwap.InnerHtml"
+               hx-push-url="true"
+               class="@itemClass">
+                <span class="sidebar-link-label">@item.Label</span>
+                <span class="sidebar-link-copy">@item.Description</span>
+            </a>
+        }
+    </div>
+</nav>

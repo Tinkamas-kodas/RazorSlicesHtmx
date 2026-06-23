@@ -1,0 +1,164 @@
+@inherits RazorSlice<ItemListModel>
+
+@{
+    string SortGlyph(string column) => Model.Query.SortBy == column
+        ? (Model.Query.SortDir == "asc" ? "↑" : "↓")
+        : "↕";
+}
+
+<section class="section-panel">
+    <div class="items-list-meta">
+        <p class="mb-0">
+            @if (Model.TotalCount == 0)
+            {
+                <text>No items found.</text>
+            }
+            else
+            {
+                <text>Showing @Model.FromItem-@Model.ToItem of @Model.TotalCount items.</text>
+            }
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Query.Search))
+        {
+            <div class="items-active-search">
+                <span class="section-route">Search: @Model.Query.Search</span>
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="@Model.Query.ClearSearch().ToRoute("/items")"
+                   hx-get="@Model.Query.ClearSearch().ToRoute("/items/list")"
+                         hx-target="#items-workspace"
+                   hx-swap="outerHTML"
+                   hx-push-url="true">
+                    Clear search
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="content-card card border-0 shadow-sm overflow-hidden">
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="items-empty">
+                <p class="card-kicker">Empty result</p>
+                <p class="items-modal-copy">Try a different search term or create the first item.</p>
+                <div class="items-empty-actions">
+                    <button class="btn btn-dark"
+                            hx-get="@Model.Query.ToRoute("/items/create")"
+                            hx-target="#details-pane"
+                            hx-swap="innerHTML"
+                            hx-push-url="true"
+                            type="button">
+                        Create new item
+                    </button>
+
+                    @if (Model.Query.HasSearch)
+                    {
+                        <a class="btn btn-outline-secondary"
+                           href="@Model.Query.ClearSearch().ToRoute("/items")"
+                           hx-get="@Model.Query.ClearSearch().ToRoute("/items/list")"
+                                    hx-target="#items-workspace"
+                           hx-swap="outerHTML"
+                           hx-push-url="true">
+                            Clear search
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table items-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a class="items-sort-link"
+                                   href="@Model.Query.ForSort("code").ToRoute("/items")"
+                                   hx-get="@Model.Query.ForSort("code").ToRoute("/items/list")"
+                                              hx-target="#items-workspace"
+                                   hx-swap="outerHTML"
+                                   hx-push-url="true">
+                                    Code <span class="items-sort-glyph">@SortGlyph("code")</span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="items-sort-link"
+                                   href="@Model.Query.ForSort("name").ToRoute("/items")"
+                                   hx-get="@Model.Query.ForSort("name").ToRoute("/items/list")"
+                                              hx-target="#items-workspace"
+                                   hx-swap="outerHTML"
+                                   hx-push-url="true">
+                                    Name <span class="items-sort-glyph">@SortGlyph("name")</span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="items-sort-link"
+                                   href="@Model.Query.ForSort("isenabled").ToRoute("/items")"
+                                   hx-get="@Model.Query.ForSort("isenabled").ToRoute("/items/list")"
+                                              hx-target="#items-workspace"
+                                   hx-swap="outerHTML"
+                                   hx-push-url="true">
+                                    Status <span class="items-sort-glyph">@SortGlyph("isenabled")</span>
+                                </a>
+                            </th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td><strong>@row.Code</strong></td>
+                                <td>@row.Name</td>
+                                <td>
+                                    <span class="status-pill @(row.IsEnabled ? "enabled" : "disabled")">
+                                        @(row.IsEnabled ? "Enabled" : "Disabled")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="items-actions">
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                hx-get="@row.EditUrl"
+                                                hx-target="#details-pane"
+                                                hx-swap="innerHTML"
+                                                hx-push-url="true"
+                                                type="button">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                hx-get="@row.DeleteUrl"
+                                                hx-target="#dialog-host"
+                                                hx-swap="innerHTML"
+                                                type="button">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="items-pager">
+            @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+            {
+                var pageUrl = Model.Query.ForPage(pageNumber).ToRoute("/items/list");
+                var isActive = pageNumber == Model.CurrentPage;
+
+                <a class="btn @(isActive ? "btn-dark" : "btn-outline-dark") btn-sm"
+                   href="@Model.Query.ForPage(pageNumber).ToRoute("/items")"
+                   hx-get="@pageUrl"
+                   hx-target="#items-workspace"
+                   hx-swap="outerHTML"
+                   hx-push-url="true">
+                    @pageNumber
+                </a>
+            }
+        </div>
+    }
+</section>

@@ -1,0 +1,110 @@
+@inherits RazorLayoutSlice<AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var htmxOptions = HtmxOptionsAccessor.Value;
+    var detailTargetId = ToRequiredIdSelector(htmxOptions.DetailTargetSelector, nameof(RazorSlicesHtmxOptions.DetailTargetSelector));
+    var dialogHostId = ToRequiredIdSelector(htmxOptions.DialogHostSelector, nameof(RazorSlicesHtmxOptions.DialogHostSelector));
+    var toastHostId = ToRequiredIdSelector(htmxOptions.ToastHostSelector, nameof(RazorSlicesHtmxOptions.ToastHostSelector));
+    var toastDelayMilliseconds = htmxOptions.ToastDelayMilliseconds ?? 2600;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@Model.Title</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+    <div class="admin-shell">
+        @(await RenderPartialAsync(_SidebarNav.Create(Model)))
+        <main class="admin-main">
+            <section id="@detailTargetId" class="details-pane">
+                @await RenderBodyAsync()
+            </section>
+        </main>
+    </div>
+
+    <div id="@toastHostId" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+    <div id="@dialogHostId"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <script>
+        (() => {
+            const clearModalArtifacts = () => {
+                document.body.classList.remove("modal-open");
+                document.body.style.removeProperty("padding-right");
+                document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+            };
+
+            const refreshDialogHost = () => {
+                const host = document.getElementById("@dialogHostId");
+                if (!host) {
+                    return;
+                }
+
+                const modalElement = host.querySelector(".modal");
+                if (!modalElement) {
+                    clearModalArtifacts();
+                    return;
+                }
+
+                clearModalArtifacts();
+
+                modalElement.addEventListener("hidden.bs.modal", () => {
+                    host.innerHTML = "";
+                    clearModalArtifacts();
+                }, { once: true });
+
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            };
+
+            const refreshToastHost = () => {
+                const host = document.getElementById("@toastHostId");
+                if (!host) {
+                    return;
+                }
+
+                host.querySelectorAll(".toast").forEach(toastElement => {
+                    bootstrap.Toast.getOrCreateInstance(toastElement, { delay: @toastDelayMilliseconds }).show();
+                });
+            };
+
+            const refreshTransientUi = event => {
+                const target = event?.detail?.target;
+
+                if (!target || target.id === "@dialogHostId") {
+                    refreshDialogHost();
+                }
+
+                if (!target || target.id === "@toastHostId") {
+                    refreshToastHost();
+                }
+            };
+
+            document.addEventListener("DOMContentLoaded", refreshTransientUi);
+            document.body.addEventListener("htmx:afterSwap", refreshTransientUi);
+            document.body.addEventListener("htmx:oobAfterSwap", refreshTransientUi);
+        })();
+    </script>
+</body>
+</html>
+
+@functions {
+    private static string ToRequiredIdSelector(string selector, string optionName)
+    {
+        if (string.IsNullOrWhiteSpace(selector) || !selector.StartsWith('#') || selector.Length == 1)
+        {
+            throw new InvalidOperationException($"{optionName} must be an id selector like '#dialog-host' in the demo shell.");
+        }
+
+        return selector[1..];
+    }
+}

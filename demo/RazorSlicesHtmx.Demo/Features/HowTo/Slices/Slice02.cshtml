@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 2</p>
+            <h3 class="howto-step-title">Create feature-local models only if the feature needs them</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">In this simplified HowTo feature the content is static, so it has no models. In a normal feature, view models and request models should live under `Features/{Feature}/Models` and stay local to that feature.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Models` only when the feature actually needs typed page or request state.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Keep request records, view models, and nested card models inside the feature folder.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Move something into `Shared/Models` only when multiple features genuinely depend on it.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">A feature that does not need models should not invent them. Vertical slices stay cleaner when they avoid unnecessary abstractions.</p>
+        </div>
+    </div>
+</section>

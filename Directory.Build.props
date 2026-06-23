@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>Tinkamas kodas</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/example/RazorSlicesHtmx</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/example/RazorSlicesHtmx</PackageProjectUrl>
+    <PackageReleaseNotes>Initial 0.1.0 package split with AspNetCore core, Bootstrap5 transient UI, and FluentValidation integration.</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>

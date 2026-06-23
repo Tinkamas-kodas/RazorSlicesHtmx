@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 6</p>
+            <h3 class="howto-step-title">Let discovery and the shared shell do the rest</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">Once the endpoint module exists, `FeatureRegistry.Discover(...)` picks it up automatically. The shared shell then uses metadata to show it in the sidebar and route it through the common page rendering pipeline.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Do not manually register each feature in `Program.cs`.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Make sure the endpoint module is concrete and implements `IFeatureModule`.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Run `dotnet build`, then verify the sidebar item and any nested routes.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">At that point the feature is just another vertical slice: self-contained, discoverable, and rendered by the existing shared shell.</p>
+        </div>
+    </div>
+</section>

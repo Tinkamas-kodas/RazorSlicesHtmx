@@ -1,0 +1,8 @@
+@inherits RazorSlice<AppPageShellModel>
+@implements IUsesLayout<Layout, AppLayoutModel>
+
+@(await RenderPartialAsync(Model.Detail))
+
+@functions {
+    public AppLayoutModel LayoutModel => Model.Layout;
+}

@@ -1,0 +1,23 @@
+@inherits RazorSlice
+
+<section id="howto-content" class="content-card card border-0 shadow-sm">
+    <div class="card-body p-4 p-xl-5">
+        <div class="howto-step-header">
+            <p class="card-kicker">Step 5</p>
+            <h3 class="howto-step-title">Expose an endpoint module that implements discovery</h3>
+        </div>
+
+        <p class="section-summary howto-step-summary">A feature becomes discoverable when it has an endpoint module implementing `IFeatureModule`. That class returns the `PageDefinition` and maps any nested HTMX or form endpoints the feature needs.</p>
+
+        <ol class="howto-step-list">
+            <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Endpoints/{Feature}Endpoints.cs`.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Implement `IFeatureModule` and return the page definition from the service.</span></li>
+            <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Use `MapEndpoints` for nested routes such as preview handlers or inner HTMX navigation.</span></li>
+        </ol>
+
+        <div class="howto-callout">
+            <p class="card-kicker">Why this step exists</p>
+            <p class="howto-callout-copy">The feature becomes self-contained: discovery sees it, sidebar navigation gets it, and extra routes stay local to the feature.</p>
+        </div>
+    </div>
+</section>

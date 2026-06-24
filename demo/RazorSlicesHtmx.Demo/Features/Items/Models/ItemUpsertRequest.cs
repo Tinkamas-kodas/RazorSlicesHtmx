@@ -1,5 +1,6 @@
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
+[RazorSlicesHtmx.HtmlNames.GenerateHtmlNames]
 public sealed class ItemUpsertRequest
 {
     public int? Id { get; set; }

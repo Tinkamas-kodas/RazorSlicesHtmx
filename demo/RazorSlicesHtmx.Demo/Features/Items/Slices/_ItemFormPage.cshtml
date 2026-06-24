@@ -1,14 +1,9 @@
 @inherits RazorSlice<ItemFormModel>
+@using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
 
 @{
     var isEdit = Model.Request.Id.HasValue;
     var route = isEdit ? $"/items/edit/{Model.Request.Id}" : "/items/create";
-    var codeName = Model.NameFor(x => x.Request.Code);
-    var codeId = Model.IdFor(x => x.Request.Code);
-    var nameName = Model.NameFor(x => x.Request.Name);
-    var nameId = Model.IdFor(x => x.Request.Name);
-    var isEnabledName = Model.NameFor(x => x.Request.IsEnabled);
-    var isEnabledId = Model.IdFor(x => x.Request.IsEnabled);
     var summary = isEdit
         ? "Update the item and return to the list with server-rendered feedback. The current list query is preserved through hidden form state."
         : "Create a new item and return to the list with server-rendered feedback. Validation runs through FluentValidation before anything is saved.";
@@ -42,31 +37,31 @@
                 <input type="hidden" name="PageSize" value="@Model.Request.PageSize">
 
                 <div>
-                          <label class="form-label" for="@codeId">Code</label>
-                    <input class="@Model.InputClass(nameof(ItemUpsertRequest.Code))"
-                              id="@codeId"
-                              name="@codeName"
+                    <label class="form-label" for="@For.Code.Id">Code</label>
+                    <input class="@Model.InputClass(For.Code.Name)"
+                           id="@For.Code.Id"
+                           name="@For.Code.Name"
                            value="@Model.Request.Code"
                            placeholder="ITEM-001"
                            autocomplete="off"
                            autofocus>
-                          @await RenderPartialAsync(_ValidationMessage.Create(new(Model, codeName)))
+                    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Code.Name)))
                 </div>
 
                 <div>
-                          <label class="form-label" for="@nameId">Name</label>
-                    <input class="@Model.InputClass(nameof(ItemUpsertRequest.Name))"
-                              id="@nameId"
-                              name="@nameName"
+                    <label class="form-label" for="@For.Name.Id">Name</label>
+                    <input class="@Model.InputClass(For.Name.Name)"
+                           id="@For.Name.Id"
+                           name="@For.Name.Name"
                            value="@Model.Request.Name"
                            placeholder="Item name">
-                          @await RenderPartialAsync(_ValidationMessage.Create(new(Model, nameName)))
+                    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Name.Name)))
                 </div>
 
                 <div class="form-check">
                     <input type="hidden" name="IsEnabled" value="false">
-                          <input class="form-check-input" type="checkbox" id="@isEnabledId" name="@isEnabledName" value="true" checked="@(Model.Request.IsEnabled ? "checked" : null)">
-                          <label class="form-check-label" for="@isEnabledId">Enabled</label>
+                    <input class="form-check-input" type="checkbox" id="@For.IsEnabled.Id" name="@For.IsEnabled.Name" value="true" checked="@(Model.Request.IsEnabled ? "checked" : null)">
+                    <label class="form-check-label" for="@For.IsEnabled.Id">Enabled</label>
                 </div>
 
                 <p class="items-modal-copy">Code must be unique. Both Code and Name are required.</p>

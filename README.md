@@ -85,6 +85,45 @@ var errors = validationResult.ToErrorDictionary();
 
 This package is intentionally narrow. It is meant to transform FluentValidation errors, not to own validation UI rendering.
 
+### `RazorSlicesHtmx.Generators`
+
+Roslyn source generator package for strongly typed HTML field metadata used in forms.
+
+What it provides:
+
+- `[GenerateHtmlNames(maxDepth: 0)]` attribute (injected at compile time)
+- generated constants grouped per field as `For.<Field>.Name`, `For.<Field>.Id`, and `For.<Field>.Path`
+- compile-time safe form metadata without runtime expression parsing
+
+How to use it:
+
+```csharp
+using RazorSlicesHtmx.HtmlNames;
+
+[GenerateHtmlNames]
+public sealed class ItemUpsertRequest
+{
+  public string? Code { get; set; }
+  public string? Name { get; set; }
+}
+```
+
+In Razor:
+
+```csharp
+@using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
+```
+
+```html
+<label for="@For.Code.Id">Code</label>
+<input id="@For.Code.Id" name="@For.Code.Name">
+```
+
+NuGet packaging notes:
+
+- package is shipped as an analyzer (`analyzers/dotnet/cs`)
+- analyzer assembly is not included as a runtime `lib` dependency
+
 ### Demo app
 
 The demo lives in `demo/RazorSlicesHtmx.Demo`.
@@ -103,6 +142,7 @@ Current intended split:
 
 - `AspNetCore`: HTMX orchestration and feature model
 - `Bootstrap5`: transient UI adapter for dialogs, toasts, and validation partials
+- `Generators`: compile-time HTML Name/Id/Path generation for request/view models
 - app: full page shell and branding
 
 That means the app provides its own page renderer and shell models, while the Bootstrap package only plugs into transient UI concerns.

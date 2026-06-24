@@ -29,3 +29,11 @@ Included in `0.1.0`:
 - validation result view contracts
 - helper extensions for rendering validation state
 - mapping helpers from `FluentValidation.Results.ValidationResult`
+
+### `RazorSlicesHtmx.Generators`
+
+- Roslyn source generator package for HTML field metadata
+- `[GenerateHtmlNames(maxDepth: 0)]` attribute (injected during compilation)
+- generated field API in the form `For.<Field>.Name`, `For.<Field>.Id`, and `For.<Field>.Path`
+- analyzer NuGet packaging under `analyzers/dotnet/cs` without runtime library output
+

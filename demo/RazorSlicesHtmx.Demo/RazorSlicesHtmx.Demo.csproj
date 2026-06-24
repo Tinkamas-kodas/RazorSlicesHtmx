@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
     <ProjectReference Include="..\..\src\RazorSlicesHtmx.Bootstrap5\RazorSlicesHtmx.Bootstrap5.csproj" />
+    <ProjectReference Include="..\..\src\RazorSlicesHtmx.Generators\RazorSlicesHtmx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="RazorSlices" />

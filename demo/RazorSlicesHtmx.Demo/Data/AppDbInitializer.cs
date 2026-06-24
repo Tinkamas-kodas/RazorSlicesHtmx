@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using razr_slices_htmx2.Features.Items.Models;
+using RazorSlicesHtmx.Demo.Features.Items.Models;
 
-namespace razr_slices_htmx2.Data;
+namespace RazorSlicesHtmx.Demo.Data;
 
 public static class AppDbInitializer
 {

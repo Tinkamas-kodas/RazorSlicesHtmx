@@ -1,6 +1,4 @@
-using razr_slices_htmx2.Shared.Models;
-
-namespace razr_slices_htmx2.Features.Items.Models;
+namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
 public sealed record ItemFormModel(
     string Title,

@@ -1,8 +1,7 @@
-using razr_slices_htmx2.Features.About.Models;
-using razr_slices_htmx2.Features.Slices;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Features.About.Models;
+using RazorSlicesHtmx.Demo.Features.Slices;
 
-namespace razr_slices_htmx2.Features.About.Services;
+namespace RazorSlicesHtmx.Demo.Features.About.Services;
 
 public sealed class AboutContentService
 {

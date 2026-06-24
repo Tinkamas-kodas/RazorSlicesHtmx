@@ -1,12 +1,10 @@
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using razr_slices_htmx2.Data;
-using razr_slices_htmx2.Features.Items.Models;
-using razr_slices_htmx2.Features.Items.Slices;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Data;
+using RazorSlicesHtmx.Demo.Features.Items.Models;
+using RazorSlicesHtmx.Demo.Features.Items.Slices;
 
-namespace razr_slices_htmx2.Features.Items.Services;
+namespace RazorSlicesHtmx.Demo.Features.Items.Services;
 
 public sealed class ItemsContentService
 {

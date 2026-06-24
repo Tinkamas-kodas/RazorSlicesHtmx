@@ -1,4 +1,4 @@
-namespace razr_slices_htmx2.Features.About.Models;
+namespace RazorSlicesHtmx.Demo.Features.About.Models;
 
 public sealed record AboutDetailModel(
     string Summary,

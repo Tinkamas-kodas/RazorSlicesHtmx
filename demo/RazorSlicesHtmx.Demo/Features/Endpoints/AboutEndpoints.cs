@@ -1,7 +1,6 @@
-using razr_slices_htmx2.Features.About.Services;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Features.About.Services;
 
-namespace razr_slices_htmx2.Features.About.Endpoints;
+namespace RazorSlicesHtmx.Demo.Features.About.Endpoints;
 
 public sealed class AboutEndpoints : IFeatureModule
 {

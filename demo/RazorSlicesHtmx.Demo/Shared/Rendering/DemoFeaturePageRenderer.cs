@@ -1,10 +1,8 @@
 using RazorSlices;
-using RazorSlicesHtmx.AspNetCore.Models;
-using RazorSlicesHtmx.AspNetCore.Rendering;
-using razr_slices_htmx2.Shared.Models;
-using razr_slices_htmx2.Shared.Slices;
+using RazorSlicesHtmx.Demo.Shared.Models;
+using RazorSlicesHtmx.Demo.Shared.Slices;
 
-namespace razr_slices_htmx2.Shared.Rendering;
+namespace RazorSlicesHtmx.Demo.Shared.Rendering;
 
 public sealed class DemoFeaturePageRenderer : IFeaturePageRenderer
 {

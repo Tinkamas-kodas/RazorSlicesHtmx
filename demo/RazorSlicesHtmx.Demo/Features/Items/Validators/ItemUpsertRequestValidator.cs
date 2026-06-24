@@ -1,10 +1,10 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using razr_slices_htmx2.Data;
-using razr_slices_htmx2.Features.Items.Models;
-using razr_slices_htmx2.Features.Items.Services;
+using RazorSlicesHtmx.Demo.Data;
+using RazorSlicesHtmx.Demo.Features.Items.Models;
+using RazorSlicesHtmx.Demo.Features.Items.Services;
 
-namespace razr_slices_htmx2.Features.Items.Validators;
+namespace RazorSlicesHtmx.Demo.Features.Items.Validators;
 
 public sealed class ItemUpsertRequestValidator : AbstractValidator<ItemUpsertRequest>
 {

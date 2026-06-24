@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>RazorSlicesHtmx.Bootstrap5</RootNamespace>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <PackageId>RazorSlicesHtmx.Bootstrap5</PackageId>
-    <Description>Bootstrap 5 transient UI adapter for RazorSlicesHtmx dialogs, toasts, and validation messages.</Description>
+    <Description>Bootstrap 5 transient UI adapter for RazorSlicesHtmx, focused on dialogs, toasts, and validation feedback rather than full-page UI components.</Description>
     <PackageTags>htmx;razorslices;bootstrap;dialog;toast;validation</PackageTags>
   </PropertyGroup>
 

@@ -1,6 +1,4 @@
-using RazorSlicesHtmx.AspNetCore.Models;
-
-namespace razr_slices_htmx2.Shared.Models;
+namespace RazorSlicesHtmx.Demo.Shared.Models;
 
 public sealed record AppLayoutModel(
     string Title,

@@ -1,8 +1,7 @@
-using razr_slices_htmx2.Features.HowTo.Slices;
+using RazorSlicesHtmx.Demo.Features.HowTo.Slices;
 using RazorSlices;
-using razr_slices_htmx2.Shared.Models;
 
-namespace razr_slices_htmx2.Features.HowTo.Services;
+namespace RazorSlicesHtmx.Demo.Features.HowTo.Services;
 
 public sealed class HowToContentService
 {

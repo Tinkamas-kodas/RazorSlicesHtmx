@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using razr_slices_htmx2.Features.Form.Models;
-using razr_slices_htmx2.Features.Form.Services;
-using razr_slices_htmx2.Features.Form.Slices;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Features.Form.Models;
+using RazorSlicesHtmx.Demo.Features.Form.Services;
+using RazorSlicesHtmx.Demo.Features.Form.Slices;
 
-namespace razr_slices_htmx2.Features.Form.Endpoints;
+namespace RazorSlicesHtmx.Demo.Features.Form.Endpoints;
 
 public sealed class FormEndpoints : IFeatureModule
 {

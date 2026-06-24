@@ -1,8 +1,7 @@
-using razr_slices_htmx2.Features.Form.Models;
-using razr_slices_htmx2.Features.Form.Slices;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Features.Form.Models;
+using RazorSlicesHtmx.Demo.Features.Form.Slices;
 
-namespace razr_slices_htmx2.Features.Form.Services;
+namespace RazorSlicesHtmx.Demo.Features.Form.Services;
 
 public sealed class FormContentService
 {

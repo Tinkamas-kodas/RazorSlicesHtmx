@@ -1,4 +1,4 @@
-namespace razr_slices_htmx2.Features.Form.Models;
+namespace RazorSlicesHtmx.Demo.Features.Form.Models;
 
 public sealed record FormPreviewRequest(
     string? Name,

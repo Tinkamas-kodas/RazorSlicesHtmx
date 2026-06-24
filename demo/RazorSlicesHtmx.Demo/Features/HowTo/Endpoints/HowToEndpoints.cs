@@ -1,8 +1,7 @@
-using razr_slices_htmx2.Features.HowTo.Services;
-using razr_slices_htmx2.Features.HowTo.Slices;
-using razr_slices_htmx2.Shared.Models;
+using RazorSlicesHtmx.Demo.Features.HowTo.Services;
+using RazorSlicesHtmx.Demo.Features.HowTo.Slices;
 
-namespace razr_slices_htmx2.Features.HowTo.Endpoints;
+namespace RazorSlicesHtmx.Demo.Features.HowTo.Endpoints;
 
 public sealed class HowToEndpoints : IFeatureModule
 {

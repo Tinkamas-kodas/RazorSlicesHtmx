@@ -54,7 +54,7 @@ public sealed class HtmxErrorMiddleware(
         var title = _errorOptions.FormatTitle?.Invoke(statusCode, exception)
             ?? GetDefaultTitle(statusCode);
 
-        var tone = _errorOptions.ErrorTone ?? "danger";
+        var tone = _errorOptions.ErrorTone ?? "error";
 
         var renderer = context.RequestServices.GetService<ITransientUiRenderer>();
         var options = context.RequestServices.GetService<IOptions<RazorSlicesHtmxOptions>>()?.Value;

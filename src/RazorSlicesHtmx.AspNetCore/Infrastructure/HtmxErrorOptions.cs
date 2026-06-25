@@ -18,7 +18,8 @@ public sealed class HtmxErrorOptions
     public Func<int, Exception?, string>? FormatMessage { get; set; }
 
     /// <summary>
-    /// The toast tone/style used for error toasts. Defaults to "danger".
+    /// The toast tone/style used for error toasts. Defaults to null.
+    /// UI framework packages (e.g. Bootstrap5) should set their own default.
     /// </summary>
-    public string? ErrorTone { get; set; } = "danger";
+    public string? ErrorTone { get; set; }
 }

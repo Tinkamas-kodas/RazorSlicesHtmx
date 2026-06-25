@@ -37,6 +37,41 @@ public class FeatureRegistryTests
         Assert.False(found);
         Assert.Equal(registry.DefaultPage, page);
     }
+
+    [Fact]
+    public void Discover_multi_assembly_merges_features()
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+        var assemblies = new[] { typeof(FeatureRegistryTests).Assembly };
+
+        var registry = FeatureRegistry.Discover(assemblies, services);
+
+        var shellContext = registry.CreateShellContext(registry.DefaultPage, null!);
+        Assert.Equal(3, shellContext.Pages.Count);
+    }
+
+    [Fact]
+    public void Discover_multi_assembly_deduplicates_same_assembly()
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+        var assembly = typeof(FeatureRegistryTests).Assembly;
+        var assemblies = new[] { assembly, assembly };
+
+        var registry = FeatureRegistry.Discover(assemblies, services);
+
+        var shellContext = registry.CreateShellContext(registry.DefaultPage, null!);
+        Assert.Equal(3, shellContext.Pages.Count);
+    }
+
+    [Fact]
+    public void Discover_multi_assembly_throws_when_no_features()
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+        var assemblies = new[] { typeof(string).Assembly };
+
+        Assert.Throws<InvalidOperationException>(() =>
+            FeatureRegistry.Discover(assemblies, services));
+    }
 }
 
 public sealed class AlphaFeature : IFeatureModule

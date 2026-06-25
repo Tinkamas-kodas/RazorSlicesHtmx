@@ -21,12 +21,16 @@ public sealed class FeatureRegistry
 
     public PageDefinition DefaultPage => _pages[0];
 
-    public static FeatureRegistry Discover(Assembly assembly, IServiceProvider services)
+    public static FeatureRegistry Discover(Assembly assembly, IServiceProvider services) =>
+        Discover([assembly], services);
+
+    public static FeatureRegistry Discover(IEnumerable<Assembly> assemblies, IServiceProvider services)
     {
-        var features = assembly
-            .GetTypes()
+        var features = assemblies
+            .SelectMany(a => a.GetTypes())
             .Where(type => typeof(IFeatureModule).IsAssignableFrom(type))
             .Where(type => !type.IsAbstract && !type.IsInterface)
+            .Distinct()
             .Select(type => (IFeatureModule)ActivatorUtilities.CreateInstance(services, type))
             .ToArray();
 

@@ -1,4 +1,3 @@
-using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using RazorSlicesHtmx.Demo.Data;
 using RazorSlicesHtmx.Demo.Features.Items.Models;
@@ -23,133 +22,51 @@ public sealed class ItemsContentService
         httpContext =>
         {
             var db = httpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var query = CreateQuery(httpContext.Request.Query);
-            return _ItemsPage.Create(CreateListModel(db, query));
+            var search = new ItemSearchModel(httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
+            var query = ItemListQuery.FromQuery(httpContext.Request.Query);
+            return _FeaturePage.Create(CreateListModel(db, search, query));
         });
 
-    public ItemListQuery CreateQuery(IQueryCollection query) => new ItemListQuery(
-        query["Search"].ToString(),
-        query["SortBy"].ToString(),
-        query["SortDir"].ToString(),
-        int.TryParse(query["Page"], out var page) ? page : 1,
-        int.TryParse(query["PageSize"], out var pageSize) ? pageSize : 5).Normalize();
 
-    public ItemListQuery CreateQuery(ItemUpsertRequest request) => new ItemListQuery(
-        request.Search,
-        request.SortBy ?? "code",
-        request.SortDir ?? "asc",
-        request.Page,
-        request.PageSize).Normalize();
-
-    public ItemListQuery CreateQuery(ItemDeleteRequest request) => new ItemListQuery(
-        request.Search,
-        request.SortBy ?? "code",
-        request.SortDir ?? "asc",
-        request.Page,
-        request.PageSize).Normalize();
-
-    public ItemListModel CreateListModel(AppDbContext db, ItemListQuery incomingQuery)
+    public ItemListModel CreateListModel(AppDbContext db, ItemSearchModel search, ItemListQuery query)
     {
-        var query = incomingQuery.Normalize();
-        IQueryable<Item> items = db.Items.AsNoTracking();
+        var items = db.Items
+            .AsNoTracking()
+            .Select(item => new ItemRowModel(item.Id, item.Code, item.Name, item.IsEnabled));
 
-        if (!string.IsNullOrWhiteSpace(query.Search))
+        if (!string.IsNullOrWhiteSpace(search.Search))
         {
-            var search = query.Search.Trim();
-            items = items.Where(item => item.Code.Contains(search) || item.Name.Contains(search));
+            var term = search.Search.Trim();
+            items = items.Where(row => row.Code.Contains(term) || row.Name.Contains(term));
         }
 
-        items = query.SortBy switch
-        {
-            "name" => query.SortDir == "desc"
-                ? items.OrderByDescending(item => item.Name).ThenBy(item => item.Code)
-                : items.OrderBy(item => item.Name).ThenBy(item => item.Code),
-            "isenabled" => query.SortDir == "desc"
-                ? items.OrderByDescending(item => item.IsEnabled).ThenBy(item => item.Code)
-                : items.OrderBy(item => item.IsEnabled).ThenBy(item => item.Code),
-            _ => query.SortDir == "desc"
-                ? items.OrderByDescending(item => item.Code)
-                : items.OrderBy(item => item.Code)
-        };
-
-        var totalCount = items.Count();
-        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)query.PageSize));
-        var currentPage = Math.Min(query.Page, totalPages);
-        var pageQuery = query with { Page = currentPage };
-
-        var rows = items
-            .Skip((currentPage - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList()
-            .Select(item => new ItemRowModel(
-                item.Id,
-                item.Code,
-                item.Name,
-                item.IsEnabled,
-                pageQuery.ToRoute($"/items/edit/{item.Id}"),
-                pageQuery.ToRoute($"/items/delete/{item.Id}")))
-            .ToArray();
-
-        var fromItem = rows.Length == 0 ? 0 : ((currentPage - 1) * query.PageSize) + 1;
-        var toItem = rows.Length == 0 ? 0 : fromItem + rows.Length - 1;
-
-        return new ItemListModel(pageQuery, rows, totalCount, totalPages, currentPage, fromItem, toItem);
+        var paged = items.ToPagedList(query);
+        return new ItemListModel(paged.Total, search, query, paged.Items);
     }
 
-    public ItemFormModel CreateCreateFormModel(ItemListQuery query) => new(
-        "Create item",
-        "Create",
-        "/items/create",
-        query.ToRoute("/items"),
-        new ItemUpsertRequest
-        {
-            IsEnabled = true,
-            Search = query.Search,
-            SortBy = query.SortBy,
-            SortDir = query.SortDir,
-            Page = query.Page,
-            PageSize = query.PageSize
-        },
-        EmptyErrors);
 
-    public ItemFormModel CreateEditFormModel(Item item, ItemListQuery query) => new(
-        "Edit item",
-        "Save changes",
-        $"/items/edit/{item.Id}",
-        query.ToRoute("/items"),
-        new ItemUpsertRequest
-        {
-            Id = item.Id,
-            Code = item.Code,
-            Name = item.Name,
-            IsEnabled = item.IsEnabled,
-            Search = query.Search,
-            SortBy = query.SortBy,
-            SortDir = query.SortDir,
-            Page = query.Page,
-            PageSize = query.PageSize
-        },
-        EmptyErrors);
 
-    public ItemFormModel CreateInvalidFormModel(ItemUpsertRequest request, ValidationResult validationResult, bool isEdit)
+    public ItemUpsertRequest CreateCreateFormModel() => new()
     {
-        TrimRequest(request);
+        IsEnabled = true,
+        Errors = EmptyErrors
+    };
 
-        return new ItemFormModel(
-            isEdit ? "Edit item" : "Create item",
-            isEdit ? "Save changes" : "Create",
-            isEdit ? $"/items/edit/{request.Id}" : "/items/create",
-            CreateQuery(request).ToRoute("/items"),
-            request,
-            validationResult.ToErrorDictionary());
-    }
+    public ItemUpsertRequest CreateEditFormModel(Item item) => new()
+    {
+        Id = item.Id,
+        Code = item.Code,
+        Name = item.Name,
+        IsEnabled = item.IsEnabled,
+        Errors = EmptyErrors
+    };
 
-    public ItemDeleteDialogModel CreateDeleteDialogModel(Item item, ItemListQuery query) => new(
+    
+
+    public ItemDeleteDialogModel CreateDeleteDialogModel(Item item) => new(
         item.Id,
         item.Code,
-        item.Name,
-        $"/items/delete/{item.Id}",
-        query);
+        item.Name);
 
     public void TrimRequest(ItemUpsertRequest request)
     {

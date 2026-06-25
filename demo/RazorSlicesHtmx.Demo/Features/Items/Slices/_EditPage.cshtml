@@ -1,0 +1,38 @@
+@inherits RazorSlice<ItemUpsertRequest>
+
+<article class="section-panel">
+    @await RenderPartialAsync(_SectionHero.Create(new(
+        "Item editor",
+        "Edit item",
+        $"/items/edit/{Model.Id}")))
+
+    <p class="section-summary">Update the item and return to the list with server-rendered feedback. The current list query is preserved through the shared state host.</p>
+
+    <div class="content-card card border-0 shadow-sm">
+        <div class="card-body p-4 p-xl-5">
+            <form class="d-flex flex-column gap-3"
+                  hx-post
+                  hx-target="#feature-details"
+                  hx-push-url="false">
+                @if (Model.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+                }
+
+                @await RenderPartialAsync(_ItemForm.Create(Model))
+
+                <div class="d-flex flex-wrap gap-2 pt-2">
+                    <button type="submit" class="btn btn-dark">Save changes</button>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            hx-get="/items/list"
+                            hx-target="#feature-details"
+                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+                            hx-push-url="true">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</article>

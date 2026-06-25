@@ -6,3 +6,11 @@
 {
     @(await RenderPartialAsync(part))
 }
+
+@if (Model.RawOobParts is { Count: > 0 })
+{
+    @foreach (var raw in Model.RawOobParts)
+    {
+        @raw
+    }
+}

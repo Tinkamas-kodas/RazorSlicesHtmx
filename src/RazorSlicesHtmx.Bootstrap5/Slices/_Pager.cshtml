@@ -1,0 +1,72 @@
+@inherits RazorSlice<PagerModel>
+
+@{
+    var t = Model.EffectiveTexts;
+    var sizes = Model.EffectivePageSizeOptions;
+
+    IReadOnlyList<int> GetPagesToShow(int page, int pages)
+    {
+        if (pages <= 5)
+            return Enumerable.Range(1, pages).ToArray();
+
+        var set = new SortedSet<int>
+        {
+            1, pages,
+            page,
+            Math.Max(1, page - 1),
+            Math.Min(pages, page + 1)
+        };
+        return [.. set];
+    }
+
+    var pagesToShow = GetPagesToShow(Model.CurrentPage, Model.TotalPages);
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    <small class="text-muted">
+        @if (Model.Total == 0)
+        {
+            <span>@t.NoItems</span>
+        }
+        else
+        {
+            <span>@t.Showing @Model.FromItem–@Model.ToItem @t.Of @Model.Total</span>
+        }
+        <span class="ms-2">
+            <select class="form-select form-select-sm d-inline-block w-auto"
+                    hx-get="@Model.GetUrl"
+                    hx-push-url="true"
+                    hx-trigger="change"
+                    hx-vals='js:{"PageSize": event.target.value, "Page": 1}'>
+                @foreach (var s in sizes)
+                {
+                    <option value="@s" selected="@(s == Model.PageSize ? "selected" : null)">@s @t.PerPage</option>
+                }
+            </select>
+        </span>
+    </small>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="btn-group btn-group-sm" role="group">
+            @{
+                int? lastRendered = null;
+                foreach (var p in pagesToShow)
+                {
+                    if (lastRendered.HasValue && p - lastRendered.Value > 1)
+                    {
+                        <button class="btn btn-outline-secondary" type="button" disabled>@t.Ellipsis</button>
+                    }
+                    var isActive = p == Model.CurrentPage;
+                    <button class="btn @(isActive ? "btn-dark" : "btn-outline-dark") btn-sm"
+                            type="button"
+                            hx-get="@Model.GetUrl"
+                            hx-push-url="true"
+                            hx-vals='{"Page":"@p"}'
+                            aria-current="@(isActive ? "page" : null)">@p</button>
+                    lastRendered = p;
+                }
+            }
+        </div>
+    }
+</div>

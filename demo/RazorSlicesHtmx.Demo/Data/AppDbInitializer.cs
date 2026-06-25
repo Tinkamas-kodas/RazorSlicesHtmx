@@ -17,13 +17,12 @@ public static class AppDbInitializer
         }
 
         db.Items.AddRange(
-            new Item { Code = "ALPHA", Name = "Alpha item", IsEnabled = true },
-            new Item { Code = "BRAVO", Name = "Bravo item", IsEnabled = false },
-            new Item { Code = "CHARLIE", Name = "Charlie item", IsEnabled = true },
-            new Item { Code = "DELTA", Name = "Delta item", IsEnabled = true },
-            new Item { Code = "ECHO", Name = "Echo item", IsEnabled = false },
-            new Item { Code = "FOXTROT", Name = "Foxtrot item", IsEnabled = true },
-            new Item { Code = "GOLF", Name = "Golf item", IsEnabled = true });
+            Enumerable.Range(1, 100).Select(i => new Item
+            {
+                Code = $"ITEM-{i:D3}",
+                Name = $"Item number {i}",
+                IsEnabled = i % 3 != 0
+            }));
 
         db.SaveChanges();
     }

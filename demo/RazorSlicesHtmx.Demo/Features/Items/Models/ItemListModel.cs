@@ -1,10 +1,4 @@
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
-public sealed record ItemListModel(
-    ItemListQuery Query,
-    IReadOnlyList<ItemRowModel> Rows,
-    int TotalCount,
-    int TotalPages,
-    int CurrentPage,
-    int FromItem,
-    int ToItem);
+public sealed record ItemListModel(int Total, ItemSearchModel Search, ItemListQuery Request, List<ItemRowModel> Items)
+    : ListResponse<ItemRowModel, ItemListQuery>(Total, Request, Items);

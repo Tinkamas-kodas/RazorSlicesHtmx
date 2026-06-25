@@ -1,0 +1,34 @@
+@inherits RazorSlice<ItemUpsertRequest>
+@using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
+
+<input type="hidden" name="Id" value="@Model.Id">
+
+<div>
+    <label class="form-label" for="@For.Code.Id">Code</label>
+    <input class="@Model.InputClass(For.Code.Name)"
+           id="@For.Code.Id"
+           name="@For.Code.Name"
+           value="@Model.Code"
+           placeholder="ITEM-001"
+           autocomplete="off"
+           autofocus>
+    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Code.Name)))
+</div>
+
+<div>
+    <label class="form-label" for="@For.Name.Id">Name</label>
+    <input class="@Model.InputClass(For.Name.Name)"
+           id="@For.Name.Id"
+           name="@For.Name.Name"
+           value="@Model.Name"
+           placeholder="Item name">
+    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Name.Name)))
+</div>
+
+<div class="form-check">
+    <input class="form-check-input" type="checkbox" id="@For.IsEnabled.Id" name="@For.IsEnabled.Name" value="true" checked="@(Model.IsEnabled ? "checked" : null)">
+    <input type="hidden" name="@For.IsEnabled.Name" value="false">
+    <label class="form-check-label" for="@For.IsEnabled.Id">Enabled</label>
+</div>
+
+<p class="items-modal-copy">Code must be unique. Both Code and Name are required.</p>

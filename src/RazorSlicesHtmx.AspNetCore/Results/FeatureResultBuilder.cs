@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Features;
+using RazorSlicesHtmx.AspNetCore.Htmx;
 using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Options;
@@ -36,6 +38,7 @@ public sealed class FeatureResultBuilder(
     {
         private readonly List<RazorSlice> _directOobParts = [];
         private readonly List<(string Selector, RazorSlice Content, string Swap)> _targetedOobParts = [];
+        private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
         private readonly List<ToastModel> _toasts = [];
         private RazorSlice? _htmxFragment;
@@ -88,6 +91,13 @@ public sealed class FeatureResultBuilder(
             }
 
             _triggers.Add(eventName);
+            return this;
+        }
+
+        public Builder WithState(IHasState state)
+        {
+            ArgumentNullException.ThrowIfNull(state);
+            _rawOobParts.Add(state.SerializeOob());
             return this;
         }
 
@@ -162,6 +172,11 @@ public sealed class FeatureResultBuilder(
             foreach (var targeted in _targetedOobParts)
             {
                 htmxBuilder.WithOob(targeted.Selector, targeted.Content, targeted.Swap);
+            }
+
+            if (_rawOobParts.Count > 0)
+            {
+                htmxBuilder.WithRawOob(_rawOobParts);
             }
 
             foreach (var trigger in _triggers)

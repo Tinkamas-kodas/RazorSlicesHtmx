@@ -1,0 +1,18 @@
+@inherits RazorSlice<SortButtonModel>
+
+<button class="btn btn-link p-0 text-decoration-none"
+        type="button"
+        hx-get="@Model.GetUrl"
+        hx-push-url="true"
+        hx-vals='{"SortBy":"@Model.Column","SortDirection":"@Model.NextDirection"}'>
+    @Model.Label
+    @{
+        var glyph = Model.State switch
+        {
+            SortState.SortedAsc  => "↑",
+            SortState.SortedDesc => "↓",
+            _                    => "↕"
+        };
+    }
+    <span>@glyph</span>
+</button>

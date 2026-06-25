@@ -1,9 +1,13 @@
+using System.Linq.Expressions;
+
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
 public sealed record ItemRowModel(
-    int Id,
+    [property: SortDisable] int Id,
     string Code,
     string Name,
-    bool IsEnabled,
-    string EditUrl,
-    string DeleteUrl);
+    [property: CustomSortExpression(nameof(ItemRowModel.IsEnabledSortExpression))] bool IsEnabled)
+{
+    public static Expression<Func<ItemRowModel, object?>> IsEnabledSortExpression() => row => !row.IsEnabled;
+
+}

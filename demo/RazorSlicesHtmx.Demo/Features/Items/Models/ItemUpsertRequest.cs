@@ -1,7 +1,7 @@
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
 [RazorSlicesHtmx.HtmlNames.GenerateHtmlNames]
-public sealed class ItemUpsertRequest
+public sealed class ItemUpsertRequest : IHaveValidationResult
 {
     public int? Id { get; set; }
 
@@ -11,13 +11,6 @@ public sealed class ItemUpsertRequest
 
     public bool IsEnabled { get; set; }
 
-    public string? Search { get; set; }
-
-    public string? SortBy { get; set; }
-
-    public string? SortDir { get; set; }
-
-    public int Page { get; set; } = 1;
-
-    public int PageSize { get; set; } = 5;
+    public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } =
+        new Dictionary<string, (string errorCode, string errorMessage)[]>();
 }

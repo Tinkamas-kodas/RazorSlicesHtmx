@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Html;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Htmx;
 using RazorSlicesHtmx.AspNetCore.Models;
@@ -12,6 +13,7 @@ public static class HtmxFragmentResult
     public sealed class Builder(RazorSlice primary)
     {
         private readonly List<RazorSlice> _oobParts = [];
+        private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
 
         public Builder WithOob(string selector, RazorSlice content, string swap = HtmxSwap.InnerHtml)
@@ -49,11 +51,26 @@ public static class HtmxFragmentResult
             return this;
         }
 
+        public Builder WithRawOob(IHtmlContent raw)
+        {
+            _rawOobParts.Add(raw);
+            return this;
+        }
+
+        public Builder WithRawOob(IEnumerable<IHtmlContent> parts)
+        {
+            _rawOobParts.AddRange(parts);
+            return this;
+        }
+
         public IResult Build()
         {
-            RazorSlice fragment = _oobParts.Count == 0
+            RazorSlice fragment = _oobParts.Count == 0 && _rawOobParts.Count == 0
                 ? primary
-                : HtmxFragment.Create(new HtmxFragmentModel(primary, _oobParts));
+                : HtmxFragment.Create(new HtmxFragmentModel(
+                    primary,
+                    _oobParts,
+                    _rawOobParts.Count > 0 ? _rawOobParts : null));
 
             if (_triggers.Count == 0)
             {

@@ -1,0 +1,100 @@
+@inherits RazorSlice<ItemListModel>
+@using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
+
+@{
+    var header = Model.SortHeader("/items/list", BootstrapHeaderOptions.Default with
+    {
+        SortButtonClass = "items-sort-link btn btn-link p-0 text-decoration-none",
+    });
+
+}
+
+<section class="section-panel">
+    <div class="items-list-meta">
+        <p class="mb-0">
+            @if (Model.Total == 0)
+            {
+                <text>No items found.</text>
+            }
+            else
+            {
+                <text>Showing @Model.FromItem-@Model.ToItem of @Model.Total items.</text>
+            }
+        </p>
+
+    </div>
+
+    <form class="list-request-form"
+          hx-get="/items/list"
+          hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+          hx-target="#feature-details"
+          hx-push-url="true">
+        <div class="content-card card border-0 shadow-sm overflow-hidden">
+            @if (Model.Items.Count == 0)
+            {
+                <div class="items-empty">
+                    <p class="card-kicker">Empty result</p>
+                    <p class="items-modal-copy">Try a different search term or create the first item.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table items-table mb-0">
+                        <thead>
+                        <tr>
+                            <th>@header.Render(For.Code.Name, "Code")</th>
+                            <th>@header.Render(For.Name.Name, "Name")</th>
+                            <th>@header.Render(For.IsEnabled.Name, "Status")</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var row in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@row.Code</strong>
+                                </td>
+                                <td>@row.Name</td>
+                                <td>
+                                    <span class="status-pill @(row.IsEnabled ? "enabled" : "disabled")">
+                                        @(row.IsEnabled ? "Enabled" : "Disabled")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="items-actions">
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                hx-get="/items/edit/@row.Id"
+                                                hx-target="#feature-details"
+                                                hx-push-url="true"
+                                                hx-params="none"
+                                                type="button">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                hx-get="/items/delete/@row.Id"
+                                                hx-target="#dialog-host"
+                                                type="button">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        @* Renderer approach — programmatic, CSS customisable via BootstrapPagerOptions:
+            @Model.PagerContext("/items/list", BootstrapPagerOptions.Default with { PagerContainerClass = "items-pager" }).Render()
+           Custom renderer:
+            @Model.PagerContext("/items/list", new MyPagerRenderer()).Render() *@
+
+        <div class="items-pager">
+            @await RenderPartialAsync(_Pager.Create(Model.ToPagerModel("/items/list")))
+        </div>
+    </form>
+</section>

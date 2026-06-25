@@ -15,8 +15,8 @@ The codebase is intentionally split so the core package handles feature registra
 Core package for:
 
 - feature discovery and registration
-- `IFeatureModule`, `PageDefinition`, `FeatureMetadata`, and `FeatureRegistry`
-- HTMX response composition through `FeatureResultBuilder`
+- `IFeatureModule`, `BaseFeatureModule`, `PageDefinition`, `FeatureMetadata`, and `FeatureRegistry`
+- HTMX response composition through `FeatureResultBuilder` (full-page feature responses) and `HtmxFragmentResult` (fragment-only responses)
 - OOB fragments, triggers, navigation, and location responses
 - technical slices that are not tied to a CSS framework, such as `_Empty`, `HtmxFragment`, and `HtmxOob`
 - app-facing contracts such as `FeatureShellContext`, `IFeaturePageRenderer`, and `ITransientUiRenderer`
@@ -41,6 +41,11 @@ What it implements:
 - Bootstrap validation message markup for field-level validation feedback
 - Bootstrap-specific helper extensions such as `InputClass(...)`
 - Bootstrap fallback defaults for `DialogClass` and `ToastDelayMilliseconds`
+- `BootstrapHeaderOptions.Default` — Bootstrap CSS defaults for sort header buttons
+- `BootstrapPagerOptions.Default` — Bootstrap CSS defaults for the pager
+- `SortHeader(url, options?)` extension on `ListResponse` — Bootstrap-styled sort header context
+- `PagerContext(url, options?, texts?)` extension on `ListResponse` — Bootstrap-styled pager context
+- `_Pager` slice — Bootstrap pager with smart page windowing and page-size selector
 
 How to use it:
 
@@ -87,15 +92,13 @@ This package is intentionally narrow. It is meant to transform FluentValidation 
 
 ### `RazorSlicesHtmx.Generators`
 
-Roslyn source generator package for strongly typed HTML field metadata used in forms.
+Roslyn source generator package. Provides two generators:
 
-What it provides:
+**HTML names generator** — strongly typed HTML field metadata for forms:
 
 - `[GenerateHtmlNames(maxDepth: 0)]` attribute (injected at compile time)
 - generated constants grouped per field as `For.<Field>.Name`, `For.<Field>.Id`, and `For.<Field>.Path`
 - compile-time safe form metadata without runtime expression parsing
-
-How to use it:
 
 ```csharp
 using RazorSlicesHtmx.HtmlNames;
@@ -119,10 +122,349 @@ In Razor:
 <input id="@For.Code.Id" name="@For.Code.Name">
 ```
 
+**State generator** — `IHasState` implementation for any `partial` type passed to `WithState(...)`:
+
+- detects call sites automatically — no attribute required
+- generates `const string StateId`, `Serialize()`, and `SerializeOob()` on the type
+- see [State Management](#state-management) for usage
+
+**List request binder generator** — `FromQuery` and `BindAsync` for `ListRequest<T>` subclasses:
+
+- generated `SortMap` from row model public properties
+- respects `[SortDisable]` and `[CustomSortExpression]`
+- see [List Features](#list-features) for usage
+
 NuGet packaging notes:
 
 - package is shipped as an analyzer (`analyzers/dotnet/cs`)
 - analyzer assembly is not included as a runtime `lib` dependency
+
+## State Management
+
+`RazorSlicesHtmx` uses hidden-field divs to persist HTMX request state across interactions. State and paging/sort are kept in separate models so each HTMX request can include exactly the state it needs.
+
+### How It Works
+
+Any `partial` class or record passed to `WithState(...)` gets an `IHasState` implementation generated automatically by the source generator. No attribute is required — the generator detects the type from the call site.
+
+The generator produces three members on the type:
+
+```csharp
+public const string StateId = "item-search-model";   // type-level, no instance needed
+
+public IHtmlContent Serialize();      // renders <div id="item-search-model"><input ...></div>
+public IHtmlContent SerializeOob();   // renders the same div wrapped in hx-swap-oob
+```
+
+`StateId` is the type name in kebab-case. It is a compile-time constant, accessible directly from Razor without an instance.
+
+### Declaring a State Model
+
+Declare a `partial` record or class for each logical piece of state:
+
+```csharp
+// Search/filter state — separate from paging so each HTMX request controls what it carries.
+public sealed partial record ItemSearchModel(string? Search);
+
+// Paging and sort state — generated via ListRequest<T>, see List Features section.
+public sealed partial class ItemListQuery : ListRequest<ItemRowModel> { ... }
+```
+
+The generator runs when `WithState(search)` and `WithState(query)` are detected in the endpoint.
+
+### Endpoint
+
+Call `WithState` once per state model. Chaining is supported:
+
+```csharp
+app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
+{
+    var model = service.CreateListModel(db, search, query);
+    return Result.For(_FeaturePage.Create(model))
+        .AsFragment(_ListPage.Create(model))
+        .WithState(search)
+        .WithState(query)
+        .Build();
+});
+```
+
+On HTMX fragment responses, `WithState` sends each model as an OOB update so the hidden divs stay current in the DOM.
+
+### Host Slice
+
+Render the initial hidden divs once in the feature host slice (the one shown on full-page loads):
+
+```cshtml
+@Model.Search.Serialize()
+@Model.List.Serialize()
+```
+
+### HTMX Include
+
+Use `StateId` directly in `hx-include`. Because it is a `const`, no model instance is needed:
+
+```cshtml
+{{-- Sort/paging: preserve search, change sort or page --}}
+hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+
+{{-- Search submit: include sort state only; page resets via hx-vals --}}
+hx-include="#@ItemListQuery.StateId"
+hx-vals='{"Page":"1"}'
+
+{{-- Non-list actions (create/edit): no state in URL --}}
+hx-params="none"
+```
+
+Separating search and list state means you never need a CSS `:is()` filter to selectively exclude fields — you just omit the state model you do not want.
+
+### Excluding Properties
+
+Mark a property with `[StateNotMap]` to exclude it from state serialization:
+
+```csharp
+public sealed partial record ItemSearchModel(
+    string? Search,
+    [property: StateNotMap] string? InternalToken);
+```
+
+---
+
+## List Features
+
+`RazorSlicesHtmx` provides a structured paging and sorting workflow built around `ListRequest<T>` and `ListResponse<T, TListRequest>`.
+
+### `ListRequest<T>`
+
+Base class for paging and sort request models. Subclass it with `partial` and the generator adds:
+
+- `FromQuery(IQueryCollection query)` — reads paging and sort from query string
+- `BindAsync(HttpContext, ParameterInfo)` — enables direct minimal API parameter binding
+- `SortMap` — keyed sort expressions derived from public properties of the row type `T` (only when not manually overridden)
+
+```csharp
+public sealed partial class ItemListQuery : ListRequest<ItemRowModel>
+{
+    private const string DefaultSortBy = "code";
+    private const int DefaultPage = 1;
+    private const int DefaultPageSize = 5;
+
+    public ItemListQuery()
+    {
+        SortBy = DefaultSortBy;
+        Page = DefaultPage;
+        PageSize = DefaultPageSize;
+    }
+}
+```
+
+`DefaultSortBy`, `DefaultPage`, `DefaultPageSize`, and `MaxPageSize` constants are read by the generator to configure defaults and validation.
+
+### Sort Map Customization
+
+Apply attributes on row model properties to control generated sort keys:
+
+- `[SortDisable]` — exclude the property from sort keys entirely
+- `[CustomSortExpression(nameof(SomeMethod))]` — delegate to a static expression method
+
+```csharp
+using System.Linq.Expressions;
+
+public sealed record ItemRowModel(
+  [property: SortDisable] int Id,
+  string Code,
+  string Name,
+  [property: CustomSortExpression(nameof(ItemRowModel.IsEnabledSortExpression))] bool IsEnabled)
+{
+  public static Expression<Func<ItemRowModel, object?>> IsEnabledSortExpression() =>
+    row => !row.IsEnabled;
+}
+```
+
+In this example `id` is not sortable and the `isenabled` key uses a custom expression.
+
+### Filter and Sort in the Service
+
+Search/filter logic belongs in the endpoint or service, not in the request model. Apply the filter first, then call `ToPagedList` — it handles sorting and paging:
+
+```csharp
+public ItemListModel CreateListModel(AppDbContext db, ItemSearchModel search, ItemListQuery query)
+{
+    var items = db.Items.AsNoTracking()
+        .Select(item => new ItemRowModel(item.Id, item.Code, item.Name, item.IsEnabled));
+
+    if (!string.IsNullOrWhiteSpace(search.Search))
+    {
+        var term = search.Search.Trim();
+        items = items.Where(row => row.Code.Contains(term) || row.Name.Contains(term));
+    }
+
+    var paged = items.ToPagedList(query);
+    return new ItemListModel(paged.Total, search, query, paged.Items);
+}
+```
+
+### `ListResponse<T, TListRequest>`
+
+Paged output record. Not generated — constructed by `ToPagedList`.
+
+Exposes: `Total`, `TotalPages`, `CurrentPage`, `FromItem`, `ToItem`, `Items`, `Request`.
+
+```csharp
+var response = queryableRows.ToPagedList(listQuery);
+```
+
+### Sort Headers and Pager
+
+Sort headers and the pager are deliberately separate so each can be customised or replaced independently.
+
+#### Sort headers — `SortHeader`
+
+Obtain a `ListSortHeaderContext` from any `ListResponse` via `SortHeader(url, options?)` (Bootstrap5 extension) or `SortHeader(url, renderer)` (custom renderer).
+
+**Razor slice** — use `GetModel(column, label)` to obtain `SortButtonModel` and pass it to `_SortHeader`:
+
+```cshtml
+@{
+    var header = Model.SortHeader("/items/list", BootstrapHeaderOptions.Default with
+    {
+        SortButtonClass = "my-sort-btn btn btn-link p-0",
+        GlyphSpanClass  = "sort-glyph"
+    });
+}
+
+<th>@await RenderPartialAsync(_SortHeader.Create(header.GetModel("code",      "Code")))</th>
+<th>@await RenderPartialAsync(_SortHeader.Create(header.GetModel("name",      "Name")))</th>
+<th>@await RenderPartialAsync(_SortHeader.Create(header.GetModel("isenabled", "Status")))</th>
+```
+
+**Programmatic renderer** — renders directly to `IHtmlContent`:
+
+```cshtml
+<th>@header.Render("code",      "Code")</th>
+<th>@header.Render("name",      "Name")</th>
+<th>@header.Render("isenabled", "Status")</th>
+```
+
+Both produce a `<button>` with `hx-get`, `hx-push-url="true"`, and `hx-vals` carrying the toggled `SortBy`/`SortDirection`. `hx-include` is intentionally omitted — it is inherited from the enclosing `<form hx-include="...">` element.
+
+`BootstrapHeaderOptions` is a `record` — use `with` to override specific CSS fields:
+
+```csharp
+BootstrapHeaderOptions.Default with { SortButtonClass = "my-btn" }
+```
+
+**Custom renderer** — implement `IListSortHeaderRenderer` and pass it directly:
+
+```csharp
+Model.SortHeader("/items/list", new MyHeaderRenderer())
+```
+
+**Custom slice** — write your own slice that accepts `SortButtonModel` directly:
+
+```cshtml
+@* MyApp/Slices/_MySortHeader.cshtml *@
+@inherits RazorSlice<SortButtonModel>
+
+<button hx-get="@Model.GetUrl"
+        hx-push-url="true"
+        hx-vals='{"SortBy":"@Model.Column","SortDirection":"@Model.NextDirection"}'>
+    @Model.Label @(Model.State == SortState.SortedAsc ? "▲" : Model.State == SortState.SortedDesc ? "▼" : "⇅")
+</button>
+```
+
+```cshtml
+<th>@await RenderPartialAsync(_MySortHeader.Create(header.GetModel("code", "Code")))</th>
+```
+
+#### Pager — `_Pager` slice or `PagerContext`
+
+Obtain a `PagerModel` from any `ListResponse` via `ToPagerModel(url)`, or a `ListPagerContext` via `PagerContext(url, options?)`.
+
+**Razor slice** — pass `PagerModel` directly to `_Pager`:
+
+```cshtml
+@await RenderPartialAsync(_Pager.Create(Model.ToPagerModel("/items/list")))
+```
+
+Supply translations via `PagerTexts`:
+
+```cshtml
+@await RenderPartialAsync(_Pager.Create(
+    Model.ToPagerModel("/items/list", new PagerTexts(Showing: "Rodomi", Of: "iš", NoItems: "Nėra įrašų"))))
+```
+
+Override page size options (default `[5, 10, 20]`):
+
+```csharp
+Model.ToPagerModel("/items/list") with { PageSizeOptions = [10, 25, 50, 100] }
+```
+
+**Programmatic renderer** — returns `IHtmlContent`:
+
+```cshtml
+@Model.PagerContext("/items/list").Render()
+
+@* With CSS overrides and translations: *@
+@Model.PagerContext("/items/list",
+    BootstrapPagerOptions.Default with { PagerContainerClass = "my-pager" },
+    new PagerTexts(Showing: "Rodomi", Of: "iš")).Render()
+```
+
+Both produce a pager with smart page windowing, a page-size selector, and localised display text.
+
+`BootstrapPagerOptions` is a `record` — use `with` to override specific CSS fields:
+
+```csharp
+BootstrapPagerOptions.Default with { PagerActiveClass = "btn btn-primary btn-sm" }
+```
+
+**Custom renderer** — implement `IListPagerRenderer` and pass it directly:
+
+```csharp
+Model.PagerContext("/items/list", new MyPagerRenderer()).Render()
+```
+
+**Custom slice** — write your own slice that accepts `PagerModel` directly:
+
+```cshtml
+@* MyApp/Slices/_MyPager.cshtml *@
+@inherits RazorSlice<PagerModel>
+
+@for (var p = 1; p <= Model.TotalPages; p++) { ... }
+```
+
+```cshtml
+@await RenderPartialAsync(_MyPager.Create(Model.ToPagerModel("/items/list")))
+```
+
+#### Pager behaviour
+
+- **Page windowing**: always shows first page, last page, current page, and one page on each side. Ellipsis (`…`) appears between non-consecutive entries. When the total number of pages is five or fewer all pages are shown without ellipsis.
+- **Page size selector**: a `<select>` using `hx-vals='js:{"PageSize": event.target.value, "Page": 1}'` — resets to page 1 on change; avoids duplicate parameters.
+- **Localisation**: all display strings (`Showing`, `of`, `No items`, `…`, `per page`) come from `PagerTexts` which defaults to English.
+
+### Search Model Binding
+
+Simple `partial` records for search/filter bind from query string via `[AsParameters]` without any generator:
+
+```csharp
+app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query) => ...);
+```
+
+`[AsParameters]` unwraps the record and reads each property from the query string. Because HTMX GET requests append `hx-include` values as query parameters, this works for both direct URL navigation and HTMX-driven interactions.
+
+### How To Build a New List Feature
+
+1. Create a row model for table rows.
+2. Create a `partial` class deriving from `ListRequest<TRow>`; define `DefaultSortBy`, `DefaultPage`, `DefaultPageSize` constants.
+3. Create a `partial` record for search/filter state (e.g. `ItemSearchModel(string? Search)`).
+4. In the endpoint, take both as parameters (`[AsParameters] ItemSearchModel search, ItemListQuery query`).
+5. Apply filter explicitly in the service, then call `items.ToPagedList(query)` — it handles sorting and paging.
+6. Return `.WithState(search).WithState(query)` in the result builder.
+7. In the host slice, render `@Model.Search.Serialize()` and `@Model.List.Serialize()`.
+8. In list slices, obtain a sort header context via `Model.SortHeader(url, BootstrapHeaderOptions.Default with { ... })` and call `header.Render(column, label)` per column.
+9. Render the pager via `@await RenderPartialAsync(_Pager.Create(Model.ToPagerModel(url)))` or `Model.PagerContext(url).Render()`.
+10. In HTMX requests, use `hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"` (or a subset as needed).
 
 ### Demo app
 
@@ -153,6 +495,8 @@ The most important core contracts are:
 
 - `IFeatureModule`
   feature registration unit; exposes a `PageDefinition` and maps feature-local endpoints
+- `BaseFeatureModule`
+  abstract base class implementing `IFeatureModule`; provides a `Result.For(detail)` and `Result.Dialog(content)` convenience facade backed by `FeatureResultBuilder`; preferred over implementing `IFeatureModule` directly when using `FeatureResultBuilder`
 - `FeatureMetadata`
   lightweight description of a feature page for discovery and navigation projection
 - `PageDefinition`
@@ -162,7 +506,11 @@ The most important core contracts are:
 - `IFeaturePageRenderer`
   implemented by the app; responsible for full-page shell rendering and navigation rendering
 - `FeatureResultBuilder`
-  fluent orchestration API for feature endpoints
+  fluent orchestration API for feature endpoints; used when a response may be a full page render or an HTMX fragment depending on request type
+- `HtmxFragmentResult`
+  lightweight result builder for endpoints that always return a fragment, not a full feature page; supports OOB parts and triggers
+- `IHasState`
+  interface implemented by state models; generated automatically for any `partial` type passed to `WithState(...)`; exposes `Serialize()`, `SerializeOob()`, and `const StateId`
 
 ## Quick Start
 
@@ -362,7 +710,18 @@ The main goal is to make HTMX feature flows, transient UI responses, and feature
 If you want a concrete reference, look at `demo/RazorSlicesHtmx.Demo` for:
 
 - feature registration
-- app-owned page shell rendering
+- app-owned page shell rendering (`DemoFeaturePageRenderer`)
 - Bootstrap5 transient UI integration
 - FluentValidation integration
 - vertical slice examples including CRUD and nested HTMX interactions
+
+The demo contains three feature modules:
+
+- **Items** (`Features/Items`)
+  Full CRUD feature using `BaseFeatureModule`; demonstrates paged list with search and sort, create/edit dialogs, delete confirmation dialog, toasts, FluentValidation, and state preservation across HTMX interactions.
+
+- **Form** (`Features/Form`)
+  Live form preview feature using `IFeatureModule` directly; demonstrates a POST endpoint that returns a rendered preview fragment without a full-page reload.
+
+- **HowTo** (`Features/HowTo`)
+  Step-by-step content feature using `IFeatureModule` directly; demonstrates `HtmxFragmentResult` with an OOB update to the pill navigation when the active step changes.

@@ -15,16 +15,18 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override void MapEndpoints(WebApplication app)
     {
-        app.MapGet("/items/list", (AppDbContext db) =>
+        app.MapGet("/items/list", (AppDbContext db, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
-            var model = _content.CreateListModel(db, _content.CreateQuery(Result.Request.Query));
-            return Result.Create(_ItemsPage.Create(model))
-                .AsFragment(_ItemsWorkspace.Create(model))
+            var model = _content.CreateListModel(db, search, query);
+            return Result.For(_FeaturePage.Create(model))
+                .AsFragment(_ListPage.Create(model))
+                .WithState(search)
+                .WithState(query)
                 .Build();
         });
 
         app.MapGet("/items/create", () =>
-            Result.Create(_ItemFormPage.Create(_content.CreateCreateFormModel(_content.CreateQuery(Result.Request.Query))))
+            Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
                 .Build());
 
         app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request, AppDbContext db, IValidator<ItemUpsertRequest> validator) =>
@@ -34,7 +36,8 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
                 if (!validationResult.IsValid)
                 {
-                    return Result.Create(_ItemFormPage.Create(_content.CreateInvalidFormModel(request, validationResult, false)))
+                    request.Errors = validationResult.ToErrorDictionary();
+                    return Result.For(_CreatePage.Create(request))
                         .Build();
                 }
 
@@ -42,11 +45,9 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 db.Items.Add(entity);
                 db.SaveChanges();
 
-                var returnUrl = _content.CreateQuery(request).ToRoute("/items");
-
-                return Result.Create(_Empty.Create())
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was created.")
-                    .WithLocation(returnUrl)
                     .Build();
             })
             .DisableAntiforgery();
@@ -59,7 +60,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Results.NotFound();
             }
 
-            return Result.Create(_ItemFormPage.Create(_content.CreateEditFormModel(entity, _content.CreateQuery(Result.Request.Query))))
+            return Result.For(_EditPage.Create(_content.CreateEditFormModel(entity)))
                 .Build();
         });
 
@@ -77,18 +78,17 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
                 if (!validationResult.IsValid)
                 {
-                    return Result.Create(_ItemFormPage.Create(_content.CreateInvalidFormModel(request, validationResult, true)))
+                    request.Errors = validationResult.ToErrorDictionary();
+                    return Result.For(_EditPage.Create(request))
                         .Build();
                 }
 
                 _content.Apply(entity, request);
                 db.SaveChanges();
 
-                var returnUrl = _content.CreateQuery(request).ToRoute("/items");
-
-                return Result.Create(_Empty.Create())
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was updated.")
-                    .WithLocation(returnUrl)
                     .Build();
             })
             .DisableAntiforgery();
@@ -101,10 +101,10 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Results.NotFound();
             }
 
-            return Result.Dialog(_DeleteItemDialogContent.Create(_content.CreateDeleteDialogModel(entity, _content.CreateQuery(Result.Request.Query))));
+            return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(entity)));
         });
 
-        app.MapPost("/items/delete/{id:int}", (int id, [FromForm] ItemDeleteRequest request, AppDbContext db) =>
+        app.MapPost("/items/delete/{id:int}", (int id, AppDbContext db) =>
             {
                 var entity = db.Items.Find(id);
                 if (entity is null)
@@ -115,7 +115,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 db.Items.Remove(entity);
                 db.SaveChanges();
 
-                return Result.Create(_Empty.Create())
+                return Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: "dark")
                     .ClearDialog()

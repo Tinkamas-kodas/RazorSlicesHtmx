@@ -15,18 +15,40 @@
     <div class="nav flex-column gap-2 mt-4">
         @foreach (var item in Model.NavigationItems)
         {
-            var isActive = string.Equals(Model.ActiveNavKey, item.Key, StringComparison.OrdinalIgnoreCase);
-            var itemClass = isActive ? "sidebar-link active" : "sidebar-link";
+            if (item is NavigationRouteItem routeItem)
+            {
+                var isActive = string.Equals(Model.ActiveNavKey, routeItem.Key, StringComparison.OrdinalIgnoreCase);
+                var itemClass = isActive ? "sidebar-link active" : "sidebar-link";
 
-            <a href="@item.Route"
-               hx-get="@item.Route"
-               hx-target="@detailTargetSelector"
-               hx-swap="@HtmxSwap.InnerHtml"
-               hx-push-url="true"
-               class="@itemClass">
-                <span class="sidebar-link-label">@item.Label</span>
-                <span class="sidebar-link-copy">@item.Description</span>
-            </a>
+                <a href="@routeItem.Route"
+                   hx-get="@routeItem.Route"
+                   hx-target="@detailTargetSelector"
+                   hx-swap="@HtmxSwap.InnerHtml"
+                   hx-push-url="true"
+                   class="@itemClass">
+                    <span class="sidebar-link-label">@routeItem.Label</span>
+                </a>
+            }
+            else if (item is NavigationGroupItem groupItem)
+            {
+                <div class="sidebar-group">
+                    <span class="sidebar-group-label">@groupItem.Label</span>
+                    @foreach (var child in groupItem.Children.OfType<NavigationRouteItem>())
+                    {
+                        var isChildActive = string.Equals(Model.ActiveNavKey, child.Key, StringComparison.OrdinalIgnoreCase);
+                        var childClass = isChildActive ? "sidebar-link active" : "sidebar-link";
+
+                        <a href="@child.Route"
+                           hx-get="@child.Route"
+                           hx-target="@detailTargetSelector"
+                           hx-swap="@HtmxSwap.InnerHtml"
+                           hx-push-url="true"
+                           class="@childClass">
+                            <span class="sidebar-link-label">@child.Label</span>
+                        </a>
+                    }
+                </div>
+            }
         }
     </div>
 </nav>

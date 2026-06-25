@@ -4,7 +4,7 @@ namespace RazorSlicesHtmx.AspNetCore.Features;
 
 public interface IFeatureModule
 {
-    PageDefinition Page { get; }
+    IReadOnlyList<NavigationItem> NavigationItems { get; }
 
     void MapEndpoints(WebApplication app);
 }

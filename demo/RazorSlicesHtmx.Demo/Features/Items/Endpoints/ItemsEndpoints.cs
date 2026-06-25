@@ -11,7 +11,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 {
     private readonly ItemsContentService _content = new();
 
-    public override PageDefinition Page => _content.CreatePageDefinition();
+    public override IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
 
     public override void MapEndpoints(WebApplication app)
     {
@@ -22,12 +22,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 .AsFragment(_ListPage.Create(model))
                 .WithState(search)
                 .WithState(query)
-                .Build();
+                .BuildAsync();
         });
 
         app.MapGet("/items/create", () =>
             Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
-                .Build());
+                .BuildAsync());
 
         app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request, AppDbContext db, IValidator<ItemUpsertRequest> validator) =>
             {
@@ -38,7 +38,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 {
                     request.Errors = validationResult.ToErrorDictionary();
                     return Result.For(_CreatePage.Create(request))
-                        .Build();
+                        .BuildAsync();
                 }
 
                 var entity = _content.CreateEntity(request);
@@ -48,7 +48,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was created.")
-                    .Build();
+                    .BuildAsync();
             })
             .DisableAntiforgery();
 
@@ -57,11 +57,11 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var entity = db.Items.Find(id);
             if (entity is null)
             {
-                return Results.NotFound();
+                return Task.FromResult(Results.NotFound());
             }
 
             return Result.For(_EditPage.Create(_content.CreateEditFormModel(entity)))
-                .Build();
+                .BuildAsync();
         });
 
         app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request, AppDbContext db, IValidator<ItemUpsertRequest> validator) =>
@@ -69,7 +69,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 var entity = db.Items.Find(id);
                 if (entity is null)
                 {
-                    return Results.NotFound();
+                    return Task.FromResult(Results.NotFound());
                 }
 
                 request.Id = id;
@@ -80,7 +80,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 {
                     request.Errors = validationResult.ToErrorDictionary();
                     return Result.For(_EditPage.Create(request))
-                        .Build();
+                        .BuildAsync();
                 }
 
                 _content.Apply(entity, request);
@@ -89,7 +89,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was updated.")
-                    .Build();
+                    .BuildAsync();
             })
             .DisableAntiforgery();
 
@@ -109,7 +109,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 var entity = db.Items.Find(id);
                 if (entity is null)
                 {
-                    return Results.NotFound();
+                    return Task.FromResult(Results.NotFound());
                 }
 
                 db.Items.Remove(entity);
@@ -119,7 +119,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: "dark")
                     .ClearDialog()
-                    .Build();
+                    .BuildAsync();
             })
             .DisableAntiforgery();
     }

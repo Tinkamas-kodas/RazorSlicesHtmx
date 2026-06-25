@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlicesHtmx.AspNetCore.Models;
 
@@ -7,19 +9,26 @@ namespace RazorSlicesHtmx.AspNetCore.Features;
 public sealed class FeatureRegistry
 {
     private readonly IFeatureModule[] _features;
-    private readonly PageDefinition[] _pages;
+    private readonly IReadOnlyList<NavigationItem> _navigation;
+    private readonly NavigationRouteItem[] _routeItems;
 
     private FeatureRegistry(IFeatureModule[] features)
     {
         _features = features;
-        _pages = features
-            .Select(feature => feature.Page)
-            .OrderBy(page => page.Metadata.NavigationOrder)
-            .ThenBy(page => page.Label, StringComparer.OrdinalIgnoreCase)
+        _navigation = features
+            .SelectMany(f => f.NavigationItems)
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Label, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        _routeItems = CollectRouteItems(_navigation).ToArray();
     }
 
-    public PageDefinition DefaultPage => _pages[0];
+    public NavigationRouteItem DefaultRouteItem =>
+        _routeItems.Length > 0
+            ? _routeItems[0]
+            : throw new InvalidOperationException("No navigable route items are registered.");
+
+    public IReadOnlyList<NavigationRouteItem> RouteItems => _routeItems;
 
     public static FeatureRegistry Discover(Assembly assembly, IServiceProvider services) =>
         Discover([assembly], services);
@@ -50,20 +59,76 @@ public sealed class FeatureRegistry
         }
     }
 
-    public bool TryGetPage(string? key, out PageDefinition page)
+    public bool TryGetRouteItem(string? key, out NavigationRouteItem routeItem)
     {
-        page = _pages.FirstOrDefault(item =>
-            string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase)) ?? DefaultPage;
+        routeItem = _routeItems.FirstOrDefault(item =>
+            string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase)) ?? DefaultRouteItem;
 
-        return _pages.Any(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase));
+        return _routeItems.Any(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase));
     }
 
-    public FeatureShellContext CreateShellContext(PageDefinition currentPage, RazorSlices.RazorSlice detail)
+    public async Task<FeatureShellContext> CreateShellContextAsync(
+        NavigationRouteItem currentItem,
+        RazorSlices.RazorSlice detail,
+        ClaimsPrincipal? user,
+        IAuthorizationService? authService)
     {
-        var pages = _pages
-            .Select(item => item.Metadata)
-            .ToArray();
+        var filtered = await FilterNavigationAsync(_navigation, user, authService);
+        return new FeatureShellContext(currentItem, filtered, detail);
+    }
 
-        return new FeatureShellContext(currentPage.Metadata, pages, detail);
+    private static async Task<IReadOnlyList<NavigationItem>> FilterNavigationAsync(
+        IReadOnlyList<NavigationItem> items,
+        ClaimsPrincipal? user,
+        IAuthorizationService? authService)
+    {
+        if (user is null || authService is null)
+        {
+            return items;
+        }
+
+        var result = new List<NavigationItem>();
+
+        foreach (var item in items)
+        {
+            if (item.AuthorizationPolicy is not null)
+            {
+                var authResult = await authService.AuthorizeAsync(user, item.AuthorizationPolicy);
+                if (!authResult.Succeeded) continue;
+            }
+
+            if (item is NavigationGroupItem group)
+            {
+                var filteredChildren = await FilterNavigationAsync(group.Children, user, authService);
+                if (filteredChildren.Count > 0)
+                {
+                    result.Add(group with { Children = filteredChildren });
+                }
+            }
+            else
+            {
+                result.Add(item);
+            }
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<NavigationRouteItem> CollectRouteItems(IReadOnlyList<NavigationItem> items)
+    {
+        foreach (var item in items)
+        {
+            if (item is NavigationRouteItem route)
+            {
+                yield return route;
+            }
+            else if (item is NavigationGroupItem group)
+            {
+                foreach (var child in CollectRouteItems(group.Children))
+                {
+                    yield return child;
+                }
+            }
+        }
     }
 }

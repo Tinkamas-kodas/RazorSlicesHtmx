@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlices;
@@ -13,26 +14,27 @@ namespace RazorSlicesHtmx.AspNetCore.Results;
 
 public static class SliceResults
 {
-    public static IResult SlicePage(
+    public static async Task<IResult> SlicePageAsync(
         HttpRequest request,
         FeatureRegistry features,
-        PageDefinition page,
+        NavigationRouteItem routeItem,
         Func<HttpContext, RazorSlice> detailFactory)
     {
-        return SlicePage(request, features, page, detailFactory(request.HttpContext));
+        return await SlicePageAsync(request, features, routeItem, detailFactory(request.HttpContext));
     }
 
-    public static IResult SlicePage(
+    public static async Task<IResult> SlicePageAsync(
         HttpRequest request,
         FeatureRegistry features,
-        PageDefinition page,
+        NavigationRouteItem routeItem,
         RazorSlice detail,
         params RazorSlice[] additionalOobParts)
     {
         var pageRenderer = request.HttpContext.RequestServices.GetRequiredService<IFeaturePageRenderer>();
         var transientUiRenderer = request.HttpContext.RequestServices.GetRequiredService<ITransientUiRenderer>();
         var options = request.HttpContext.RequestServices.GetRequiredService<IOptions<RazorSlicesHtmxOptions>>().Value;
-        var shellContext = features.CreateShellContext(page, detail);
+        var authService = request.HttpContext.RequestServices.GetService<IAuthorizationService>();
+        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService);
 
         if (!request.IsHtmxRequest())
         {

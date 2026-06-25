@@ -12,94 +12,94 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 
 public class FeatureResultBuilderTests
 {
-    private static readonly FeatureMetadata TestMeta = new(100, "test", "Test", "/test", "Test feature");
-    private static readonly PageDefinition TestPage = new(TestMeta, () => null!);
+    private static readonly NavigationRouteItem TestRouteItem = new("test", "Test", "/test",
+        new PageDefinition(() => null!));
 
     [Fact]
-    public void Build_returns_full_page_for_non_htmx_request()
+    public async Task BuildAsync_returns_full_page_for_non_htmx_request()
     {
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail).Build();
+        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
 
         Assert.True(fakeRenderer.PageRendered);
     }
 
     [Fact]
-    public void Build_returns_fragment_for_htmx_request()
+    public async Task BuildAsync_returns_fragment_for_htmx_request()
     {
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail).Build();
+        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
 
         Assert.False(fakeRenderer.PageRendered);
         Assert.NotNull(result);
     }
 
     [Fact]
-    public void Build_with_AsFragment_uses_fragment_as_primary()
+    public async Task BuildAsync_with_AsFragment_uses_fragment_as_primary()
     {
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
         var fragment = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .AsFragment(fragment)
-            .Build();
+            .BuildAsync();
 
         // When AsFragment is set, navigation OOB should NOT be added
         Assert.False(fakeRenderer.NavigationRendered);
     }
 
     [Fact]
-    public void Build_without_AsFragment_includes_navigation_oob()
+    public async Task BuildAsync_without_AsFragment_includes_navigation_oob()
     {
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail).Build();
+        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
 
         Assert.True(fakeRenderer.NavigationRendered);
     }
 
     [Fact]
-    public void Build_non_htmx_with_NavigationUrl_redirects()
+    public async Task BuildAsync_non_htmx_with_NavigationUrl_redirects()
     {
         var (builder, _) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .WithNavigation("/items")
-            .Build();
+            .BuildAsync();
 
         Assert.IsAssignableFrom<IResult>(result);
     }
 
     [Fact]
-    public void Build_non_htmx_with_LocationUrl_redirects()
+    public async Task BuildAsync_non_htmx_with_LocationUrl_redirects()
     {
         var (builder, _) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .WithLocation("/items")
-            .Build();
+            .BuildAsync();
 
         Assert.IsAssignableFrom<IResult>(result);
     }
 
     [Fact]
-    public async Task Build_htmx_with_NavigationUrl_sets_HX_Replace_Url()
+    public async Task BuildAsync_htmx_with_NavigationUrl_sets_HX_Replace_Url()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .AsFragment(new FakeSlice())
             .WithNavigation("/items", replace: true)
-            .Build();
+            .BuildAsync();
 
         var context = CreateHttpContext(isHtmx: true);
         await result.ExecuteAsync(context);
@@ -108,15 +108,15 @@ public class FeatureResultBuilderTests
     }
 
     [Fact]
-    public async Task Build_htmx_with_NavigationUrl_push_sets_HX_Push_Url()
+    public async Task BuildAsync_htmx_with_NavigationUrl_push_sets_HX_Push_Url()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .AsFragment(new FakeSlice())
             .WithNavigation("/items", replace: false)
-            .Build();
+            .BuildAsync();
 
         var context = CreateHttpContext(isHtmx: true);
         await result.ExecuteAsync(context);
@@ -125,14 +125,14 @@ public class FeatureResultBuilderTests
     }
 
     [Fact]
-    public async Task Build_htmx_with_LocationUrl_sets_HX_Location()
+    public async Task BuildAsync_htmx_with_LocationUrl_sets_HX_Location()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = builder.Create(TestPage, detail)
+        var result = await builder.Create(TestRouteItem, detail)
             .WithLocation("/items")
-            .Build();
+            .BuildAsync();
 
         var context = CreateHttpContext(isHtmx: true);
         await result.ExecuteAsync(context);
@@ -148,7 +148,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithTrigger(""));
+            builder.Create(TestRouteItem, new FakeSlice()).WithTrigger(""));
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithNavigation(""));
+            builder.Create(TestRouteItem, new FakeSlice()).WithNavigation(""));
     }
 
     [Fact]
@@ -166,60 +166,59 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithLocation(""));
+            builder.Create(TestRouteItem, new FakeSlice()).WithLocation(""));
     }
 
     [Fact]
-    public void WithToast_adds_toast_to_result()
+    public async Task WithToast_adds_toast_to_result()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        // Should not throw — toast is a valid operation
-        var b = builder.Create(TestPage, new FakeSlice())
+        var b = builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithToast("Item saved", "Success", "success");
 
-        var result = b.Build();
+        var result = await b.BuildAsync();
         Assert.NotNull(result);
     }
 
     [Fact]
-    public void WithDialog_adds_dialog_oob()
+    public async Task WithDialog_adds_dialog_oob()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var b = builder.Create(TestPage, new FakeSlice())
+        var b = builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithDialog(new FakeSlice());
 
-        var result = b.Build();
+        var result = await b.BuildAsync();
         Assert.NotNull(result);
     }
 
     [Fact]
-    public void ClearDialog_adds_empty_dialog_oob()
+    public async Task ClearDialog_adds_empty_dialog_oob()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var b = builder.Create(TestPage, new FakeSlice())
+        var b = builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .ClearDialog();
 
-        var result = b.Build();
+        var result = await b.BuildAsync();
         Assert.NotNull(result);
     }
 
     [Fact]
-    public void WithState_adds_serialized_oob()
+    public async Task WithState_adds_serialized_oob()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
         var state = new FakeState();
 
-        var b = builder.Create(TestPage, new FakeSlice())
+        var b = builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithState(state);
 
-        var result = b.Build();
+        var result = await b.BuildAsync();
         Assert.NotNull(result);
         Assert.True(state.SerializeOobCalled);
     }
@@ -230,7 +229,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentNullException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithState(null!));
+            builder.Create(TestRouteItem, new FakeSlice()).WithState(null!));
     }
 
     [Fact]
@@ -239,7 +238,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithRetarget(""));
+            builder.Create(TestRouteItem, new FakeSlice()).WithRetarget(""));
     }
 
     [Fact]
@@ -248,19 +247,19 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestPage, new FakeSlice()).WithReswap(""));
+            builder.Create(TestRouteItem, new FakeSlice()).WithReswap(""));
     }
 
     [Fact]
-    public async Task Build_htmx_with_retarget_and_reswap_sets_headers()
+    public async Task BuildAsync_htmx_with_retarget_and_reswap_sets_headers()
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var result = builder.Create(TestPage, new FakeSlice())
+        var result = await builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithRetarget("#edit-form")
             .WithReswap("outerHTML")
-            .Build();
+            .BuildAsync();
 
         var context = CreateHttpContext(isHtmx: true);
         await result.ExecuteAsync(context);
@@ -286,6 +285,7 @@ public class FeatureResultBuilderTests
         services.AddSingleton(registry);
 
         var sp = services.BuildServiceProvider();
+        httpContext.RequestServices = sp;
 
         var builder = new FeatureResultBuilder(httpContextAccessor, sp, renderer, transientUi, options);
         return (builder, renderer);

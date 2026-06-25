@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -30,11 +31,11 @@ public sealed class FeatureResultBuilder(
         httpContextAccessor.HttpContext?.Request ??
         throw new InvalidOperationException("No active HttpContext is available for feature result creation.");
 
-    public Builder Create(PageDefinition page, RazorSlice detail) => new(this, page, detail);
+    public Builder Create(NavigationRouteItem routeItem, RazorSlice detail) => new(this, routeItem, detail);
 
     public RazorSlice CreateDialog(RazorSlice content) => _transientUiRenderer.RenderDialog(content);
 
-    public sealed class Builder(FeatureResultBuilder owner, PageDefinition page, RazorSlice detail)
+    public sealed class Builder(FeatureResultBuilder owner, NavigationRouteItem routeItem, RazorSlice detail)
     {
         private readonly List<RazorSlice> _directOobParts = [];
         private readonly List<(string Selector, RazorSlice Content, string Swap)> _targetedOobParts = [];
@@ -149,10 +150,13 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
-        public IResult Build()
+        public async Task<IResult> BuildAsync()
         {
             var request = owner.Request;
-            var shellContext = owner.Features.CreateShellContext(page, detail);
+            var httpContext = request.HttpContext;
+            var user = httpContext.User;
+            var authService = httpContext.RequestServices.GetService<IAuthorizationService>();
+            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService);
 
             if (!request.IsHtmxRequest())
             {

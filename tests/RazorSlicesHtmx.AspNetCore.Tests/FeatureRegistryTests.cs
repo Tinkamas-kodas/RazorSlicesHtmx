@@ -9,49 +9,49 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 public class FeatureRegistryTests
 {
     [Fact]
-    public void Discover_orders_pages_and_builds_navigation_layout()
+    public async Task Discover_orders_pages_and_builds_navigation_layout()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services);
 
-        var shellContext = registry.CreateShellContext(registry.DefaultPage, null!);
+        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
 
-        Assert.Equal("alpha", registry.DefaultPage.Key);
-        Assert.Equal("alpha", shellContext.CurrentPage.Key);
-        Assert.Equal("Alpha", shellContext.CurrentPage.Label);
+        Assert.Equal("alpha", registry.DefaultRouteItem.Key);
+        Assert.Equal("alpha", shellContext.CurrentItem.Key);
+        Assert.Equal("Alpha", shellContext.CurrentItem.Label);
         Assert.Collection(
-            shellContext.Pages,
+            shellContext.Navigation.OfType<NavigationRouteItem>(),
             item => Assert.Equal("alpha", item.Key),
             item => Assert.Equal("bravo", item.Key),
             item => Assert.Equal("charlie", item.Key));
     }
 
     [Fact]
-    public void TryGetPage_returns_default_page_for_unknown_key()
+    public void TryGetRouteItem_returns_default_for_unknown_key()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services);
 
-        var found = registry.TryGetPage("missing", out var page);
+        var found = registry.TryGetRouteItem("missing", out var routeItem);
 
         Assert.False(found);
-        Assert.Equal(registry.DefaultPage, page);
+        Assert.Equal(registry.DefaultRouteItem, routeItem);
     }
 
     [Fact]
-    public void Discover_multi_assembly_merges_features()
+    public async Task Discover_multi_assembly_merges_features()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var assemblies = new[] { typeof(FeatureRegistryTests).Assembly };
 
         var registry = FeatureRegistry.Discover(assemblies, services);
 
-        var shellContext = registry.CreateShellContext(registry.DefaultPage, null!);
-        Assert.Equal(3, shellContext.Pages.Count);
+        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
+        Assert.Equal(3, shellContext.Navigation.Count);
     }
 
     [Fact]
-    public void Discover_multi_assembly_deduplicates_same_assembly()
+    public async Task Discover_multi_assembly_deduplicates_same_assembly()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var assembly = typeof(FeatureRegistryTests).Assembly;
@@ -59,8 +59,8 @@ public class FeatureRegistryTests
 
         var registry = FeatureRegistry.Discover(assemblies, services);
 
-        var shellContext = registry.CreateShellContext(registry.DefaultPage, null!);
-        Assert.Equal(3, shellContext.Pages.Count);
+        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
+        Assert.Equal(3, shellContext.Navigation.Count);
     }
 
     [Fact]
@@ -76,9 +76,10 @@ public class FeatureRegistryTests
 
 public sealed class AlphaFeature : IFeatureModule
 {
-    public PageDefinition Page => new(
-        new FeatureMetadata(100, "alpha", "Alpha", "/alpha", "First"),
-        () => null!);
+    public IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new NavigationRouteItem("alpha", "Alpha", "/alpha", new PageDefinition(() => null!))
+    ];
 
     public void MapEndpoints(WebApplication app)
     {
@@ -87,9 +88,10 @@ public sealed class AlphaFeature : IFeatureModule
 
 public sealed class BravoFeature : IFeatureModule
 {
-    public PageDefinition Page => new(
-        new FeatureMetadata(100, "bravo", "Bravo", "/bravo", "Second"),
-        () => null!);
+    public IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new NavigationRouteItem("bravo", "Bravo", "/bravo", new PageDefinition(() => null!))
+    ];
 
     public void MapEndpoints(WebApplication app)
     {
@@ -98,9 +100,10 @@ public sealed class BravoFeature : IFeatureModule
 
 public sealed class CharlieFeature : IFeatureModule
 {
-    public PageDefinition Page => new(
-        new FeatureMetadata(200, "charlie", "Charlie", "/charlie", "Third"),
-        () => null!);
+    public IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new NavigationRouteItem("charlie", "Charlie", "/charlie", new PageDefinition(() => null!), Order: 200)
+    ];
 
     public void MapEndpoints(WebApplication app)
     {

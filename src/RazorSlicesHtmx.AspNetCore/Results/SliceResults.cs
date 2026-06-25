@@ -28,13 +28,14 @@ public static class SliceResults
         FeatureRegistry features,
         NavigationRouteItem routeItem,
         RazorSlice detail,
+        CancellationToken cancellationToken = default,
         params RazorSlice[] additionalOobParts)
     {
         var pageRenderer = request.HttpContext.RequestServices.GetRequiredService<IFeaturePageRenderer>();
         var transientUiRenderer = request.HttpContext.RequestServices.GetRequiredService<ITransientUiRenderer>();
         var options = request.HttpContext.RequestServices.GetRequiredService<IOptions<RazorSlicesHtmxOptions>>().Value;
         var authService = request.HttpContext.RequestServices.GetService<IAuthorizationService>();
-        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService);
+        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService, cancellationToken);
 
         if (!request.IsHtmxRequest())
         {

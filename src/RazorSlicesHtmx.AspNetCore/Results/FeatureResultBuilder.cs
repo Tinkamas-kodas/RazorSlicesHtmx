@@ -46,6 +46,8 @@ public sealed class FeatureResultBuilder(
         private bool _replaceNavigation = true;
         private string? _locationUrl;
         private bool _replaceLocation = true;
+        private string? _retarget;
+        private string? _reswap;
 
         public Builder AsFragment(RazorSlice fragment)
         {
@@ -125,6 +127,28 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
+        public Builder WithRetarget(string selector)
+        {
+            if (string.IsNullOrWhiteSpace(selector))
+            {
+                throw new ArgumentException("Retarget selector is required.", nameof(selector));
+            }
+
+            _retarget = selector;
+            return this;
+        }
+
+        public Builder WithReswap(string swapMode)
+        {
+            if (string.IsNullOrWhiteSpace(swapMode))
+            {
+                throw new ArgumentException("Reswap mode is required.", nameof(swapMode));
+            }
+
+            _reswap = swapMode;
+            return this;
+        }
+
         public IResult Build()
         {
             var request = owner.Request;
@@ -182,6 +206,16 @@ public sealed class FeatureResultBuilder(
             foreach (var trigger in _triggers)
             {
                 htmxBuilder.WithTrigger(trigger);
+            }
+
+            if (_retarget is not null)
+            {
+                htmxBuilder.WithRetarget(_retarget);
+            }
+
+            if (_reswap is not null)
+            {
+                htmxBuilder.WithReswap(_reswap);
             }
 
             var result = htmxBuilder.Build();

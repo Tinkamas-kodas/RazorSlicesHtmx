@@ -83,6 +83,70 @@ public class HtmxFragmentResultTests
         Assert.IsNotType<FakeSlice>(result);
     }
 
+    [Fact]
+    public void WithRetarget_throws_on_empty_selector()
+    {
+        var builder = HtmxFragmentResult.Create(null!);
+
+        Assert.Throws<ArgumentException>(() => builder.WithRetarget(""));
+        Assert.Throws<ArgumentException>(() => builder.WithRetarget("  "));
+    }
+
+    [Fact]
+    public void WithReswap_throws_on_empty_mode()
+    {
+        var builder = HtmxFragmentResult.Create(null!);
+
+        Assert.Throws<ArgumentException>(() => builder.WithReswap(""));
+        Assert.Throws<ArgumentException>(() => builder.WithReswap("  "));
+    }
+
+    [Fact]
+    public async Task Build_with_retarget_sets_HX_Retarget_header()
+    {
+        var builder = HtmxFragmentResult.Create(new FakeSlice());
+        builder.WithRetarget("#form-container");
+
+        var result = builder.Build();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Response.Body = new MemoryStream();
+
+        await result.ExecuteAsync(httpContext);
+
+        Assert.Equal("#form-container", httpContext.Response.Headers["HX-Retarget"].ToString());
+    }
+
+    [Fact]
+    public async Task Build_with_reswap_sets_HX_Reswap_header()
+    {
+        var builder = HtmxFragmentResult.Create(new FakeSlice());
+        builder.WithReswap(HtmxSwap.OuterHtml);
+
+        var result = builder.Build();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Response.Body = new MemoryStream();
+
+        await result.ExecuteAsync(httpContext);
+
+        Assert.Equal("outerHTML", httpContext.Response.Headers["HX-Reswap"].ToString());
+    }
+
+    [Fact]
+    public async Task Build_with_retarget_and_reswap_sets_both_headers()
+    {
+        var builder = HtmxFragmentResult.Create(new FakeSlice());
+        builder.WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml);
+
+        var result = builder.Build();
+        var httpContext = new DefaultHttpContext();
+        httpContext.Response.Body = new MemoryStream();
+
+        await result.ExecuteAsync(httpContext);
+
+        Assert.Equal("#edit-form", httpContext.Response.Headers["HX-Retarget"].ToString());
+        Assert.Equal("outerHTML", httpContext.Response.Headers["HX-Reswap"].ToString());
+    }
+
     /// <summary>
     /// Minimal IResult implementation for testing builder logic without Razor rendering.
     /// </summary>

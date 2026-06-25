@@ -233,6 +233,42 @@ public class FeatureResultBuilderTests
             builder.Create(TestPage, new FakeSlice()).WithState(null!));
     }
 
+    [Fact]
+    public void WithRetarget_throws_on_empty_selector()
+    {
+        var (builder, _) = CreateBuilder(isHtmx: true);
+
+        Assert.Throws<ArgumentException>(() =>
+            builder.Create(TestPage, new FakeSlice()).WithRetarget(""));
+    }
+
+    [Fact]
+    public void WithReswap_throws_on_empty_mode()
+    {
+        var (builder, _) = CreateBuilder(isHtmx: true);
+
+        Assert.Throws<ArgumentException>(() =>
+            builder.Create(TestPage, new FakeSlice()).WithReswap(""));
+    }
+
+    [Fact]
+    public async Task Build_htmx_with_retarget_and_reswap_sets_headers()
+    {
+        var (builder, _) = CreateBuilder(isHtmx: true);
+
+        var result = builder.Create(TestPage, new FakeSlice())
+            .AsFragment(new FakeSlice())
+            .WithRetarget("#edit-form")
+            .WithReswap("outerHTML")
+            .Build();
+
+        var context = CreateHttpContext(isHtmx: true);
+        await result.ExecuteAsync(context);
+
+        Assert.Equal("#edit-form", context.Response.Headers["HX-Retarget"].ToString());
+        Assert.Equal("outerHTML", context.Response.Headers["HX-Reswap"].ToString());
+    }
+
     private static (FeatureResultBuilder builder, FakePageRenderer renderer) CreateBuilder(bool isHtmx)
     {
         var httpContext = CreateHttpContext(isHtmx);

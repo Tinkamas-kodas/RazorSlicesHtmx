@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Options;
 using RazorSlicesHtmx.Bootstrap5.Rendering;
 
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton<IPostConfigureOptions<RazorSlicesHtmxOptions>, Bootstrap5DefaultOptionsSetup>();
+        services.AddSingleton<IPostConfigureOptions<HtmxErrorOptions>, Bootstrap5ErrorOptionsSetup>();
 
         services.AddSingleton<RazorSlicesHtmx.AspNetCore.Rendering.ITransientUiRenderer, Bootstrap5TransientUiRenderer>();
         return services;
@@ -35,6 +37,14 @@ public static class ServiceCollectionExtensions
             {
                 options.ToastDelayMilliseconds = 2600;
             }
+        }
+    }
+
+    private sealed class Bootstrap5ErrorOptionsSetup : IPostConfigureOptions<HtmxErrorOptions>
+    {
+        public void PostConfigure(string? name, HtmxErrorOptions options)
+        {
+            options.ErrorTone ??= "danger";
         }
     }
 }

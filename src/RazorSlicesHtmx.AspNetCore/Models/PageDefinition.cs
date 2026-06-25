@@ -2,20 +2,15 @@ using RazorSlices;
 
 namespace RazorSlicesHtmx.AspNetCore.Models;
 
+/// <summary>
+/// Binds a detail slice factory to a navigable route. Used by <see cref="NavigationRouteItem"/>
+/// and the page rendering pipeline to create the detail content for a feature page.
+/// </summary>
 public sealed record PageDefinition(
-    FeatureMetadata Metadata,
     Func<HttpContext, RazorSlice> CreateDetail)
 {
-    public PageDefinition(FeatureMetadata metadata, Func<RazorSlice> createDetail)
-        : this(metadata, _ => createDetail())
+    public PageDefinition(Func<RazorSlice> createDetail)
+        : this(_ => createDetail())
     {
     }
-
-    public string Key => Metadata.Key;
-
-    public string Label => Metadata.Label;
-
-    public string Route => Metadata.Route;
-
-    public string Description => Metadata.Description;
 }

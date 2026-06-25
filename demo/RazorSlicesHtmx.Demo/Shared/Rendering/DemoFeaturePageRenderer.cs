@@ -16,7 +16,7 @@ public sealed class DemoFeaturePageRenderer : IFeaturePageRenderer
 
     private static AppLayoutModel CreateLayout(FeatureShellContext context)
     {
-        var title = $"{context.CurrentPage.Label} | RazorSlices HTMX PoC";
-        return new AppLayoutModel(title, context.CurrentPage.Key, context.Pages);
+        var title = $"{context.CurrentItem.Label} | RazorSlices HTMX PoC";
+        return new AppLayoutModel(title, context.CurrentItem.Key, context.Navigation);
     }
 }

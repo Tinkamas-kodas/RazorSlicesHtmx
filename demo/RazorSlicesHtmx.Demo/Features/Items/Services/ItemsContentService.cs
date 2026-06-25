@@ -10,22 +10,18 @@ public sealed class ItemsContentService
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public FeatureMetadata CreateMetadata() => new(
-        200,
+    public NavigationRouteItem CreateNavigationItem() => new(
         "items",
         "Items",
         "/items",
-        "Paging, search, sort and CRUD with HTMX");
-
-    public PageDefinition CreatePageDefinition() => new(
-        CreateMetadata(),
-        httpContext =>
+        new PageDefinition(httpContext =>
         {
             var db = httpContext.RequestServices.GetRequiredService<AppDbContext>();
             var search = new ItemSearchModel(httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
             var query = ItemListQuery.FromQuery(httpContext.Request.Query);
             return _FeaturePage.Create(CreateListModel(db, search, query));
-        });
+        }),
+        Order: 200);
 
 
     public ItemListModel CreateListModel(AppDbContext db, ItemSearchModel search, ItemListQuery query)

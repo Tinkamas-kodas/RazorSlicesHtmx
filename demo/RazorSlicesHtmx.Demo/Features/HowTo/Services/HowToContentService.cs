@@ -15,16 +15,12 @@ public sealed class HowToContentService
         "discovery"
     ];
 
-    public FeatureMetadata CreateMetadata() => new(
-        400,
+    public NavigationRouteItem CreateNavigationItem() => new(
         "howto",
         "HowTo",
         "/howto",
-        "How to add and register a new feature");
-
-    public PageDefinition CreatePageDefinition() => new(
-        CreateMetadata(),
-        _HowToPage.Create);
+        new PageDefinition(_HowToPage.Create),
+        Order: 400);
 
     public bool TryCreateStepSlice(string? stepKey, out RazorSlice stepSlice)
     {

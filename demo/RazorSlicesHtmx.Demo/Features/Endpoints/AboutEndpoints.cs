@@ -6,7 +6,7 @@ public sealed class AboutEndpoints : IFeatureModule
 {
     private readonly AboutContentService _content = new();
 
-    public PageDefinition Page => _content.CreatePageDefinition();
+    public IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
 
     public void MapEndpoints(WebApplication app)
     {

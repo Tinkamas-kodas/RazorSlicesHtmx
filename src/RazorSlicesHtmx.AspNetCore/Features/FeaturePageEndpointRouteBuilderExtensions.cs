@@ -7,25 +7,25 @@ public static class FeaturePageEndpointRouteBuilderExtensions
 {
     public static void MapFeaturePages(this WebApplication app, FeatureRegistry features)
     {
-        app.MapGet("/", (HttpRequest request) => BuildPageResult(request, features, features.DefaultPage));
+        app.MapGet("/", (HttpRequest request) =>
+            BuildPageResultAsync(request, features, features.DefaultRouteItem));
 
-        app.MapGet("/{key}", (HttpRequest request, string key) =>
+        foreach (var routeItem in features.RouteItems)
         {
-            if (!features.TryGetPage(key, out var page))
-            {
-                return Microsoft.AspNetCore.Http.Results.NotFound();
-            }
-
-            return BuildPageResult(request, features, page);
-        });
+            app.MapGet(routeItem.Route, (HttpRequest request) =>
+                BuildPageResultAsync(request, features, routeItem));
+        }
     }
 
-    private static IResult BuildPageResult(HttpRequest request, FeatureRegistry features, PageDefinition page)
+    private static Task<IResult> BuildPageResultAsync(
+        HttpRequest request,
+        FeatureRegistry features,
+        NavigationRouteItem routeItem)
     {
-        return SliceResults.SlicePage(
+        return SliceResults.SlicePageAsync(
             request,
             features,
-            page,
-            page.CreateDetail);
+            routeItem,
+            routeItem.Page.CreateDetail);
     }
 }

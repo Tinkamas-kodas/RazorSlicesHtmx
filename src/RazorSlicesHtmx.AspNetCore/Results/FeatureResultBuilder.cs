@@ -80,7 +80,7 @@ public sealed class FeatureResultBuilder(
         public Builder ClearDialog() =>
             WithOob(owner._options.DialogHostSelector, _Empty.Create());
 
-        public Builder WithToast(string message, string title = "Saved", string tone = "success")
+        public Builder WithToast(string message, string title = "Saved", ToastTone tone = ToastTone.Success)
         {
             _toasts.Add(new ToastModel(title, message, tone));
             return this;

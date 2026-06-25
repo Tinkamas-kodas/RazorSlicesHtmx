@@ -598,6 +598,53 @@ Today that means:
 
 Those values are only used when the app has not already set them through configuration or `Configure<RazorSlicesHtmxOptions>(...)`.
 
+## Response Target and Swap Override
+
+Both `FeatureResultBuilder` and `HtmxFragmentResult` support `HX-Retarget` and `HX-Reswap` response headers. These let the server override **where** and **how** the response is swapped into the DOM, regardless of what the original HTMX request specified.
+
+### `WithRetarget(selector)`
+
+Overrides the target element on the client side. Useful when a request was aimed at one element but the response should go elsewhere — for example, returning validation errors into a form container instead of the default detail pane:
+
+```csharp
+return Result.For(detail)
+    .AsFragment(formWithErrors)
+    .WithRetarget("#edit-form")
+    .Build();
+```
+
+### `WithReswap(swapMode)`
+
+Overrides the swap strategy. Use any value from `HtmxSwap` (`innerHTML`, `outerHTML`, `beforeend`, etc.):
+
+```csharp
+return Result.For(detail)
+    .AsFragment(appendableItem)
+    .WithReswap(HtmxSwap.BeforeEnd)
+    .Build();
+```
+
+### Combined — validation error pattern
+
+The most common use case is combining both to redirect a validation failure response into the form element with a full replacement:
+
+```csharp
+// Validation failed — swap the form with errors into #edit-form using outerHTML
+return Result.For(detail)
+    .AsFragment(formSliceWithErrors)
+    .WithRetarget("#edit-form")
+    .WithReswap(HtmxSwap.OuterHtml)
+    .Build();
+```
+
+Both methods are also available on `HtmxFragmentResult` for fragment-only endpoints:
+
+```csharp
+return HtmxFragmentResult.Create(formSliceWithErrors)
+    .WithRetarget("#edit-form")
+    .WithReswap(HtmxSwap.OuterHtml)
+    .Build();
+```
 ## Custom UI Adapter Example
 
 You are not required to use the Bootstrap5 package.

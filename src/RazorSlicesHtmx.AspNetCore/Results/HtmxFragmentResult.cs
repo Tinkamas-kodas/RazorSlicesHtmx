@@ -15,6 +15,8 @@ public static class HtmxFragmentResult
         private readonly List<RazorSlice> _oobParts = [];
         private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
+        private string? _retarget;
+        private string? _reswap;
 
         public Builder WithOob(string selector, RazorSlice content, string swap = HtmxSwap.InnerHtml)
         {
@@ -63,6 +65,28 @@ public static class HtmxFragmentResult
             return this;
         }
 
+        public Builder WithRetarget(string selector)
+        {
+            if (string.IsNullOrWhiteSpace(selector))
+            {
+                throw new ArgumentException("Retarget selector is required.", nameof(selector));
+            }
+
+            _retarget = selector;
+            return this;
+        }
+
+        public Builder WithReswap(string swapMode)
+        {
+            if (string.IsNullOrWhiteSpace(swapMode))
+            {
+                throw new ArgumentException("Reswap mode is required.", nameof(swapMode));
+            }
+
+            _reswap = swapMode;
+            return this;
+        }
+
         public IResult Build()
         {
             RazorSlice fragment = _oobParts.Count == 0 && _rawOobParts.Count == 0
@@ -72,19 +96,37 @@ public static class HtmxFragmentResult
                     _oobParts,
                     _rawOobParts.Count > 0 ? _rawOobParts : null));
 
-            if (_triggers.Count == 0)
+            if (_triggers.Count == 0 && _retarget is null && _reswap is null)
             {
                 return fragment;
             }
 
-            return new TriggeredSliceResult(fragment, _triggers);
+            return new HeaderDecoratedResult(fragment, _triggers, _retarget, _reswap);
         }
 
-        private sealed class TriggeredSliceResult(RazorSlice fragment, IReadOnlyCollection<string> triggers) : IResult
+        private sealed class HeaderDecoratedResult(
+            RazorSlice fragment,
+            IReadOnlyCollection<string> triggers,
+            string? retarget,
+            string? reswap) : IResult
         {
             public Task ExecuteAsync(HttpContext httpContext)
             {
-                httpContext.Response.Headers.Append("HX-Trigger", string.Join(",", triggers));
+                if (triggers.Count > 0)
+                {
+                    httpContext.Response.Headers.Append("HX-Trigger", string.Join(",", triggers));
+                }
+
+                if (retarget is not null)
+                {
+                    httpContext.Response.Headers.Append("HX-Retarget", retarget);
+                }
+
+                if (reswap is not null)
+                {
+                    httpContext.Response.Headers.Append("HX-Reswap", reswap);
+                }
+
                 return ((IResult)fragment).ExecuteAsync(httpContext);
             }
         }

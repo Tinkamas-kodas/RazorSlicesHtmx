@@ -15,9 +15,12 @@ The codebase is intentionally split so the core package handles feature registra
 Core package for:
 
 - feature discovery and registration
-- `IFeatureModule`, `BaseFeatureModule`, `PageDefinition`, `FeatureMetadata`, and `FeatureRegistry`
+- `IFeatureModule`, `BaseFeatureModule`, `NavigationItem`, `NavigationRouteItem`, `NavigationGroupItem`, `PageDefinition`, and `FeatureRegistry`
+- hierarchical navigation model with ASP.NET Core authorization filtering
 - HTMX response composition through `FeatureResultBuilder` (full-page feature responses) and `HtmxFragmentResult` (fragment-only responses)
+- HTMX error handling middleware (`UseHtmxErrorHandling`)
 - OOB fragments, triggers, navigation, and location responses
+- `ToastTone` enum (`Info`, `Success`, `Warning`, `Error`) for UI-agnostic toast severity
 - technical slices that are not tied to a CSS framework, such as `_Empty`, `HtmxFragment`, and `HtmxOob`
 - app-facing contracts such as `FeatureShellContext`, `IFeaturePageRenderer`, and `ITransientUiRenderer`
 
@@ -184,7 +187,7 @@ app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery 
         .AsFragment(_ListPage.Create(model))
         .WithState(search)
         .WithState(query)
-        .Build();
+        .BuildAsync();
 });
 ```
 
@@ -494,23 +497,29 @@ That means the app provides its own page renderer and shell models, while the Bo
 The most important core contracts are:
 
 - `IFeatureModule`
-  feature registration unit; exposes a `PageDefinition` and maps feature-local endpoints
+  feature registration unit; exposes `NavigationItems` (a list of `NavigationItem` nodes) and maps feature-local endpoints
 - `BaseFeatureModule`
   abstract base class implementing `IFeatureModule`; provides a `Result.For(detail)` and `Result.Dialog(content)` convenience facade backed by `FeatureResultBuilder`; preferred over implementing `IFeatureModule` directly when using `FeatureResultBuilder`
-- `FeatureMetadata`
-  lightweight description of a feature page for discovery and navigation projection
+- `NavigationItem`
+  abstract base record for the navigation tree; has `Key`, `Label`, `Order`, and optional `AuthorizationPolicy`
+- `NavigationRouteItem`
+  concrete navigable leaf node; extends `NavigationItem` with `Route` and `PageDefinition`
+- `NavigationGroupItem`
+  concrete non-navigable group node; extends `NavigationItem` with `Children` (a list of `NavigationItem`)
 - `PageDefinition`
-  binds feature metadata to a detail slice factory
+  binds a detail slice factory (`Func<HttpContext, RazorSlice>`) to a navigable route
 - `FeatureShellContext`
-  minimal shell context passed to the app-level page renderer: current page, all pages, and current detail slice
+  minimal shell context passed to the app-level page renderer: current `NavigationRouteItem`, the filtered navigation tree, and current detail slice
 - `IFeaturePageRenderer`
   implemented by the app; responsible for full-page shell rendering and navigation rendering
 - `FeatureResultBuilder`
-  fluent orchestration API for feature endpoints; used when a response may be a full page render or an HTMX fragment depending on request type
+  fluent orchestration API for feature endpoints; used when a response may be a full page render or an HTMX fragment depending on request type; `BuildAsync()` performs authorization filtering automatically
 - `HtmxFragmentResult`
   lightweight result builder for endpoints that always return a fragment, not a full feature page; supports OOB parts and triggers
 - `IHasState`
   interface implemented by state models; generated automatically for any `partial` type passed to `WithState(...)`; exposes `Serialize()`, `SerializeOob()`, and `const StateId`
+- `ToastTone`
+  enum with semantic toast severity levels: `Info`, `Success`, `Warning`, `Error`; UI framework packages map these to visual styles
 
 ## Quick Start
 
@@ -540,6 +549,7 @@ var app = builder.Build();
 var features = app.Services.GetRequiredService<FeatureRegistry>();
 
 app.UseStaticFiles();
+app.UseHtmxErrorHandling(); // HTMX-aware error toasts for 4xx/5xx
 
 features.MapEndpoints(app);
 app.MapFeaturePages(features);
@@ -610,7 +620,7 @@ Overrides the target element on the client side. Useful when a request was aimed
 return Result.For(detail)
     .AsFragment(formWithErrors)
     .WithRetarget("#edit-form")
-    .Build();
+    .BuildAsync();
 ```
 
 ### `WithReswap(swapMode)`
@@ -621,7 +631,7 @@ Overrides the swap strategy. Use any value from `HtmxSwap` (`innerHTML`, `outerH
 return Result.For(detail)
     .AsFragment(appendableItem)
     .WithReswap(HtmxSwap.BeforeEnd)
-    .Build();
+    .BuildAsync();
 ```
 
 ### Combined — validation error pattern
@@ -634,7 +644,7 @@ return Result.For(detail)
     .AsFragment(formSliceWithErrors)
     .WithRetarget("#edit-form")
     .WithReswap(HtmxSwap.OuterHtml)
-    .Build();
+    .BuildAsync();
 ```
 
 Both methods are also available on `HtmxFragmentResult` for fragment-only endpoints:
@@ -645,6 +655,150 @@ return HtmxFragmentResult.Create(formSliceWithErrors)
     .WithReswap(HtmxSwap.OuterHtml)
     .Build();
 ```
+## Navigation Model
+
+Navigation is built around a hierarchical tree of `NavigationItem` nodes:
+
+```
+NavigationItem (abstract)
+├── NavigationRouteItem — navigable leaf with Route + PageDefinition
+└── NavigationGroupItem — non-navigable group with Children
+```
+
+### Defining navigation in a feature module
+
+Each `IFeatureModule` exposes `NavigationItems`:
+
+```csharp
+public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
+{
+    private readonly ItemsContentService _content = new();
+
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new NavigationRouteItem("items", "Items", "/items",
+            new PageDefinition(ctx => _FeaturePage.Create(_content.CreateListModel(ctx))))
+    ];
+
+    public override void MapEndpoints(WebApplication app) { /* ... */ }
+}
+```
+
+### Grouped navigation
+
+Use `NavigationGroupItem` to create collapsible sections:
+
+```csharp
+public override IReadOnlyList<NavigationItem> NavigationItems =>
+[
+    new NavigationGroupItem("admin", "Administration",
+    [
+        new NavigationRouteItem("users", "Users", "/admin/users", usersPage),
+        new NavigationRouteItem("roles", "Roles", "/admin/roles", rolesPage)
+    ])
+];
+```
+
+Groups with no authorized children are automatically excluded from the navigation tree.
+
+### Multi-assembly discovery
+
+Features can be spread across multiple assemblies:
+
+```csharp
+builder.Services.AddSingleton(sp =>
+    FeatureRegistry.Discover([typeof(Program).Assembly, typeof(SharedFeatures).Assembly], sp));
+```
+
+Duplicate assemblies are automatically deduplicated.
+
+## Authorization
+
+Authorization uses the standard ASP.NET Core `IAuthorizationService`. Each `NavigationItem` can declare an `AuthorizationPolicy`:
+
+```csharp
+new NavigationRouteItem("admin-users", "Users", "/admin/users", usersPage,
+    AuthorizationPolicy: "AdminOnly")
+```
+
+### How it works
+
+1. **Endpoint authorization** — feature modules add `.RequireAuthorization(policy)` to their endpoint registrations as normal.
+2. **Navigation filtering** — `FeatureRegistry.CreateShellContextAsync` recursively filters the navigation tree using `IAuthorizationService.AuthorizeAsync`. Items whose policy fails are excluded. Groups with no remaining children are excluded entirely.
+3. **No auth configured** — when `IAuthorizationService` is not registered or the user is null, all items pass through (backward compatible).
+
+`BuildAsync()` handles this automatically — it reads `HttpContext.User` and resolves `IAuthorizationService` from DI:
+
+```csharp
+return Result.For(detail)
+    .AsFragment(fragment)
+    .BuildAsync(); // auth filtering happens here
+```
+
+`CancellationToken` is supported throughout the chain:
+
+```csharp
+return Result.For(detail)
+    .AsFragment(fragment)
+    .BuildAsync(cancellationToken);
+```
+
+## HTMX Error Handling
+
+`UseHtmxErrorHandling()` adds middleware that intercepts unhandled exceptions and non-success status codes for HTMX requests. Instead of a raw error page (which HTMX ignores), it returns an error toast.
+
+### Setup
+
+```csharp
+app.UseStaticFiles();
+app.UseHtmxErrorHandling();
+```
+
+### Behaviour
+
+- **HTMX request + exception** → catches the error, returns a toast with `ToastTone.Error`
+- **HTMX request + 4xx/5xx** → returns a toast with a status-appropriate message
+- **Non-HTMX request** → passes through unaffected (standard ASP.NET error handling applies)
+- **Status reset** → the middleware resets the response to 200 so HTMX processes it (HTMX ignores non-2xx by default)
+
+### Custom messages
+
+```csharp
+app.UseHtmxErrorHandling(options =>
+{
+    options.FormatTitle = (statusCode, ex) => statusCode switch
+    {
+        404 => "Nerasta",
+        _ => "Klaida"
+    };
+    options.FormatMessage = (statusCode, ex) => statusCode switch
+    {
+        404 => "Prašomas puslapis nerastas.",
+        _ => "Įvyko nenumatyta klaida."
+    };
+});
+```
+
+### Toast tones
+
+`ToastTone` is a semantic enum: `Info`, `Success`, `Warning`, `Error`. The error middleware always uses `ToastTone.Error`. UI framework packages map the enum to their own styles:
+
+| ToastTone | Bootstrap5 CSS |
+|-----------|---------------|
+| `Info` | `text-bg-info` |
+| `Success` | `text-bg-success` |
+| `Warning` | `text-bg-warning` |
+| `Error` | `text-bg-danger` |
+
+Usage in endpoints:
+
+```csharp
+return Result.For(detail)
+    .WithToast("Item saved")                                        // default: Success
+    .WithToast("Item deleted", title: "Deleted", tone: ToastTone.Warning)
+    .BuildAsync();
+```
+
 ## Custom UI Adapter Example
 
 You are not required to use the Bootstrap5 package.

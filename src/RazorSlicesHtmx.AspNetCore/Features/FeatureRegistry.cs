@@ -71,16 +71,18 @@ public sealed class FeatureRegistry
         NavigationRouteItem currentItem,
         RazorSlices.RazorSlice detail,
         ClaimsPrincipal? user,
-        IAuthorizationService? authService)
+        IAuthorizationService? authService,
+        CancellationToken cancellationToken = default)
     {
-        var filtered = await FilterNavigationAsync(_navigation, user, authService);
+        var filtered = await FilterNavigationAsync(_navigation, user, authService, cancellationToken);
         return new FeatureShellContext(currentItem, filtered, detail);
     }
 
     private static async Task<IReadOnlyList<NavigationItem>> FilterNavigationAsync(
         IReadOnlyList<NavigationItem> items,
         ClaimsPrincipal? user,
-        IAuthorizationService? authService)
+        IAuthorizationService? authService,
+        CancellationToken cancellationToken)
     {
         if (user is null || authService is null)
         {
@@ -91,6 +93,8 @@ public sealed class FeatureRegistry
 
         foreach (var item in items)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (item.AuthorizationPolicy is not null)
             {
                 var authResult = await authService.AuthorizeAsync(user, item.AuthorizationPolicy);
@@ -99,7 +103,7 @@ public sealed class FeatureRegistry
 
             if (item is NavigationGroupItem group)
             {
-                var filteredChildren = await FilterNavigationAsync(group.Children, user, authService);
+                var filteredChildren = await FilterNavigationAsync(group.Children, user, authService, cancellationToken);
                 if (filteredChildren.Count > 0)
                 {
                     result.Add(group with { Children = filteredChildren });

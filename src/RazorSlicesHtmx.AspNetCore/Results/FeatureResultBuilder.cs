@@ -150,13 +150,13 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
-        public async Task<IResult> BuildAsync()
+        public async Task<IResult> BuildAsync(CancellationToken cancellationToken = default)
         {
             var request = owner.Request;
             var httpContext = request.HttpContext;
             var user = httpContext.User;
             var authService = httpContext.RequestServices.GetService<IAuthorizationService>();
-            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService);
+            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService, cancellationToken);
 
             if (!request.IsHtmxRequest())
             {

@@ -18,6 +18,7 @@ var features = app.Services.GetRequiredService<FeatureRegistry>();
 AppDbInitializer.Seed(app.Services);
 
 app.UseStaticFiles();
+app.UseHtmxErrorHandling();
 
 features.MapEndpoints(app);
 

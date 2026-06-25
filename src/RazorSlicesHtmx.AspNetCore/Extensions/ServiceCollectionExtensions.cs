@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Options;
 using RazorSlicesHtmx.AspNetCore.Results;
 
@@ -13,6 +14,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpContextAccessor();
         services.AddOptions<RazorSlicesHtmxOptions>();
+        services.AddOptions<HtmxErrorOptions>();
         services.AddSingleton<FeatureResultBuilder>();
 
         if (configure is not null)

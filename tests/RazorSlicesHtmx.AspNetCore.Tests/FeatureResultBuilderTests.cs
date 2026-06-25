@@ -176,7 +176,7 @@ public class FeatureResultBuilderTests
 
         var b = builder.Create(TestRouteItem, new FakeSlice())
             .AsFragment(new FakeSlice())
-            .WithToast("Item saved", "Success", "success");
+            .WithToast("Item saved", "Success", ToastTone.Success);
 
         var result = await b.BuildAsync();
         Assert.NotNull(result);

@@ -16,10 +16,4 @@ public sealed class HtmxErrorOptions
     /// When null, a built-in default message is used.
     /// </summary>
     public Func<int, Exception?, string>? FormatMessage { get; set; }
-
-    /// <summary>
-    /// The toast tone/style used for error toasts. Defaults to null.
-    /// UI framework packages (e.g. Bootstrap5) should set their own default.
-    /// </summary>
-    public string? ErrorTone { get; set; }
 }

@@ -1,6 +1,17 @@
 @inherits RazorSlice<ToastModel>
 
-<div class="toast align-items-center text-bg-@Model.Tone border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+@{
+    var cssClass = Model.Tone switch
+    {
+        ToastTone.Info => "info",
+        ToastTone.Success => "success",
+        ToastTone.Warning => "warning",
+        ToastTone.Error => "danger",
+        _ => "secondary"
+    };
+}
+
+<div class="toast align-items-center text-bg-@cssClass border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
         <div class="toast-body">
             <strong class="me-2">@Model.Title</strong>

@@ -54,8 +54,6 @@ public sealed class HtmxErrorMiddleware(
         var title = _errorOptions.FormatTitle?.Invoke(statusCode, exception)
             ?? GetDefaultTitle(statusCode);
 
-        var tone = _errorOptions.ErrorTone ?? "error";
-
         var renderer = context.RequestServices.GetService<ITransientUiRenderer>();
         var options = context.RequestServices.GetService<IOptions<RazorSlicesHtmxOptions>>()?.Value;
 
@@ -69,7 +67,7 @@ public sealed class HtmxErrorMiddleware(
             return;
         }
 
-        var toast = new ToastModel(title, message, tone);
+        var toast = new ToastModel(title, message, ToastTone.Error);
         var toastSlice = renderer.RenderToast(toast);
         var hostSelector = options.ToastHostSelector;
         var swap = options.DefaultOobSwap;

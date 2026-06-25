@@ -117,7 +117,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
                 return Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
-                    .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: "dark")
+                    .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()
                     .BuildAsync();
             })

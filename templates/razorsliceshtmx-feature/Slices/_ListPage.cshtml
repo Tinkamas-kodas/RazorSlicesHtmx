@@ -1,0 +1,26 @@
+@inherits RazorSlice<MyFeatureListModel>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@(item.IsEnabled ? "Active" : "Inactive")</td>
+                <td>
+                    <a hx-get="/my-feature-route/edit/@item.Id"
+                       hx-target="#details-pane"
+                       hx-swap="innerHTML"
+                       class="btn btn-sm btn-outline-secondary">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

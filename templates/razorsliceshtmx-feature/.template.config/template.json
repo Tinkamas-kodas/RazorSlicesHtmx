@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "RazorSlicesHtmx",
+  "classifications": ["Web", "ASP.NET", "HTMX", "RazorSlices"],
+  "identity": "RazorSlicesHtmx.Feature",
+  "name": "RazorSlicesHtmx Feature Module",
+  "shortName": "rshtmx-feature",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "sourceName": "MyFeature",
+  "preferNameDirectory": true,
+  "symbols": {
+    "entity": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "The entity name (e.g. Product, Order). Defaults to the feature name.",
+      "defaultValue": "",
+      "replaces": "MyEntity",
+      "fileRename": "MyEntity"
+    },
+    "rootNamespace": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Root namespace of the project.",
+      "defaultValue": "MyApp",
+      "replaces": "MyApp"
+    },
+    "route": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Base route for the feature (e.g. /products). Defaults to /featurename.",
+      "defaultValue": "",
+      "replaces": "/my-feature-route"
+    },
+    "order": {
+      "type": "parameter",
+      "datatype": "int",
+      "description": "Navigation order. Lower values appear first.",
+      "defaultValue": "100",
+      "replaces": "100"
+    },
+    "lowerName": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "lowerCaseInvariant",
+      "replaces": "myfeature"
+    }
+  },
+  "forms": {
+    "lowerCaseInvariant": {
+      "identifier": "lowerCase"
+    }
+  },
+  "postActions": [
+    {
+      "description": "Reminder to register the feature module",
+      "manualInstructions": [
+        {
+          "text": "Ensure the feature assembly is included in FeatureRegistry.Discover()."
+        }
+      ],
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C"
+    }
+  ]
+}

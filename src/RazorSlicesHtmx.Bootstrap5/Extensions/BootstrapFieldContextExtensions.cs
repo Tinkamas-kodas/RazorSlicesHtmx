@@ -158,10 +158,7 @@ public static class BootstrapFieldContextExtensions
     {
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(6);
-        content.AppendHtml("<div class=\"");
-        content.Append(o.CheckboxWrapperClass);
-        content.AppendHtml("\">");
+        var content = new HtmlContentBuilder(5);
         content.AppendHtml("<input type=\"hidden\" name=\"");
         content.Append(field.Name);
         content.AppendHtml("\" value=\"false\">");
@@ -177,7 +174,6 @@ public static class BootstrapFieldContextExtensions
         if (disabled) content.AppendHtml(" disabled");
 
         content.AppendHtml(">");
-        content.AppendHtml("</div>");
         return content;
     }
 

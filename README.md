@@ -906,19 +906,42 @@ These packages are not intended to be:
 
 The main goal is to make HTMX feature flows, transient UI responses, and feature registration easier to compose in a RazorSlices-based app.
 
-## Feature Module Template
+## Templates
 
-A `dotnet new` template is included to scaffold a complete feature module with endpoints, models, services, and Razor slices.
+### Project Template (`rshtmx-webapp`)
 
-### Install
+Scaffolds a complete RazorSlicesHtmx web application with sidebar navigation, HTMX error handling, and optional Bootstrap5/FluentValidation integration.
+
+```bash
+dotnet new install ./templates/razorsliceshtmx-webapp
+
+# Full stack (Bootstrap5 + FluentValidation):
+dotnet new rshtmx-webapp -n MyApp
+
+# Core only (no Bootstrap5, no FluentValidation):
+dotnet new rshtmx-webapp -n MyApp --bootstrap5 false --fluentValidation false
+```
+
+| Parameter            | Description                        | Default    |
+|----------------------|------------------------------------|------------|
+| `-n`, `--name`       | Project name                       | `RshtmxApp` |
+| `--bootstrap5`       | Include Bootstrap5 UI adapter      | `true`     |
+| `--fluentValidation` | Include FluentValidation           | `true`     |
+| `--framework`        | Target framework                   | `net10.0`  |
+
+The generated project includes AI development support:
+- `.github/copilot-instructions.md` — project conventions for Copilot
+- `.github/prompts/create-feature.prompt.md` — scaffold new features
+- `.github/prompts/add-list.prompt.md` — add list pages
+- `.github/prompts/add-form.prompt.md` — add forms
+- `.github/prompts/add-endpoint.prompt.md` — add HTMX endpoints
+
+### Feature Module Template (`rshtmx-feature`)
+
+Scaffolds a feature module with endpoints, models, services, and Razor slices into an existing project.
 
 ```bash
 dotnet new install ./templates/razorsliceshtmx-feature
-```
-
-### Usage
-
-```bash
 dotnet new rshtmx-feature -n Products --entity Product --rootNamespace MyApp --route /products --order 200
 ```
 
@@ -938,8 +961,6 @@ Products/
     ├── _CreatePage.cshtml            # Create form
     └── _ViewImports.cshtml           # Namespace imports
 ```
-
-### Parameters
 
 | Parameter        | Description                          | Default         |
 |------------------|--------------------------------------|-----------------|

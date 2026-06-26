@@ -35,6 +35,19 @@
       "description": "Include FluentValidation integration package.",
       "defaultValue": "true"
     },
+    "useCdn": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Use CDN for Bootstrap and HTMX. When false, uses libman for local files.",
+      "defaultValue": "true"
+    },
+    "bootstrapVersion": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Bootstrap version (e.g. 5.3.7).",
+      "defaultValue": "5.3.7",
+      "replaces": "5.3.7"
+    },
     "httpPort": {
       "type": "generated",
       "generator": "port",
@@ -58,6 +71,10 @@
         {
           "condition": "(!fluentValidation)",
           "exclude": []
+        },
+        {
+          "condition": "(useCdn)",
+          "exclude": ["libman.json"]
         }
       ]
     }
@@ -71,6 +88,14 @@
       "args": {
         "files": ["RshtmxApp.csproj"]
       }
+    },
+    {
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "condition": "(!useCdn && bootstrap5)",
+      "description": "Restore client-side libraries",
+      "manualInstructions": [
+        { "text": "Run 'dotnet tool install -g Microsoft.Web.LibraryManager.Cli && libman restore'" }
+      ]
     }
   ]
 }

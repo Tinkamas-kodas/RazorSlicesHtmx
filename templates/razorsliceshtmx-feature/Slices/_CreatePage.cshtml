@@ -1,0 +1,27 @@
+@inherits RazorSlice<MyEntityUpsertRequest>
+
+<form hx-post="/my-feature-route/create"
+      hx-target="#details-pane"
+      hx-swap="innerHTML"
+      class="card border-0 shadow-sm p-4">
+    <h3>Create MyEntity</h3>
+
+    <div class="mb-3">
+        <label class="form-label" for="Name">Name</label>
+        <input class="form-control" id="Name" name="Name" value="@Model.Name" />
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="IsEnabled" name="IsEnabled"
+               value="true" checked="@Model.IsEnabled" />
+        <label class="form-check-label" for="IsEnabled">Enabled</label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-dark">Save</button>
+        <a hx-get="/my-feature-route/list"
+           hx-target="#details-pane"
+           hx-swap="innerHTML"
+           class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>

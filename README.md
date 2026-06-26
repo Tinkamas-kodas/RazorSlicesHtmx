@@ -908,13 +908,25 @@ The main goal is to make HTMX feature flows, transient UI responses, and feature
 
 ## Templates
 
+### Installation
+
+Install the templates from NuGet:
+
+```bash
+dotnet new install Tinkamas.Kodas.RazorSlicesHtmx.Templates
+```
+
+Or install a specific version:
+
+```bash
+dotnet new install Tinkamas.Kodas.RazorSlicesHtmx.Templates::1.0.0
+```
+
 ### Project Template (`rshtmx-webapp`)
 
 Scaffolds a complete RazorSlicesHtmx web application with sidebar navigation, HTMX error handling, and optional Bootstrap5/FluentValidation integration.
 
 ```bash
-dotnet new install ./templates/razorsliceshtmx-webapp
-
 # Full stack (Bootstrap5 + FluentValidation):
 dotnet new rshtmx-webapp -n MyApp
 
@@ -941,7 +953,6 @@ The generated project includes AI development support:
 Scaffolds a feature module with endpoints, models, services, and Razor slices into an existing project.
 
 ```bash
-dotnet new install ./templates/razorsliceshtmx-feature
 dotnet new rshtmx-feature -n Products --entity Product --rootNamespace MyApp --route /products --order 200
 ```
 

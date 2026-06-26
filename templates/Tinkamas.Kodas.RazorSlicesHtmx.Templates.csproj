@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Tinkamas.Kodas.RazorSlicesHtmx.Templates</PackageId>
+    <PackageType>Template</PackageType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <Title>RazorSlicesHtmx Templates</Title>
+    <Description>dotnet new templates for RazorSlicesHtmx — project scaffold and feature module.</Description>
+    <Authors>Tinkamas kodas</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/Tinkamas-kodas/RazorSlicesHtmx</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tinkamas-kodas/RazorSlicesHtmx</RepositoryUrl>
+    <PackageTags>dotnet-new;templates;htmx;razorslices;aspnetcore</PackageTags>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="**\*" />
+    <EmbeddedResource Remove="**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="razorsliceshtmx-webapp\**\*" Exclude="razorsliceshtmx-webapp\**\bin\**;razorsliceshtmx-webapp\**\obj\**" />
+    <Content Include="razorsliceshtmx-feature\**\*" Exclude="razorsliceshtmx-feature\**\bin\**;razorsliceshtmx-feature\**\obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

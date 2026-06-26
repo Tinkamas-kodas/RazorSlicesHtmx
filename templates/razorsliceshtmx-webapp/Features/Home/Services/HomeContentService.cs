@@ -8,7 +8,7 @@ public sealed class HomeContentService
     public NavigationRouteItem CreateNavigationItem() => new(
         "home",
         "Home",
-        "/",
+        "/home",
         new PageDefinition(() => _HomePage.Create()),
         Order: 0);
 }

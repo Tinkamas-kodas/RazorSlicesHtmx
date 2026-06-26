@@ -102,6 +102,8 @@ Roslyn source generator package. Provides two generators:
 - `[GenerateHtmlNames(maxDepth: 0)]` attribute (injected at compile time)
 - generated constants grouped per field as `For.<Field>.Name`, `For.<Field>.Id`, and `For.<Field>.Path`
 - each accessor implements `IPropertyAccessor` interface for generic component support
+- `FieldContext<T>` — combines `IPropertyAccessor` with the property value
+- `.For()` extension method — creates a typed context with field metadata + values from model instance
 - compile-time safe form metadata without runtime expression parsing
 
 ```csharp
@@ -115,24 +117,33 @@ public sealed class ItemUpsertRequest
 }
 ```
 
-In Razor:
+Static accessors (metadata only):
 
 ```csharp
-@using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
-```
+@using For = MyApp.HtmlNames.MyApp.Features.Items.Models.ItemUpsertRequestHtml
 
-```html
 <label for="@For.Code.Id">Code</label>
 <input id="@For.Code.Id" name="@For.Code.Name">
 ```
 
-Generic components using `IPropertyAccessor`:
+Instance context via `.For()` (metadata + values):
 
 ```csharp
-// Create reusable form field helpers
-static void RenderField(IPropertyAccessor field, string label, string? value)
+@using MyApp.HtmlNames.MyApp.Features.Items.Models
+
+@{ var f = Model.Request.For(); }
+
+<input id="@f.Code.Id" name="@f.Code.Name" value="@f.Code.Value">
+<input id="@f.Name.Id" name="@f.Name.Name" value="@f.Name.Value">
+```
+
+Generic components using `IPropertyAccessor` / `FieldContext<T>`:
+
+```csharp
+// FieldContext<T> implements IPropertyAccessor and adds .Value
+static void RenderField<T>(FieldContext<T> field, string label)
 {
-    // field.Name, field.Path, field.Id work for any generated accessor
+    // field.Name, field.Path, field.Id, field.Value
 }
 ```
 

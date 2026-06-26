@@ -280,38 +280,33 @@ public sealed class ItemUpsertRequest
 }
 ```
 
-The generator creates a companion class with accessor structs per field. Each accessor implements `IPropertyAccessor` interface:
+The generator creates:
+1. **Static accessor class** (`ItemUpsertRequestHtml`) — metadata only, each accessor implements `IPropertyAccessor`
+2. **`.For()` extension method** — returns a context struct with both metadata and values from a model instance
+3. **`FieldContext<T>`** — struct implementing `IPropertyAccessor` with an additional `.Value` property
 
-```csharp
-// Generated: RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
-public static class ItemUpsertRequestHtml
-{
-    public readonly struct CodeAccessor : IPropertyAccessor
-    {
-        public string Name => "Code";   // for <input name="...">
-        public string Path => "Code";   // for nested models
-        public string Id => "Code";     // for <input id="..."> and <label for="...">
-    }
-    public static CodeAccessor Code => default;
-}
-```
-
-Usage in Razor:
+**Static accessors** (metadata only, for sort headers and labels):
 ```cshtml
 @using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
 
 <label for="@For.Code.Id">Code</label>
 <input id="@For.Code.Id" name="@For.Code.Name" value="@Model.Code">
-```
-
-`IPropertyAccessor` enables generic form helpers:
-```csharp
-void RenderField(IPropertyAccessor field, string label, string? value) { ... }
-```
-
-These values are also used in sort headers — `For.Code.Name` is the column key for `header.Render(For.Code.Name, "Code")`:
-```cshtml
 <th>@header.Render(For.Code.Name, "Code")</th>
+```
+
+**`.For()` context** (metadata + values from model instance):
+```cshtml
+@using RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models
+
+@{ var f = Model.Request.For(); }
+
+<input id="@f.Code.Id" name="@f.Code.Name" value="@f.Code.Value">
+<input id="@f.Name.Id" name="@f.Name.Name" value="@f.Name.Value">
+```
+
+**Generic helpers** with `FieldContext<T>` / `IPropertyAccessor`:
+```csharp
+void RenderField<T>(FieldContext<T> field, string label) { /* field.Name, .Id, .Value */ }
 ```
 
 ### State generator — auto for `partial` types passed to `WithState()`

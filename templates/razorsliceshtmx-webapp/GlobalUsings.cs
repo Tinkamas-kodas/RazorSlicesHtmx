@@ -3,6 +3,7 @@ global using RazorSlices;
 global using RazorSlicesHtmx.AspNetCore.Features;
 global using RazorSlicesHtmx.AspNetCore.Extensions;
 global using RazorSlicesHtmx.AspNetCore.Models;
+global using RazorSlicesHtmx.AspNetCore.Options;
 global using RazorSlicesHtmx.AspNetCore.Rendering;
 global using RazorSlicesHtmx.AspNetCore.Results;
 //#if (bootstrap5)

@@ -101,6 +101,7 @@ Roslyn source generator package. Provides two generators:
 
 - `[GenerateHtmlNames(maxDepth: 0)]` attribute (injected at compile time)
 - generated constants grouped per field as `For.<Field>.Name`, `For.<Field>.Id`, and `For.<Field>.Path`
+- each accessor implements `IPropertyAccessor` interface for generic component support
 - compile-time safe form metadata without runtime expression parsing
 
 ```csharp
@@ -123,6 +124,16 @@ In Razor:
 ```html
 <label for="@For.Code.Id">Code</label>
 <input id="@For.Code.Id" name="@For.Code.Name">
+```
+
+Generic components using `IPropertyAccessor`:
+
+```csharp
+// Create reusable form field helpers
+static void RenderField(IPropertyAccessor field, string label, string? value)
+{
+    // field.Name, field.Path, field.Id work for any generated accessor
+}
 ```
 
 **State generator** — `IHasState` implementation for any `partial` type passed to `WithState(...)`:

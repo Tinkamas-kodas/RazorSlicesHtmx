@@ -280,19 +280,19 @@ public sealed class ItemUpsertRequest
 }
 ```
 
-The generator creates a companion class with `const string` properties per field:
+The generator creates a companion class with accessor structs per field. Each accessor implements `IPropertyAccessor` interface:
 
 ```csharp
 // Generated: RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
 public static class ItemUpsertRequestHtml
 {
-    public static class Code
+    public readonly struct CodeAccessor : IPropertyAccessor
     {
-        public const string Name = "Code";   // for <input name="...">
-        public const string Id = "Code";     // for <input id="..."> and <label for="...">
-        public const string Path = "Code";   // for nested models
+        public string Name => "Code";   // for <input name="...">
+        public string Path => "Code";   // for nested models
+        public string Id => "Code";     // for <input id="..."> and <label for="...">
     }
-    public static class Name { ... }
+    public static CodeAccessor Code => default;
 }
 ```
 
@@ -304,7 +304,12 @@ Usage in Razor:
 <input id="@For.Code.Id" name="@For.Code.Name" value="@Model.Code">
 ```
 
-These `const string` values are also used in sort headers — `For.Code.Name` is the column key for `header.Render(For.Code.Name, "Code")`:
+`IPropertyAccessor` enables generic form helpers:
+```csharp
+void RenderField(IPropertyAccessor field, string label, string? value) { ... }
+```
+
+These values are also used in sort headers — `For.Code.Name` is the column key for `header.Render(For.Code.Name, "Code")`:
 ```cshtml
 <th>@header.Render(For.Code.Name, "Code")</th>
 ```

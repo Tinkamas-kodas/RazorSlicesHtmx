@@ -283,7 +283,7 @@ public sealed class ItemUpsertRequest
 The generator creates:
 1. **Static accessor class** (`ItemUpsertRequestHtml`) — metadata only, each accessor implements `IPropertyAccessor`
 2. **`.For()` extension method** — returns a context struct with both metadata and values from a model instance
-3. **`FieldContext<T>`** — struct implementing `IPropertyAccessor` with an additional `.Value` property
+3. **`FieldContext<T>`** — struct implementing `IPropertyAccessor` with `.Value`, `.HasErrors`, `.FieldErrors`
 
 **Static accessors** (metadata only, for sort headers and labels):
 ```cshtml
@@ -303,6 +303,34 @@ The generator creates:
 <input id="@f.Code.Id" name="@f.Code.Name" value="@f.Code.Value">
 <input id="@f.Name.Id" name="@f.Name.Name" value="@f.Name.Value">
 ```
+
+**`.For()` with validation errors** (pass `IHaveValidationResult.Errors`):
+```cshtml
+@{ var f = Model.For(Model.Errors); }
+@* f.Code.HasErrors, f.Code.FieldErrors are now populated *@
+```
+
+**Bootstrap 5 form helpers** (from `RazorSlicesHtmx.Bootstrap5`):
+```cshtml
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(Model.Errors); }
+
+@f.Code.Label("Code")
+@f.Code.Input(placeholder: "ITEM-001", autoFocus: true)
+@f.Code.Validation()
+
+@f.Name.Label("Name")
+@f.Name.Input(placeholder: "Item name")
+@f.Name.Validation()
+
+@f.IsActive.Checkbox(label: "Active")
+@f.Description.TextArea(placeholder: "Describe the item")
+```
+
+Available helpers: `.Label(text)`, `.Input()`, `.TextArea()`, `.Checkbox(label?)`, `.Select(options)`, `.Validation()`.
+All accept optional `BootstrapFieldOptions` to override CSS per-call.
+Global CSS is set via `BootstrapFieldOptions.Current` (configured through `AddRazorSlicesHtmxBootstrap5`).
 
 **Generic helpers** with `FieldContext<T>` / `IPropertyAccessor`:
 ```csharp

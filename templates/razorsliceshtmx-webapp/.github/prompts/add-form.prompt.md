@@ -46,33 +46,27 @@ public sealed record {Entity}DeleteDialogModel(int Id, string Name);
 **Reusable form fields** shared between create and edit pages:
 ```razor
 @inherits RazorSlice<{Entity}UpsertRequest>
-@using For = {RootNamespace}.HtmlNames.{RootNamespace}.Features.{FeatureName}.Models.{Entity}UpsertRequestHtml
+@using {RootNamespace}.HtmlNames.{RootNamespace}.Features.{FeatureName}.Models
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(Model.Errors); }
 
 <input type="hidden" name="Id" value="@Model.Id">
 
 <div>
-    <label class="form-label" for="@For.Name.Id">Name</label>
-    <input class="@Model.InputClass(For.Name.Name)"
-           id="@For.Name.Id"
-           name="@For.Name.Name"
-           value="@Model.Name"
-           placeholder="Enter name"
-           autocomplete="off"
-           autofocus>
-    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Name.Name)))
+    @f.Name.Label("Name")
+    @f.Name.Input(placeholder: "Enter name", autoFocus: true)
+    @f.Name.Validation()
 </div>
 @* repeat for each field *@
 
-<div class="form-check">
-    <input class="form-check-input" type="checkbox" id="@For.IsActive.Id"
-           name="@For.IsActive.Name" value="true"
-           checked="@(Model.IsActive ? "checked" : null)">
-    <input type="hidden" name="@For.IsActive.Name" value="false">
-    <label class="form-check-label" for="@For.IsActive.Id">Active</label>
+<div>
+    @f.IsActive.Checkbox(label: "Active")
+    <input type="hidden" name="@f.IsActive.Name" value="false">
 </div>
 ```
 
-Note: For bool checkboxes, always include a hidden input with `value="false"` before/after the checkbox.
+Note: For bool checkboxes, always include a hidden input with `value="false"` after the checkbox.
 This ensures the form submits `false` when the checkbox is unchecked.
 
 ### `Features/{FeatureName}/Slices/_CreatePage.cshtml`
@@ -311,8 +305,8 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
 2. Call `_content.TrimRequest(request)` to normalize input
 3. Validate with FluentValidation — `validator.Validate(request)`
 4. On failure: set `request.Errors = validationResult.ToErrorDictionary()`, re-render the same page
-5. `@Model.InputClass(For.Field.Name)` adds `is-invalid` CSS class on error
-6. `_ValidationMessage.Create(new(Model, For.Field.Name))` renders error feedback
+5. `.For(Model.Errors)` creates field context with errors — helpers auto-add `is-invalid` CSS class
+6. `.Validation()` renders error feedback per field
 
 ### Delete dialog flow
 1. Table row has `hx-get="/{route}/delete/{id}"` targeting `#dialog-host`

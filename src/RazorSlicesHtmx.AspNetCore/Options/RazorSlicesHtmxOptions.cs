@@ -17,4 +17,10 @@ public sealed class RazorSlicesHtmxOptions
         = null;
 
     public string DefaultOobSwap { get; set; } = HtmxSwap.InnerHtml;
+
+    /// <summary>
+    /// Optional field options object. Bootstrap5 uses this to configure
+    /// <c>BootstrapFieldOptions.Current</c> at startup.
+    /// </summary>
+    public object? FieldOptions { get; set; }
 }

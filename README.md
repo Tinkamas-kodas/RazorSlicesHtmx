@@ -46,9 +46,11 @@ What it implements:
 - Bootstrap fallback defaults for `DialogClass` and `ToastDelayMilliseconds`
 - `BootstrapHeaderOptions.Default` — Bootstrap CSS defaults for sort header buttons
 - `BootstrapPagerOptions.Default` — Bootstrap CSS defaults for the pager
+- `BootstrapFieldOptions.Default` — Bootstrap CSS defaults for form field helpers
 - `SortHeader(url, options?)` extension on `ListResponse` — Bootstrap-styled sort header context
 - `PagerContext(url, options?, texts?)` extension on `ListResponse` — Bootstrap-styled pager context
 - `_Pager` slice — Bootstrap pager with smart page windowing and page-size selector
+- Form field helpers: `.Label()`, `.Input()`, `.TextArea()`, `.Checkbox()`, `.Select()`, `.Validation()` on `FieldContext<T>`
 
 How to use it:
 
@@ -65,6 +67,11 @@ builder.Services.AddRazorSlicesHtmxBootstrap5(options =>
 {
   options.DialogClass = "modal-dialog modal-dialog-centered modal-lg";
   options.ToastDelayMilliseconds = 3200;
+  options.FieldOptions = BootstrapFieldOptions.Default with
+  {
+      InputClass = "form-control form-control-sm",
+      LabelClass = "form-label fw-bold"
+  };
 });
 ```
 
@@ -136,6 +143,37 @@ Instance context via `.For()` (metadata + values):
 <input id="@f.Code.Id" name="@f.Code.Name" value="@f.Code.Value">
 <input id="@f.Name.Id" name="@f.Name.Name" value="@f.Name.Value">
 ```
+
+With validation errors (pass `IHaveValidationResult.Errors`):
+
+```csharp
+@{ var f = Model.Request.For(Model.Errors); }
+@* f.Code.HasErrors, f.Code.FieldErrors available *@
+```
+
+Bootstrap 5 form helpers (from `RazorSlicesHtmx.Bootstrap5`):
+
+```cshtml
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(Model.Errors); }
+
+@f.Code.Label("Code")
+@f.Code.Input(placeholder: "ITEM-001", autoFocus: true)
+@f.Code.Validation()
+
+@f.Name.Label("Name")
+@f.Name.Input(placeholder: "Item name")
+@f.Name.Validation()
+
+@f.IsEnabled.Checkbox(label: "Enabled")
+```
+
+Available helpers: `.Label(text)`, `.Input(type?, placeholder?, autoFocus?, required?, disabled?, readOnly?)`,
+`.TextArea(placeholder?, rows?)`, `.Checkbox(label?)`, `.Select(options, emptyOption?)`, `.Validation()`.
+
+All helpers accept an optional `BootstrapFieldOptions` parameter to override CSS classes per-call.
+Global CSS defaults are configured via `BootstrapFieldOptions.Current` (set through DI, see Bootstrap5 section above).
 
 Generic components using `IPropertyAccessor` / `FieldContext<T>`:
 

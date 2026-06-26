@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlicesHtmx.AspNetCore.Options;
+using RazorSlicesHtmx.Bootstrap5.Options;
 using RazorSlicesHtmx.Bootstrap5.Rendering;
 
 namespace RazorSlicesHtmx.Bootstrap5.Extensions;
@@ -34,6 +35,11 @@ public static class ServiceCollectionExtensions
             if (options.ToastDelayMilliseconds is null)
             {
                 options.ToastDelayMilliseconds = 2600;
+            }
+
+            if (options.FieldOptions is BootstrapFieldOptions fieldOptions)
+            {
+                BootstrapFieldOptions.Current = fieldOptions;
             }
         }
     }

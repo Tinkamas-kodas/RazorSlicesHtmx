@@ -32,6 +32,17 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
     public int MaxDepth { get; }
 }
 """, Encoding.UTF8));
+
+            postInitContext.AddSource("IPropertyAccessor.g.cs", SourceText.From("""
+namespace RazorSlicesHtmx.HtmlNames;
+
+public interface IPropertyAccessor
+{
+    string Name { get; }
+    string Path { get; }
+    string Id { get; }
+}
+""", Encoding.UTF8));
         });
 
         var targets = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -110,7 +121,7 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
             source.Append("        public const string Id = \"").Append(entry.Id).AppendLine("\";");
             source.AppendLine("    }");
 
-            source.Append("    public readonly struct ").Append(entry.FieldClassName).Append("Accessor").AppendLine();
+            source.Append("    public readonly struct ").Append(entry.FieldClassName).Append("Accessor : global::RazorSlicesHtmx.HtmlNames.IPropertyAccessor").AppendLine();
             source.AppendLine("    {");
             source.Append("        public string Name => ").Append(entry.FieldClassName).Append("Values.Name;").AppendLine();
             source.Append("        public string Path => ").Append(entry.FieldClassName).Append("Values.Path;").AppendLine();

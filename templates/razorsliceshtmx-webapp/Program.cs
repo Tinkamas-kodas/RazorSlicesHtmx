@@ -1,4 +1,7 @@
 using RshtmxApp.Shared.Rendering;
+//#if (fluentValidation)
+using FluentValidation;
+//#endif
 
 var builder = WebApplication.CreateBuilder(args);
 

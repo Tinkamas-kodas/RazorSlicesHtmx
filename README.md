@@ -906,6 +906,51 @@ These packages are not intended to be:
 
 The main goal is to make HTMX feature flows, transient UI responses, and feature registration easier to compose in a RazorSlices-based app.
 
+## Feature Module Template
+
+A `dotnet new` template is included to scaffold a complete feature module with endpoints, models, services, and Razor slices.
+
+### Install
+
+```bash
+dotnet new install ./templates/razorsliceshtmx-feature
+```
+
+### Usage
+
+```bash
+dotnet new rshtmx-feature -n Products --entity Product --rootNamespace MyApp --route /products --order 200
+```
+
+This generates:
+
+```
+Products/
+├── Endpoints/ProductsEndpoints.cs    # IFeatureModule with list + create endpoints
+├── Models/
+│   ├── ProductRowModel.cs            # Row model record
+│   ├── ProductsListModel.cs          # List model record
+│   └── ProductUpsertRequest.cs       # Form request with [GenerateHtmlNames]
+├── Services/ProductsContentService.cs # Navigation item + sample data
+└── Slices/
+    ├── _FeaturePage.cshtml           # Full page with table + create button
+    ├── _ListPage.cshtml              # HTMX fragment for list refresh
+    ├── _CreatePage.cshtml            # Create form
+    └── _ViewImports.cshtml           # Namespace imports
+```
+
+### Parameters
+
+| Parameter        | Description                          | Default         |
+|------------------|--------------------------------------|-----------------|
+| `-n`, `--name`   | Feature name (e.g. `Products`)       | `MyFeature`     |
+| `--entity`       | Entity name (e.g. `Product`)         | Same as feature |
+| `--rootNamespace` | Root namespace of the project       | `MyApp`         |
+| `--route`        | Base route (e.g. `/products`)        | `/my-feature-route` |
+| `--order`        | Navigation order (lower = first)     | `100`           |
+
+After scaffolding, ensure the feature assembly is included in `FeatureRegistry.Discover()`.
+
 ## Demo Reference
 
 If you want a concrete reference, look at `demo/RazorSlicesHtmx.Demo` for:

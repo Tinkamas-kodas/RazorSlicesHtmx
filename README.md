@@ -913,13 +913,13 @@ The main goal is to make HTMX feature flows, transient UI responses, and feature
 Install the templates from NuGet:
 
 ```bash
-dotnet new install Tinkamas.Kodas.RazorSlicesHtmx.Templates
+dotnet new install RazorSlicesHtmx.Templates
 ```
 
 Or install a specific version:
 
 ```bash
-dotnet new install Tinkamas.Kodas.RazorSlicesHtmx.Templates::1.0.0
+dotnet new install RazorSlicesHtmx.Templates::1.0.0
 ```
 
 ### Project Template (`rshtmx-webapp`)

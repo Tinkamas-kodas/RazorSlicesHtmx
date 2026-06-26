@@ -4,8 +4,8 @@
     <Authors>Tinkamas kodas</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/example/RazorSlicesHtmx</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/example/RazorSlicesHtmx</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tinkamas-kodas/RazorSlicesHtmx</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Tinkamas-kodas/RazorSlicesHtmx</PackageProjectUrl>
     <PackageReleaseNotes>Initial 0.1.0 release. See CHANGELOG.md for details.</PackageReleaseNotes>
   </PropertyGroup>
 </Project>

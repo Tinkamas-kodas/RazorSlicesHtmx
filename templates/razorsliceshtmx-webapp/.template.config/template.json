@@ -66,11 +66,15 @@
       "modifiers": [
         {
           "condition": "(!bootstrap5)",
-          "exclude": []
+          "exclude": [
+            "Features/Items/**"
+          ]
         },
         {
           "condition": "(!fluentValidation)",
-          "exclude": []
+          "exclude": [
+            "Features/Items/Endpoints/ItemUpsertRequestValidator.cs"
+          ]
         },
         {
           "condition": "(useCdn)",

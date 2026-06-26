@@ -1,0 +1,49 @@
+@inherits RazorSlice<ItemListModel>
+@using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemRowHtml
+
+@{
+    var response = Model.Response;
+    var header = response.SortHeader("/items/list");
+}
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>@header.Render(For.Name.Name, "Name")</th>
+            <th>@header.Render(For.Description.Name, "Description")</th>
+            <th>@header.Render(For.IsActive.Name, "Active")</th>
+            <th style="width: 120px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in response.Items)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>
+                    @if (item.IsActive)
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactive</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1"
+                            hx-get="/items/edit/@item.Id"
+                            hx-target="#feature-details"
+                            hx-push-url="true">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            hx-get="/items/delete/@item.Id"
+                            hx-target="body"
+                            hx-swap="beforeend">Del</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@await RenderPartialAsync(_Pager.Create(response.ToPagerModel("/items/list")))

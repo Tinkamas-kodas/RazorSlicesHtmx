@@ -1,0 +1,47 @@
+@inherits RazorSlice<ItemUpsertRequest>
+@using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
+
+<form id="items-create-form"
+      hx-post="/items/create"
+      hx-target="this"
+      hx-swap="@HtmxSwap.OuterHtml"
+      class="section-panel">
+
+    <h3>Create Item</h3>
+
+    <div class="mb-3">
+        <label for="@For.Name.Id" class="form-label">Name</label>
+        <input type="text"
+               class="@Model.InputClass(For.Name.Name)"
+               id="@For.Name.Id"
+               name="@For.Name.Name"
+               value="@Model.Name" />
+        @await RenderPartialAsync(_ValidationMessage.Create(new ValidationMessageModel(Model, For.Name.Name)))
+    </div>
+
+    <div class="mb-3">
+        <label for="@For.Description.Id" class="form-label">Description</label>
+        <textarea class="@Model.InputClass(For.Description.Name)"
+                  id="@For.Description.Id"
+                  name="@For.Description.Name"
+                  rows="3">@Model.Description</textarea>
+        @await RenderPartialAsync(_ValidationMessage.Create(new ValidationMessageModel(Model, For.Description.Name)))
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox"
+               class="form-check-input"
+               id="@For.IsActive.Id"
+               name="@For.IsActive.Name"
+               value="true"
+               @(Model.IsActive ? "checked" : "") />
+        <label class="form-check-label" for="@For.IsActive.Id">Active</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+    <button type="button" class="btn btn-outline-secondary ms-2"
+            hx-get="/items/list"
+            hx-target="#feature-details"
+            hx-push-url="/items"
+            hx-params="none">Cancel</button>
+</form>

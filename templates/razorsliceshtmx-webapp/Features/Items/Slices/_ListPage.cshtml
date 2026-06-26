@@ -1,0 +1,36 @@
+@inherits RazorSlice<ItemListModel>
+
+@{
+    var search = Model.Search;
+}
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <div class="input-group" style="max-width: 300px;">
+        <input type="search"
+               class="form-control"
+               name="SearchTerm"
+               value="@search.SearchTerm"
+               placeholder="Search items..."
+               hx-get="/items/list"
+               hx-trigger="input changed delay:300ms, search"
+               hx-target="#items-table"
+               hx-include="#@ItemSearch.StateId, #@ItemListQuery.StateId" />
+    </div>
+    <button type="button"
+            class="btn btn-primary"
+            hx-get="/items/create"
+            hx-target="#feature-details"
+            hx-push-url="true">
+        <i class="bi bi-plus-lg"></i> New Item
+    </button>
+</div>
+
+<div id="items-table"
+     hx-get="/items/list"
+     hx-trigger="Items.ListRefresh from:body"
+     hx-include="#@ItemSearch.StateId, #@ItemListQuery.StateId">
+    @await RenderPartialAsync(_ItemsTable.Create(Model))
+</div>
+
+@search.IncludeState()
+@Model.Response.Request.IncludeState()

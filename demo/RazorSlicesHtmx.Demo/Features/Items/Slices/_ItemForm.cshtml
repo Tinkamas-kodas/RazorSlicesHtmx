@@ -19,8 +19,8 @@
 </div>
 
 <div>
-    @f.IsEnabled.Checkbox(label: "Enabled")
-    <input type="hidden" name="@f.IsEnabled.Name" value="false">
+    @f.IsEnabled.Checkbox()
+    @f.IsEnabled.Label("Enabled")
 </div>
 
 <p class="items-modal-copy">Code must be unique. Both Code and Name are required.</p>

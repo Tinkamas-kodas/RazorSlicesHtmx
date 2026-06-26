@@ -166,11 +166,14 @@ Bootstrap 5 form helpers (from `RazorSlicesHtmx.Bootstrap5`):
 @f.Name.Input(placeholder: "Item name")
 @f.Name.Validation()
 
-@f.IsEnabled.Checkbox(label: "Enabled")
+@f.IsEnabled.Checkbox()
+@f.IsEnabled.Label("Enabled")
 ```
 
 Available helpers: `.Label(text)`, `.Input(type?, placeholder?, autoFocus?, required?, disabled?, readOnly?)`,
-`.TextArea(placeholder?, rows?)`, `.Checkbox(label?)`, `.Select(options, emptyOption?)`, `.Validation()`.
+`.TextArea(placeholder?, rows?)`, `.Checkbox(disabled?)`, `.Select(options, emptyOption?)`, `.Validation()`.
+`.Checkbox()` auto-generates both the hidden false input and the checkbox input.
+`Label()` on `FieldContext<bool>` uses `CheckboxLabelClass` automatically.
 
 All helpers accept an optional `BootstrapFieldOptions` parameter to override CSS classes per-call.
 Global CSS defaults are configured via `BootstrapFieldOptions.Current` (set through DI, see Bootstrap5 section above).

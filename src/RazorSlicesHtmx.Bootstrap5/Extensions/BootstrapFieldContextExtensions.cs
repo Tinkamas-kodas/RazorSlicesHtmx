@@ -27,6 +27,44 @@ public static class BootstrapFieldContextExtensions
         return content;
     }
 
+    /// <summary>
+    /// Renders a label for a checkbox field using <c>CheckboxLabelClass</c>.
+    /// </summary>
+    public static IHtmlContent Label(this FieldContext<bool> field, string text,
+        BootstrapFieldOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        var o = options ?? BootstrapFieldOptions.Current;
+
+        var content = new HtmlContentBuilder(5);
+        content.AppendHtml("<label for=\"");
+        content.Append(field.Id);
+        content.AppendHtml("\" class=\"");
+        content.Append(o.CheckboxLabelClass);
+        content.AppendHtml("\">");
+        content.Append(text);
+        content.AppendHtml("</label>");
+        return content;
+    }
+
+    public static IHtmlContent Hidden<TValue>(this FieldContext<TValue> field)
+    {
+        var content = new HtmlContentBuilder(4);
+        content.AppendHtml("<input type=\"hidden\" name=\"");
+        content.Append(field.Name);
+        content.AppendHtml("\"");
+
+        if (field.Value is not null)
+        {
+            content.AppendHtml(" value=\"");
+            content.Append(field.Value.ToString()!);
+            content.AppendHtml("\"");
+        }
+
+        content.AppendHtml(">");
+        return content;
+    }
+
     public static IHtmlContent Input<TValue>(this FieldContext<TValue> field,
         string type = "text",
         string? placeholder = null,
@@ -115,16 +153,18 @@ public static class BootstrapFieldContextExtensions
     }
 
     public static IHtmlContent Checkbox(this FieldContext<bool> field,
-        string? label = null,
         bool disabled = false,
         BootstrapFieldOptions? options = null)
     {
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(8);
+        var content = new HtmlContentBuilder(6);
         content.AppendHtml("<div class=\"");
         content.Append(o.CheckboxWrapperClass);
         content.AppendHtml("\">");
+        content.AppendHtml("<input type=\"hidden\" name=\"");
+        content.Append(field.Name);
+        content.AppendHtml("\" value=\"false\">");
         content.AppendHtml("<input type=\"checkbox\" id=\"");
         content.Append(field.Id);
         content.AppendHtml("\" name=\"");
@@ -137,18 +177,6 @@ public static class BootstrapFieldContextExtensions
         if (disabled) content.AppendHtml(" disabled");
 
         content.AppendHtml(">");
-
-        if (label is not null)
-        {
-            content.AppendHtml("<label class=\"");
-            content.Append(o.CheckboxLabelClass);
-            content.AppendHtml("\" for=\"");
-            content.Append(field.Id);
-            content.AppendHtml("\">");
-            content.Append(label);
-            content.AppendHtml("</label>");
-        }
-
         content.AppendHtml("</div>");
         return content;
     }

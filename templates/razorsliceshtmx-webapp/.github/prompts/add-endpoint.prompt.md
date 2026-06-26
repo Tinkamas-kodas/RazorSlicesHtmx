@@ -41,11 +41,13 @@ app.MapPost("{route}/delete", (int id) =>
 }).DisableAntiforgery();
 ```
 
-**Dialog response** (show a modal):
+**Dialog response** (show a Bootstrap modal):
 ```csharp
-app.MapGet("{route}/confirm-delete", (int id) =>
-    Result.For(_DeleteDialog.Create(new DeleteModel(id, "Item Name")))
-        .BuildAsync());
+app.MapGet("{route}/confirm-delete/{id:int}", (int id) =>
+{
+    var model = _content.CreateDeleteDialogModel(id);
+    return Result.Dialog(_{Entity}Delete.Create(model));
+});
 ```
 
 **With retarget** (swap a different element than the default):

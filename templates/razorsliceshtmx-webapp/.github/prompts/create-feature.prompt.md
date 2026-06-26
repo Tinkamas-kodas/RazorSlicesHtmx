@@ -68,6 +68,7 @@ public sealed class {FeatureName}ContentService
 ### `Features/{FeatureName}/Slices/_ViewImports.cshtml`
 ```razor
 @using {RootNamespace}.Features.{FeatureName}.Models
+@using {RootNamespace}.Features.{FeatureName}.Slices
 ```
 
 ## Important:

@@ -26,9 +26,9 @@
     <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
-    <div class="admin-shell">
-        @(await RenderPartialAsync(_SidebarNav.Create(Model)))
-        <main class="admin-main">
+    @(await RenderPartialAsync(_TopNav.Create(Model)))
+    <div class="container">
+        <main class="pb-3">
             <section id="@detailTargetId" class="details-pane">
                 @await RenderBodyAsync()
             </section>

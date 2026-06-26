@@ -1,12 +1,9 @@
 :root {
-    --shell-bg: #f3efe7;
-    --shell-ink: #112031;
-    --sidebar-bg: #0f172a;
-    --sidebar-border: rgba(255, 255, 255, 0.08);
-    --sidebar-copy: rgba(226, 232, 240, 0.72);
-    --accent: #ff7a59;
-    --accent-soft: rgba(255, 122, 89, 0.16);
-    --card-bg: rgba(255, 255, 255, 0.82);
+    --shell-bg: #f8f9fa;
+    --shell-ink: #212529;
+    --accent: #0d6efd;
+    --accent-soft: rgba(13, 110, 253, 0.12);
+    --card-bg: #ffffff;
 }
 
 * {
@@ -16,130 +13,14 @@
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: "Public Sans", "Segoe UI", sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     color: var(--shell-ink);
-    background:
-        radial-gradient(circle at top right, rgba(255, 122, 89, 0.24), transparent 28%),
-        linear-gradient(180deg, #fcf8f2 0%, var(--shell-bg) 100%);
-}
-
-.admin-shell {
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-}
-
-.admin-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 2rem 1.5rem;
-    background: linear-gradient(180deg, #111827 0%, var(--sidebar-bg) 100%);
-    color: white;
-    border-right: 1px solid var(--sidebar-border);
-}
-
-.sidebar-kicker,
-.topbar-label,
-.section-eyebrow,
-.card-kicker {
-    margin: 0;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-size: 0.74rem;
-    font-weight: 700;
-}
-
-.sidebar-kicker,
-.section-eyebrow,
-.card-kicker {
-    color: var(--accent);
-}
-
-.sidebar-title,
-.topbar-title,
-.section-title {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    letter-spacing: -0.04em;
-}
-
-.sidebar-title {
-    margin: 0.4rem 0 0;
-    font-size: 1.9rem;
-}
-
-.sidebar-copy {
-    margin: 0.75rem 0 0;
-    color: var(--sidebar-copy);
-    line-height: 1.6;
-}
-
-.sidebar-link {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.95rem 1rem;
-    border-radius: 1rem;
-    text-decoration: none;
-    color: white;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid transparent;
-    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
-}
-
-.sidebar-link:hover {
-    color: white;
-    transform: translateX(4px);
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-link.active {
-    background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(255, 255, 255, 0.08) 100%);
-    border-color: rgba(255, 122, 89, 0.32);
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
-}
-
-.sidebar-link-label {
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-.sidebar-link-copy {
-    color: var(--sidebar-copy);
-    font-size: 0.88rem;
-    line-height: 1.45;
-}
-
-.admin-main {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.admin-topbar {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: start;
-}
-
-.topbar-title {
-    margin: 0.5rem 0 0;
-    font-size: clamp(2rem, 2vw + 1.4rem, 3rem);
-}
-
-.topbar-pill {
-    white-space: nowrap;
-    padding: 0.7rem 1rem;
-    border-radius: 999px;
-    background: rgba(17, 32, 49, 0.08);
-    font-weight: 700;
+    background: var(--shell-bg);
 }
 
 .details-pane {
     min-height: 0;
+    padding-top: 1.5rem;
 }
 
 .toast-host {
@@ -162,9 +43,20 @@ body {
     align-items: end;
 }
 
+.section-eyebrow,
+.card-kicker {
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
 .section-title {
     margin: 0.35rem 0 0;
-    font-size: clamp(1.8rem, 1.6vw + 1.2rem, 2.8rem);
+    font-size: clamp(1.6rem, 1.4vw + 1rem, 2.4rem);
+    font-weight: 700;
 }
 
 .section-route {
@@ -185,8 +77,8 @@ body {
 
 .content-card {
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    border-radius: 1.4rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
 }
 
 .detail-list,
@@ -221,7 +113,7 @@ body {
 
 .preview-title {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
     font-size: 1.55rem;
 }
 
@@ -287,7 +179,7 @@ body {
 
 .howto-step-title {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
     font-size: clamp(1.4rem, 1vw + 1.2rem, 2rem);
 }
 
@@ -459,20 +351,6 @@ body {
 }
 
 @media (max-width: 991.98px) {
-    .admin-shell {
-        grid-template-columns: 1fr;
-    }
-
-    .admin-sidebar {
-        border-right: 0;
-        border-bottom: 1px solid var(--sidebar-border);
-    }
-
-    .admin-main {
-        padding: 1.25rem;
-    }
-
-    .admin-topbar,
     .section-hero,
     .items-toolbar {
         flex-direction: column;

@@ -15,7 +15,7 @@ Features/
 Shared/
   Models/                                 ← layout models
   Rendering/                              ← IFeaturePageRenderer
-  Slices/                                 ← Layout, Page, _SidebarNav
+  Slices/                                 ← Layout, Page, _TopNav
 ```
 
 ## Feature Module

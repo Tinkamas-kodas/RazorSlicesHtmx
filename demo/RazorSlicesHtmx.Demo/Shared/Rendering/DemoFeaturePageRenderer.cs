@@ -12,7 +12,7 @@ public sealed class DemoFeaturePageRenderer : IFeaturePageRenderer
         return Page.Create(new AppPageShellModel(layout, context.Detail));
     }
 
-    public RazorSlice RenderNavigation(FeatureShellContext context) => _SidebarNav.Create(CreateLayout(context));
+    public RazorSlice RenderNavigation(FeatureShellContext context) => _TopNav.Create(CreateLayout(context));
 
     private static AppLayoutModel CreateLayout(FeatureShellContext context)
     {

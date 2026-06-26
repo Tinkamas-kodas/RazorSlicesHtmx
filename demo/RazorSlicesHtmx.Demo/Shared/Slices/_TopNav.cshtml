@@ -1,0 +1,64 @@
+@inherits RazorSlice<AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
+}
+
+<nav id="top-nav" class="navbar navbar-expand-lg navbar-dark bg-dark" hx-swap-oob="@HtmxSwap.OuterHtml">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">RazorSlicesHtmx</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                @foreach (var item in Model.NavigationItems)
+                {
+                    if (item is NavigationRouteItem routeItem)
+                    {
+                        var isActive = string.Equals(Model.ActiveNavKey, routeItem.Key, StringComparison.OrdinalIgnoreCase);
+                        <li class="nav-item">
+                            <a href="@routeItem.Route"
+                               hx-get="@routeItem.Route"
+                               hx-target="@detailTargetSelector"
+                               hx-swap="@HtmxSwap.InnerHtml"
+                               hx-push-url="true"
+                               class="nav-link @(isActive ? "active" : "")">
+                                @routeItem.Label
+                            </a>
+                        </li>
+                    }
+                    else if (item is NavigationGroupItem groupItem)
+                    {
+                        var isGroupActive = groupItem.Children.OfType<NavigationRouteItem>()
+                            .Any(c => string.Equals(Model.ActiveNavKey, c.Key, StringComparison.OrdinalIgnoreCase));
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @(isGroupActive ? "active" : "")" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                @groupItem.Label
+                            </a>
+                            <ul class="dropdown-menu">
+                                @foreach (var child in groupItem.Children.OfType<NavigationRouteItem>())
+                                {
+                                    var isChildActive = string.Equals(Model.ActiveNavKey, child.Key, StringComparison.OrdinalIgnoreCase);
+                                    <li>
+                                        <a href="@child.Route"
+                                           hx-get="@child.Route"
+                                           hx-target="@detailTargetSelector"
+                                           hx-swap="@HtmxSwap.InnerHtml"
+                                           hx-push-url="true"
+                                           class="dropdown-item @(isChildActive ? "active" : "")">
+                                            @child.Label
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: "Add a new HTMX endpoint to an existing feature"
 ---
 

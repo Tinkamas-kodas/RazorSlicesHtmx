@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: "Add a list page with a data table to an existing feature"
 ---
 

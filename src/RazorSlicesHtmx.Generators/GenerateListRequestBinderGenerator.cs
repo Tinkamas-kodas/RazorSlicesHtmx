@@ -117,15 +117,42 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
             return Enumerable.Empty<IPropertySymbol>();
         }
 
-        return named.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(static p =>
-                p.DeclaredAccessibility == Accessibility.Public
-                && !p.IsStatic
-                && !p.IsIndexer
-                && p.GetMethod is not null
-                && p.Parameters.Length == 0)
-            .Where(p => IsSortableType(p.Type) && !HasSortDisableAttribute(p));
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var result = new List<IPropertySymbol>();
+
+        // Walk the inheritance chain: derived type properties win over base
+        INamedTypeSymbol? current = named;
+        while (current is not null && current.SpecialType == SpecialType.None)
+        {
+            foreach (var property in current.GetMembers().OfType<IPropertySymbol>())
+            {
+                if (property.DeclaredAccessibility != Accessibility.Public
+                    || property.IsStatic
+                    || property.IsIndexer
+                    || property.GetMethod is null
+                    || property.Parameters.Length != 0)
+                {
+                    continue;
+                }
+
+                if (!IsSortableType(property.Type) || HasSortDisableAttribute(property))
+                {
+                    continue;
+                }
+
+                // Derived property takes priority — skip if already seen
+                if (!seen.Add(property.Name))
+                {
+                    continue;
+                }
+
+                result.Add(property);
+            }
+
+            current = current.BaseType;
+        }
+
+        return result;
     }
 
     private static bool HasSortDisableAttribute(IPropertySymbol property)

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Results;
 using RshtmxApp.Features.Items.Models;
@@ -18,136 +19,134 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override void MapEndpoints(WebApplication app)
     {
-        // ─── LIST ───
-
-        app.MapGet("/items/list", ([AsParameters] ItemSearch search, [AsParameters] ItemListQuery query) =>
+        app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
             var model = _content.CreateListModel(search, query);
-            return Result.For(_ListPage.Create(model))
-                .AsFragment(_ItemsTable.Create(model))
+            return Result.For(_FeaturePage.Create(model))
+                .AsFragment(_ListPage.Create(model))
                 .WithState(search)
                 .WithState(query)
                 .BuildAsync();
         });
 
-        // ─── CREATE ───
-
         app.MapGet("/items/create", () =>
-            Result.For(_CreatePage.Create(new ItemUpsertRequest()))
+            Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
                 .BuildAsync());
 
 //#if (fluentValidation)
-        app.MapPost("/items/create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
-        {
-            var result = await validator.ValidateAsync(request);
-            if (!result.IsValid)
+        app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
             {
-                request.Errors = result.ToErrorDictionary();
-                return await Result.For(_CreatePage.Create(request))
-                    .AsFragment(_CreatePage.Create(request))
-                    .WithRetarget("#items-create-form")
-                    .WithReswap(HtmxSwap.OuterHtml)
-                    .BuildAsync();
-            }
+                _content.TrimRequest(request);
+                var validationResult = validator.Validate(request);
 
-            _content.Create(request);
-            return await Result.For(_Empty.Create())
-                .WithTrigger("Items.ListRefresh")
-                .WithToast("Item created successfully.")
-                .BuildAsync();
-        }).DisableAntiforgery();
+                if (!validationResult.IsValid)
+                {
+                    request.Errors = validationResult.ToErrorDictionary();
+                    return Result.For(_CreatePage.Create(request))
+                        .BuildAsync();
+                }
+
+                _content.Create(request);
+
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
+                    .WithToast($"Item '{request.Name}' was created.")
+                    .BuildAsync();
+            })
+            .DisableAntiforgery();
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/create", (ItemUpsertRequest request) =>
-        {
-            _content.Create(request);
-            return Result.For(_Empty.Create())
-                .WithTrigger("Items.ListRefresh")
-                .WithToast("Item created successfully.")
-                .BuildAsync();
-        }).DisableAntiforgery();
-//#endif
+        app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request) =>
+            {
+                _content.TrimRequest(request);
+                _content.Create(request);
 
-        // ─── EDIT ───
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
+                    .WithToast($"Item '{request.Name}' was created.")
+                    .BuildAsync();
+            })
+            .DisableAntiforgery();
+//#endif
 
         app.MapGet("/items/edit/{id:int}", (int id) =>
         {
-            var request = _content.GetForEdit(id);
-            if (request is null)
-                return Result.For(_Empty.Create())
-                    .WithToast("Item not found.", tone: ToastTone.Error)
-                    .BuildAsync();
+            var row = _content.FindById(id);
+            if (row is null)
+                return Task.FromResult(Results.NotFound());
 
-            return Result.For(_EditPage.Create(request))
+            return Result.For(_EditPage.Create(_content.CreateEditFormModel(row)))
                 .BuildAsync();
         });
 
 //#if (fluentValidation)
-        app.MapPost("/items/edit", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
-        {
-            var result = await validator.ValidateAsync(request);
-            if (!result.IsValid)
+        app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
             {
-                request.Errors = result.ToErrorDictionary();
-                return await Result.For(_EditPage.Create(request))
-                    .AsFragment(_EditPage.Create(request))
-                    .WithRetarget("#items-edit-form")
-                    .WithReswap(HtmxSwap.OuterHtml)
-                    .BuildAsync();
-            }
+                var row = _content.FindById(id);
+                if (row is null)
+                    return Task.FromResult(Results.NotFound());
 
-            if (!_content.Update(request))
-                return await Result.For(_Empty.Create())
-                    .WithToast("Item not found.", tone: ToastTone.Error)
-                    .BuildAsync();
+                request.Id = id;
+                _content.TrimRequest(request);
+                var validationResult = validator.Validate(request);
 
-            return await Result.For(_Empty.Create())
-                .WithTrigger("Items.ListRefresh")
-                .WithToast("Item updated successfully.")
-                .BuildAsync();
-        }).DisableAntiforgery();
+                if (!validationResult.IsValid)
+                {
+                    request.Errors = validationResult.ToErrorDictionary();
+                    return Result.For(_EditPage.Create(request))
+                        .BuildAsync();
+                }
+
+                _content.Apply(id, request);
+
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
+                    .WithToast($"Item '{request.Name}' was updated.")
+                    .BuildAsync();
+            })
+            .DisableAntiforgery();
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/edit", (ItemUpsertRequest request) =>
-        {
-            if (!_content.Update(request))
+        app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request) =>
+            {
+                var row = _content.FindById(id);
+                if (row is null)
+                    return Task.FromResult(Results.NotFound());
+
+                _content.TrimRequest(request);
+                _content.Apply(id, request);
+
                 return Result.For(_Empty.Create())
-                    .WithToast("Item not found.", tone: ToastTone.Error)
+                    .WithTrigger("Items.ListRefresh")
+                    .WithToast($"Item '{request.Name}' was updated.")
                     .BuildAsync();
-
-            return Result.For(_Empty.Create())
-                .WithTrigger("Items.ListRefresh")
-                .WithToast("Item updated successfully.")
-                .BuildAsync();
-        }).DisableAntiforgery();
+            })
+            .DisableAntiforgery();
 //#endif
-
-        // ─── DELETE ───
 
         app.MapGet("/items/delete/{id:int}", (int id) =>
         {
-            var model = _content.GetForDelete(id);
-            if (model is null)
-                return Result.For(_Empty.Create())
-                    .WithToast("Item not found.", tone: ToastTone.Error)
-                    .BuildAsync();
+            var row = _content.FindById(id);
+            if (row is null)
+                return Results.NotFound();
 
-            return Result.For(_Empty.Create())
-                .WithDialog(_DeleteDialog.Create(model))
-                .BuildAsync();
+            return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
         app.MapPost("/items/delete/{id:int}", (int id) =>
-        {
-            if (!_content.Delete(id))
-                return Result.For(_Empty.Create())
-                    .WithToast("Item not found.", tone: ToastTone.Error)
-                    .BuildAsync();
+            {
+                var row = _content.FindById(id);
+                if (row is null)
+                    return Task.FromResult(Results.NotFound());
 
-            return Result.For(_Empty.Create())
-                .WithTrigger("Items.ListRefresh")
-                .WithToast("Item deleted.", tone: ToastTone.Warning)
-                .BuildAsync();
-        }).DisableAntiforgery();
+                _content.Delete(id);
+
+                return Result.For(_Empty.Create())
+                    .WithTrigger("Items.ListRefresh")
+                    .WithToast($"Item '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
+                    .ClearDialog()
+                    .BuildAsync();
+            })
+            .DisableAntiforgery();
     }
 }

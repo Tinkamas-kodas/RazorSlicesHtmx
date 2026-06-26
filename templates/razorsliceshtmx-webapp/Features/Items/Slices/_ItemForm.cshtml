@@ -1,0 +1,32 @@
+@inherits RazorSlice<ItemUpsertRequest>
+@using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
+
+<input type="hidden" name="Id" value="@Model.Id">
+
+<div>
+    <label class="form-label" for="@For.Name.Id">Name</label>
+    <input class="@Model.InputClass(For.Name.Name)"
+           id="@For.Name.Id"
+           name="@For.Name.Name"
+           value="@Model.Name"
+           placeholder="Item name"
+           autocomplete="off"
+           autofocus>
+    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Name.Name)))
+</div>
+
+<div>
+    <label class="form-label" for="@For.Description.Id">Description</label>
+    <textarea class="@Model.InputClass(For.Description.Name)"
+              id="@For.Description.Id"
+              name="@For.Description.Name"
+              rows="3"
+              placeholder="Item description">@Model.Description</textarea>
+    @await RenderPartialAsync(_ValidationMessage.Create(new(Model, For.Description.Name)))
+</div>
+
+<div class="form-check">
+    <input class="form-check-input" type="checkbox" id="@For.IsActive.Id" name="@For.IsActive.Name" value="true" checked="@(Model.IsActive ? "checked" : null)">
+    <input type="hidden" name="@For.IsActive.Name" value="false">
+    <label class="form-check-label" for="@For.IsActive.Id">Active</label>
+</div>

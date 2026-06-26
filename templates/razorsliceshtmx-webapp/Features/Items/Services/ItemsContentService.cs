@@ -1,4 +1,3 @@
-using RazorSlicesHtmx.AspNetCore.Models;
 using RshtmxApp.Features.Items.Models;
 using RshtmxApp.Features.Items.Slices;
 
@@ -6,89 +5,108 @@ namespace RshtmxApp.Features.Items.Services;
 
 public sealed class ItemsContentService
 {
-    private static readonly List<ItemRow> Store =
+    private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
+        new Dictionary<string, (string errorCode, string errorMessage)[]>();
+
+    private static readonly List<ItemRowModel> Store =
     [
-        new() { Id = 1, Name = "Widget A", Description = "First sample widget", IsActive = true },
-        new() { Id = 2, Name = "Widget B", Description = "Second sample widget", IsActive = true },
-        new() { Id = 3, Name = "Gadget C", Description = "A handy gadget", IsActive = false },
-        new() { Id = 4, Name = "Doohickey D", Description = "Mystery item", IsActive = true },
-        new() { Id = 5, Name = "Thingamajig E", Description = "Essential thing", IsActive = true },
+        new(1, "Widget Alpha", "First sample widget", true),
+        new(2, "Widget Beta", "Second sample widget", true),
+        new(3, "Gadget Gamma", "A handy gadget", false),
+        new(4, "Doohickey Delta", "Mystery item", true),
+        new(5, "Thingamajig Epsilon", "Essential thing", true),
+        new(6, "Contraption Zeta", "Useful device", false),
+        new(7, "Apparatus Eta", "Lab equipment", true),
+        new(8, "Mechanism Theta", "Precision part", true),
+        new(9, "Device Iota", "Smart device", false),
+        new(10, "Implement Kappa", "Garden tool", true),
+        new(11, "Tool Lambda", "Power tool", true),
+        new(12, "Instrument Mu", "Measurement device", true),
     ];
 
-    private static int _nextId = 6;
+    private static int _nextId = 13;
 
     public NavigationRouteItem CreateNavigationItem() => new(
         "items",
         "Items",
         "/items",
-        new PageDefinition(() => _ItemsPage.Create()),
+        new PageDefinition(httpContext =>
+        {
+            var search = new ItemSearchModel(
+                httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
+            var query = ItemListQuery.FromQuery(httpContext.Request.Query);
+            return _FeaturePage.Create(CreateListModel(search, query));
+        }),
         Order: 10);
 
-    public ItemListModel CreateListModel(ItemSearch search, ItemListQuery query)
+    public ItemListModel CreateListModel(ItemSearchModel search, ItemListQuery query)
     {
-        IEnumerable<ItemRow> items = Store;
+        IEnumerable<ItemRowModel> items = Store;
 
-        if (!string.IsNullOrWhiteSpace(search.SearchTerm))
+        if (!string.IsNullOrWhiteSpace(search.Search))
         {
-            var term = search.SearchTerm.Trim();
-            items = items.Where(x =>
-                x.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                x.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
+            var term = search.Search.Trim();
+            items = items.Where(row =>
+                row.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                row.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
         }
 
-        var queryable = items.AsQueryable();
-        var response = queryable.ToPagedList(query);
-
-        return new ItemListModel { Response = response, Search = search };
+        var paged = items.AsQueryable().ToPagedList(query);
+        return new ItemListModel(paged.Total, search, query, paged.Items);
     }
 
-    public ItemUpsertRequest? GetForEdit(int id)
+    public ItemUpsertRequest CreateCreateFormModel() => new()
     {
-        var item = Store.FirstOrDefault(x => x.Id == id);
-        if (item is null) return null;
+        IsActive = true,
+        Errors = EmptyErrors
+    };
 
-        return new ItemUpsertRequest
-        {
-            Id = item.Id,
-            Name = item.Name,
-            Description = item.Description,
-            IsActive = item.IsActive,
-        };
-    }
-
-    public ItemDeleteModel? GetForDelete(int id)
+    public ItemUpsertRequest CreateEditFormModel(ItemRowModel row) => new()
     {
-        var item = Store.FirstOrDefault(x => x.Id == id);
-        return item is null ? null : new ItemDeleteModel(item.Id, item.Name);
+        Id = row.Id,
+        Name = row.Name,
+        Description = row.Description,
+        IsActive = row.IsActive,
+        Errors = EmptyErrors
+    };
+
+    public ItemDeleteDialogModel CreateDeleteDialogModel(ItemRowModel row) => new(row.Id, row.Name);
+
+    public void TrimRequest(ItemUpsertRequest request)
+    {
+        request.Name = request.Name?.Trim();
+        request.Description = request.Description?.Trim();
     }
+
+    public ItemRowModel? FindById(int id) => Store.FirstOrDefault(x => x.Id == id);
 
     public void Create(ItemUpsertRequest request)
     {
-        Store.Add(new ItemRow
-        {
-            Id = _nextId++,
-            Name = request.Name,
-            Description = request.Description,
-            IsActive = request.IsActive,
-        });
+        Store.Add(new ItemRowModel(
+            _nextId++,
+            request.Name ?? string.Empty,
+            request.Description ?? string.Empty,
+            request.IsActive));
     }
 
-    public bool Update(ItemUpsertRequest request)
+    public void Apply(int id, ItemUpsertRequest request)
     {
-        var item = Store.FirstOrDefault(x => x.Id == request.Id);
-        if (item is null) return false;
-
-        item.Name = request.Name;
-        item.Description = request.Description;
-        item.IsActive = request.IsActive;
-        return true;
+        var index = Store.FindIndex(x => x.Id == id);
+        if (index >= 0)
+        {
+            Store[index] = new ItemRowModel(
+                id,
+                request.Name ?? string.Empty,
+                request.Description ?? string.Empty,
+                request.IsActive);
+        }
     }
 
     public bool Delete(int id)
     {
-        var item = Store.FirstOrDefault(x => x.Id == id);
-        if (item is null) return false;
-        Store.Remove(item);
+        var index = Store.FindIndex(x => x.Id == id);
+        if (index < 0) return false;
+        Store.RemoveAt(index);
         return true;
     }
 }

@@ -1,0 +1,15 @@
+@inherits RazorSlice<ItemListModel>
+
+<div id="items-workspace" class="section-panel">
+    @Model.Search.Serialize()
+    @Model.Request.Serialize()
+
+    <div id="feature-details"
+         hx-get="/items/list"
+         hx-trigger="Items.ListRefresh from:body"
+         hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+         hx-push-url="true"
+         hx-target="#feature-details">
+        @await RenderPartialAsync(_ListPage.Create(Model))
+    </div>
+</div>

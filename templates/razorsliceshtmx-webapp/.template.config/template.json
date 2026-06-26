@@ -73,7 +73,7 @@
         {
           "condition": "(!fluentValidation)",
           "exclude": [
-            "Features/Items/Endpoints/ItemUpsertRequestValidator.cs"
+            "Features/Items/Validators/**"
           ]
         },
         {

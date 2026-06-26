@@ -1,0 +1,17 @@
+@inherits RazorSlice<ItemDeleteDialogModel>
+
+<div class="modal-content border-0 shadow-lg">
+    <form hx-post="@($"/items/delete/{Model.Id}")" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Delete Item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p>This will permanently delete <strong>@Model.Name</strong>.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Yes, delete</button>
+        </div>
+    </form>
+</div>

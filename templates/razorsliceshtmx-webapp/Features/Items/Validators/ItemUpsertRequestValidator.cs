@@ -1,7 +1,7 @@
 using FluentValidation;
 using RshtmxApp.Features.Items.Models;
 
-namespace RshtmxApp.Features.Items.Endpoints;
+namespace RshtmxApp.Features.Items.Validators;
 
 public sealed class ItemUpsertRequestValidator : AbstractValidator<ItemUpsertRequest>
 {

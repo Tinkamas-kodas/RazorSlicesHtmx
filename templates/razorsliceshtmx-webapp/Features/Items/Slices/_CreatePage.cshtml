@@ -1,47 +1,34 @@
 @inherits RazorSlice<ItemUpsertRequest>
-@using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
 
-<form id="items-create-form"
-      hx-post="/items/create"
-      hx-target="this"
-      hx-swap="@HtmxSwap.OuterHtml"
-      class="section-panel">
-
+<article class="section-panel">
     <h3>Create Item</h3>
+    <p class="text-muted">Create a new item and return to the list with server-rendered feedback.</p>
 
-    <div class="mb-3">
-        <label for="@For.Name.Id" class="form-label">Name</label>
-        <input type="text"
-               class="@Model.InputClass(For.Name.Name)"
-               id="@For.Name.Id"
-               name="@For.Name.Name"
-               value="@Model.Name" />
-        @await RenderPartialAsync(_ValidationMessage.Create(new ValidationMessageModel(Model, For.Name.Name)))
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form class="d-flex flex-column gap-3"
+                  hx-post
+                  hx-target="#feature-details"
+                  hx-push-url="false">
+                @if (Model.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+                }
+
+                @await RenderPartialAsync(_ItemForm.Create(Model))
+
+                <div class="d-flex flex-wrap gap-2 pt-2">
+                    <button type="submit" class="btn btn-dark">Create</button>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            hx-get="/items/list"
+                            hx-target="#feature-details"
+                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+                            hx-push-url="true">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label for="@For.Description.Id" class="form-label">Description</label>
-        <textarea class="@Model.InputClass(For.Description.Name)"
-                  id="@For.Description.Id"
-                  name="@For.Description.Name"
-                  rows="3">@Model.Description</textarea>
-        @await RenderPartialAsync(_ValidationMessage.Create(new ValidationMessageModel(Model, For.Description.Name)))
-    </div>
-
-    <div class="mb-3 form-check">
-        <input type="checkbox"
-               class="form-check-input"
-               id="@For.IsActive.Id"
-               name="@For.IsActive.Name"
-               value="true"
-               @(Model.IsActive ? "checked" : "") />
-        <label class="form-check-label" for="@For.IsActive.Id">Active</label>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create</button>
-    <button type="button" class="btn btn-outline-secondary ms-2"
-            hx-get="/items/list"
-            hx-target="#feature-details"
-            hx-push-url="/items"
-            hx-params="none">Cancel</button>
-</form>
+</article>

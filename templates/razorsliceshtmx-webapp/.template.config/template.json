@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "RazorSlicesHtmx",
+  "classifications": ["Web", "ASP.NET", "HTMX", "RazorSlices"],
+  "identity": "RazorSlicesHtmx.WebApp",
+  "name": "RazorSlicesHtmx Web Application",
+  "shortName": "rshtmx-webapp",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "RshtmxApp",
+  "preferNameDirectory": true,
+  "symbols": {
+    "framework": {
+      "type": "parameter",
+      "description": "Target framework.",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "net10.0", "description": ".NET 10" },
+        { "choice": "net8.0", "description": ".NET 8" }
+      ],
+      "defaultValue": "net10.0",
+      "replaces": "net10.0"
+    },
+    "bootstrap5": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Include Bootstrap5 UI adapter package.",
+      "defaultValue": "true"
+    },
+    "fluentValidation": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Include FluentValidation integration package.",
+      "defaultValue": "true"
+    },
+    "httpPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": { "low": 5000, "high": 5300 },
+      "replaces": "5246"
+    },
+    "httpsPort": {
+      "type": "generated",
+      "generator": "port",
+      "parameters": { "low": 7000, "high": 7300 },
+      "replaces": "7170"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!bootstrap5)",
+          "exclude": []
+        },
+        {
+          "condition": "(!fluentValidation)",
+          "exclude": []
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "condition": "true",
+      "description": "Restore NuGet packages",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "args": {
+        "files": ["RshtmxApp.csproj"]
+      }
+    }
+  ]
+}

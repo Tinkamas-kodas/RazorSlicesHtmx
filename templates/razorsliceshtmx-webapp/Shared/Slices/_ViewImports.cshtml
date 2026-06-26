@@ -1,0 +1,20 @@
+@inherits RazorSlice
+
+@using Microsoft.AspNetCore.Razor
+@using RazorSlices
+@using RazorSlicesHtmx.AspNetCore.Extensions
+@using RazorSlicesHtmx.AspNetCore.Models
+@using RazorSlicesHtmx.AspNetCore.Slices
+@*#if (bootstrap5)*@
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+@using RazorSlicesHtmx.Bootstrap5.Options
+@using RazorSlicesHtmx.Bootstrap5.Slices
+@*#endif*@
+@*#if (fluentValidation)*@
+@using RazorSlicesHtmx.FluentValidation.Extensions
+@*#endif*@
+@using RshtmxApp.Shared.Models
+@using RshtmxApp.Shared.Slices
+
+@tagHelperPrefix __disable_tagHelpers__:
+@removeTagHelper *, Microsoft.AspNetCore.Mvc.Razor

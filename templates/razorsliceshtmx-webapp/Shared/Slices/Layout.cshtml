@@ -1,0 +1,81 @@
+@inherits RazorLayoutSlice<AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var htmxOptions = HtmxOptionsAccessor.Value;
+    var detailTargetId = htmxOptions.DetailTargetSelector.TrimStart('#');
+    var dialogHostId = htmxOptions.DialogHostSelector.TrimStart('#');
+    var toastHostId = htmxOptions.ToastHostSelector.TrimStart('#');
+    var toastDelay = htmxOptions.ToastDelayMilliseconds ?? 2600;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML"}'>
+    <title>@Model.Title</title>
+    @*#if (bootstrap5)*@
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    @*#endif*@
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+    <div class="admin-shell">
+        @(await RenderPartialAsync(_SidebarNav.Create(Model)))
+        <main class="admin-main">
+            <section id="@detailTargetId" class="details-pane">
+                @await RenderBodyAsync()
+            </section>
+        </main>
+    </div>
+
+    @*#if (bootstrap5)*@
+    <div id="@toastHostId" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+    <div id="@dialogHostId"></div>
+    @*#endif*@
+
+    @*#if (bootstrap5)*@
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    @*#endif*@
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" crossorigin="anonymous"></script>
+    @*#if (bootstrap5)*@
+    <script>
+        (() => {
+            const clearModalArtifacts = () => {
+                document.body.classList.remove("modal-open");
+                document.body.style.removeProperty("padding-right");
+                document.querySelectorAll(".modal-backdrop").forEach(b => b.remove());
+            };
+
+            const refreshDialogHost = () => {
+                const host = document.getElementById("@dialogHostId");
+                if (!host) return;
+                const modal = host.querySelector(".modal");
+                if (!modal) { clearModalArtifacts(); return; }
+                clearModalArtifacts();
+                modal.addEventListener("hidden.bs.modal", () => { host.innerHTML = ""; clearModalArtifacts(); }, { once: true });
+                bootstrap.Modal.getOrCreateInstance(modal).show();
+            };
+
+            const refreshToastHost = () => {
+                const host = document.getElementById("@toastHostId");
+                if (!host) return;
+                host.querySelectorAll(".toast").forEach(t => bootstrap.Toast.getOrCreateInstance(t, { delay: @toastDelay }).show());
+            };
+
+            const refresh = e => {
+                const t = e?.detail?.target;
+                if (!t || t.id === "@dialogHostId") refreshDialogHost();
+                if (!t || t.id === "@toastHostId") refreshToastHost();
+            };
+
+            document.addEventListener("DOMContentLoaded", refresh);
+            document.body.addEventListener("htmx:afterSwap", refresh);
+            document.body.addEventListener("htmx:oobAfterSwap", refresh);
+        })();
+    </script>
+    @*#endif*@
+</body>
+</html>

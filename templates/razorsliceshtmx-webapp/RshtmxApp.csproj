@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>RshtmxApp</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RazorSlices" Version="0.*" />
+    <PackageReference Include="RazorSlicesHtmx.AspNetCore" Version="0.1.*" />
+    <PackageReference Include="RazorSlicesHtmx.Generators" Version="0.1.*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <!--#if (bootstrap5) -->
+    <PackageReference Include="RazorSlicesHtmx.Bootstrap5" Version="0.1.*" />
+    <!--#endif -->
+    <!--#if (fluentValidation) -->
+    <PackageReference Include="RazorSlicesHtmx.FluentValidation" Version="0.1.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
+    <!--#endif -->
+  </ItemGroup>
+
+</Project>

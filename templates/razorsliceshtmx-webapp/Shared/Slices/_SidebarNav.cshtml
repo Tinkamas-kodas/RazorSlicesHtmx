@@ -1,0 +1,52 @@
+@inherits RazorSlice<AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
+}
+
+<nav id="sidebar-nav" class="admin-sidebar" hx-swap-oob="@HtmxSwap.OuterHtml">
+    <div>
+        <h2 class="sidebar-title">RshtmxApp</h2>
+    </div>
+
+    <div class="nav flex-column gap-2 mt-2">
+        @foreach (var item in Model.Navigation)
+        {
+            if (item is NavigationRouteItem routeItem)
+            {
+                var isActive = string.Equals(Model.ActiveKey, routeItem.Key, StringComparison.OrdinalIgnoreCase);
+                var itemClass = isActive ? "sidebar-link active" : "sidebar-link";
+
+                <a href="@routeItem.Route"
+                   hx-get="@routeItem.Route"
+                   hx-target="@detailTargetSelector"
+                   hx-swap="@HtmxSwap.InnerHtml"
+                   hx-push-url="true"
+                   class="@itemClass">
+                    @routeItem.Label
+                </a>
+            }
+            else if (item is NavigationGroupItem groupItem)
+            {
+                <div class="sidebar-group">
+                    <span class="sidebar-group-label">@groupItem.Label</span>
+                    @foreach (var child in groupItem.Children.OfType<NavigationRouteItem>())
+                    {
+                        var isChildActive = string.Equals(Model.ActiveKey, child.Key, StringComparison.OrdinalIgnoreCase);
+                        var childClass = isChildActive ? "sidebar-link active" : "sidebar-link";
+
+                        <a href="@child.Route"
+                           hx-get="@child.Route"
+                           hx-target="@detailTargetSelector"
+                           hx-swap="@HtmxSwap.InnerHtml"
+                           hx-push-url="true"
+                           class="@childClass">
+                            @child.Label
+                        </a>
+                    }
+                </div>
+            }
+        }
+    </div>
+</nav>

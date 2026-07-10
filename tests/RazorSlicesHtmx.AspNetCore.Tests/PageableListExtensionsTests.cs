@@ -100,6 +100,24 @@ public class PageableListExtensionsTests
     }
 
     [Fact]
+    public void ToPagedList_on_enumerable_sorts_using_sort_operations()
+    {
+        var source = CreateTestData(5).AsEnumerable();
+        var request = new TestListRequest
+        {
+            Page = 1,
+            PageSize = 10,
+            SortBy = "value",
+            SortDirection = SortDirection.Desc
+        };
+
+        var result = source.ToPagedList(request);
+
+        Assert.Equal(5, result.Items[0].Value);
+        Assert.Equal(1, result.Items[^1].Value);
+    }
+
+    [Fact]
     public void ToPagedList_handles_empty_source()
     {
         var source = CreateTestData(0);

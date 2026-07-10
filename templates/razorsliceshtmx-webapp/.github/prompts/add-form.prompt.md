@@ -218,9 +218,10 @@ public void TrimRequest({Entity}UpsertRequest request)
 
 app.MapGet("/{route}/create", () =>
     Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
+        .WithPageTitle("Create {Entity}")
         .BuildAsync());
 
-app.MapPost("/{route}/create", ([FromForm] {Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
+app.MapPost("/{route}/create", ({Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
     {
         _content.TrimRequest(request);
         var validationResult = validator.Validate(request);
@@ -237,8 +238,7 @@ app.MapPost("/{route}/create", ([FromForm] {Entity}UpsertRequest request, IValid
             .WithTrigger("{FeatureName}.ListRefresh")
             .WithToast($"{Entity} '{request.Name}' was created.")
             .BuildAsync();
-    })
-    .DisableAntiforgery();
+    });
 
 // ─── EDIT ───
 
@@ -247,10 +247,11 @@ app.MapGet("/{route}/edit/{id:int}", (int id) =>
     var row = _content.FindById(id);
     if (row is null) return Task.FromResult(Results.NotFound());
     return Result.For(_EditPage.Create(_content.CreateEditFormModel(row)))
+    .WithPageTitle("Edit {Entity}")
         .BuildAsync();
 });
 
-app.MapPost("/{route}/edit/{id:int}", (int id, [FromForm] {Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
+app.MapPost("/{route}/edit/{id:int}", (int id, {Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
     {
         var row = _content.FindById(id);
         if (row is null) return Task.FromResult(Results.NotFound());
@@ -271,8 +272,7 @@ app.MapPost("/{route}/edit/{id:int}", (int id, [FromForm] {Entity}UpsertRequest 
             .WithTrigger("{FeatureName}.ListRefresh")
             .WithToast($"{Entity} '{request.Name}' was updated.")
             .BuildAsync();
-    })
-    .DisableAntiforgery();
+    });
 
 // ─── DELETE ───
 
@@ -294,8 +294,7 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
             .WithToast($"{Entity} '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
             .ClearDialog()
             .BuildAsync();
-    })
-    .DisableAntiforgery();
+    });
 ```
 
 ## Key patterns:
@@ -323,7 +322,8 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
 ## Important:
 - `[GenerateHtmlNames]` creates `For.{Field}.Name` / `For.{Field}.Id` const strings
 - Forms use `hx-post` (no explicit URL) — posts to the current URL
+- For GET screens like create/edit/list, use `.WithPageTitle(...)` when you need a contextual title; without it, title defaults to `NavigationRouteItem.Label`
 - Cancel buttons `hx-include` search/query state IDs to preserve list position
-- All POST endpoints need `.DisableAntiforgery()` and `[FromForm]`
+- All POST endpoints need `[FromForm]` and antiforgery validation via the shared HTMX token header adapter.
 - Delete uses `Result.Dialog()` directly (not `.WithDialog()`)
 - Delete POST uses `.ClearDialog()` to dismiss the modal

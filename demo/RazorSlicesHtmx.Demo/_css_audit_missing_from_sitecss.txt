@@ -1,0 +1,659 @@
+Used classes count: 123
+Defined in site.css count: 7
+Missing in site.css count: 119
+
+=== Missing classes (used in markup, not in site.css) ===
+?
+@(isActive
+@(isChildActive
+@(isGroupActive
+@(row.IsEnabled
+@pillClass
+alert
+alert-danger
+align-items-start
+bg-white
+border-0
+border-bottom
+box-shadow
+btn-close
+btn-danger
+btn-dark
+btn-outline-danger
+btn-outline-dark
+btn-outline-secondary
+btn-sm
+card
+card-body
+card-kicker
+col-12
+col-xl-5
+col-xl-7
+collapse
+container
+container-fluid
+content-card
+d-flex
+detail-list
+detail-steps
+details-pane
+dropdown
+dropdown-item
+dropdown-menu
+dropdown-toggle
+flex-column
+flex-wrap
+form-label
+form-select
+form-surface
+g-4
+gap-2
+gap-3
+h-100
+howto-callout
+howto-callout-copy
+howto-pills
+howto-shell
+howto-step-copy
+howto-step-header
+howto-step-item
+howto-step-list
+howto-step-number
+howto-step-summary
+howto-step-title
+items-actions
+items-active-search
+items-empty
+items-list-meta
+items-modal-copy
+items-pager
+items-search-form
+items-sort-link
+items-table
+items-toolbar
+items-toolbar-actions
+items-toolbar-card
+list-request-form
+mb-0
+mb-2
+mb-3
+mb-lg-0
+me-auto
+modal-body
+modal-content
+modal-footer
+modal-header
+modal-title
+mt-3
+nav-item
+nav-link
+navbar
+navbar-brand
+navbar-collapse
+navbar-expand-sm
+navbar-light
+navbar-nav
+navbar-toggler
+navbar-toggler-icon
+overflow-hidden
+p-0
+p-4
+p-xl-5
+pb-3
+preview-copy
+preview-grid
+preview-notes
+preview-shell
+preview-shell-inner
+preview-title
+pt-2
+row
+section-eyebrow
+section-hero
+section-panel
+section-route
+section-summary
+section-title
+shadow-lg
+shadow-sm
+status-pill
+table
+table-responsive
+text-dark
+text-decoration-none
+text-end
+
+=== Reference locations for missing classes ===
+-- ? --
+-- @(isActive --
+-- @(isChildActive --
+-- @(isGroupActive --
+-- @(row.IsEnabled --
+-- @pillClass --
+-- alert --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+-- alert-danger --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+-- align-items-start --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:11: <div class="row g-4 align-items-start">
+-- bg-white --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- border-0 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:3: <div class="modal-content border-0 shadow-lg">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:32: <div class="content-card card border-0 shadow-sm overflow-hidden">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:13: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:26: <div class="content-card card border-0 shadow-sm h-100">
+-- border-bottom --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- box-shadow --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- btn-close --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:10: <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+-- btn-danger --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:17: <button type="submit" class="btn btn-danger">Yes, delete</button>
+-- btn-dark --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:38: <button class="btn btn-dark" type="submit">Render preview</button>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:25: <button type="submit" class="btn btn-dark">Create</button>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:25: <button type="submit" class="btn btn-dark">Save changes</button>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:27: <button class="btn btn-dark" type="submit">Apply</button>
+-- btn-outline-danger --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:75: <button class="btn btn-sm btn-outline-danger"
+-- btn-outline-dark --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:43: <button class="btn btn-outline-dark"
+-- btn-outline-secondary --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:27: class="btn btn-outline-secondary"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:27: class="btn btn-outline-secondary"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:16: <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:67: <button class="btn btn-sm btn-outline-secondary"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:29: <button class="btn btn-outline-secondary"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:59: <button class="btn btn-sm btn-outline-secondary"
+-- btn-sm --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:67: <button class="btn btn-sm btn-outline-secondary"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:75: <button class="btn btn-sm btn-outline-danger"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:59: <button class="btn btn-sm btn-outline-secondary"
+-- card --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:16: <p class="card-kicker">Live preview</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:43: <p class="card-kicker">Preview target</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:4: <p class="card-kicker">Generated preview</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:6: <p class="card-kicker">Step 1</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:6: <p class="card-kicker">Step 2</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:6: <p class="card-kicker">Step 3</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:6: <p class="card-kicker">Step 4</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:6: <p class="card-kicker">Step 5</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:6: <p class="card-kicker">Step 6</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:7: <p class="card-kicker">Delete item</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:32: <div class="content-card card border-0 shadow-sm overflow-hidden">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:36: <p class="card-kicker">Empty result</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:13: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:13: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:14: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:15: <p class="card-kicker">How it is organized</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:26: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:27: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:28: <p class="card-kicker">Why this split works</p>
+-- card-body --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:13: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:14: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:27: <div class="card-body p-4">
+-- card-kicker --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:16: <p class="card-kicker">Live preview</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:43: <p class="card-kicker">Preview target</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:4: <p class="card-kicker">Generated preview</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:6: <p class="card-kicker">Step 1</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:6: <p class="card-kicker">Step 2</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:6: <p class="card-kicker">Step 3</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:6: <p class="card-kicker">Step 4</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:6: <p class="card-kicker">Step 5</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:6: <p class="card-kicker">Step 6</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:19: <p class="card-kicker">Why this step exists</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:7: <p class="card-kicker">Delete item</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:36: <p class="card-kicker">Empty result</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:15: <p class="card-kicker">How it is organized</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:28: <p class="card-kicker">Why this split works</p>
+-- col-12 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:12: <div class="col-12 col-xl-7">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:41: <div class="col-12 col-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:12: <div class="col-12 col-xl-7">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:25: <div class="col-12 col-xl-5">
+-- col-xl-5 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:41: <div class="col-12 col-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:25: <div class="col-12 col-xl-5">
+-- col-xl-7 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:12: <div class="col-12 col-xl-7">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:12: <div class="col-12 col-xl-7">
+-- collapse --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:15: <div class="collapse navbar-collapse" id="navbarMain">
+-- container --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:9: <div class="container-fluid">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\Layout.cshtml:24: <div class="container">
+-- container-fluid --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:9: <div class="container-fluid">
+-- content-card --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:32: <div class="content-card card border-0 shadow-sm overflow-hidden">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:13: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:26: <div class="content-card card border-0 shadow-sm h-100">
+-- d-flex --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:12: <div class="modal-body d-flex flex-column gap-3">
+-- detail-list --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:16: <ul class="detail-list">
+-- detail-steps --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:29: <ol class="detail-steps mb-0">
+-- details-pane --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\Layout.cshtml:26: <section id="@detailTargetId" class="details-pane">
+-- dropdown --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:37: <li class="nav-item dropdown">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:38: <a class="nav-link dropdown-toggle text-dark @(isGroupActive ? "active" : "")" href="#" role="button"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:42: <ul class="dropdown-menu">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:52: class="dropdown-item @(isChildActive ? "active" : "")">
+-- dropdown-item --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:52: class="dropdown-item @(isChildActive ? "active" : "")">
+-- dropdown-menu --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:42: <ul class="dropdown-menu">
+-- dropdown-toggle --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:38: <a class="nav-link dropdown-toggle text-dark @(isGroupActive ? "active" : "")" href="#" role="button"
+-- flex-column --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:12: <div class="modal-body d-flex flex-column gap-3">
+-- flex-wrap --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+-- form-label --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:18: <label class="form-label" for="name">Name</label>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:22: <label class="form-label" for="team">Team</label>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:26: <label class="form-label" for="intent">Intent</label>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:35: <label class="form-label" for="notes">Notes</label>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:23: <label class="form-label" for="items-search">Search</label>
+-- form-select --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:27: <select class="form-select" id="intent" name="Intent">
+-- form-surface --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+-- g-4 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:11: <div class="row g-4 align-items-start">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:11: <div class="row g-4">
+-- gap-2 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+-- gap-3 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:13: <form class="d-flex flex-column gap-3"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:12: <div class="modal-body d-flex flex-column gap-3">
+-- h-100 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:13: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:26: <div class="content-card card border-0 shadow-sm h-100">
+-- howto-callout --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:20: <p class="howto-callout-copy">Navigation becomes declarative and the registry can order features without knowing their implementation details.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:20: <p class="howto-callout-copy">A feature that does not need models should not invent them. Vertical slices stay cleaner when they avoid unnecessary abstractions.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:20: <p class="howto-callout-copy">This gives each feature one clear place where its page definition and internal behavior are assembled.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:20: <p class="howto-callout-copy">Shared shell code stays stable, while each feature owns its own HTML and partial rendering strategy.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:20: <p class="howto-callout-copy">The feature becomes self-contained: discovery sees it, sidebar navigation gets it, and extra routes stay local to the feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:18: <div class="howto-callout">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:20: <p class="howto-callout-copy">At that point the feature is just another vertical slice: self-contained, discoverable, and rendered by the existing shared shell.</p>
+-- howto-callout-copy --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:20: <p class="howto-callout-copy">Navigation becomes declarative and the registry can order features without knowing their implementation details.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:20: <p class="howto-callout-copy">A feature that does not need models should not invent them. Vertical slices stay cleaner when they avoid unnecessary abstractions.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:20: <p class="howto-callout-copy">This gives each feature one clear place where its page definition and internal behavior are assembled.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:20: <p class="howto-callout-copy">Shared shell code stays stable, while each feature owns its own HTML and partial rendering strategy.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:20: <p class="howto-callout-copy">The feature becomes self-contained: discovery sees it, sidebar navigation gets it, and extra routes stay local to the feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:20: <p class="howto-callout-copy">At that point the feature is just another vertical slice: self-contained, discoverable, and rendered by the existing shared shell.</p>
+-- howto-pills --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\_HowToPills.cshtml:3: <nav id="howto-pills" class="howto-pills" aria-label="HowTo steps">
+-- howto-shell --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\_HowToPage.cshtml:3: <article class="section-panel howto-shell">
+-- howto-step-copy --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a new folder under `Features/{FeatureName}` for the feature.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">In the feature service, add `CreateMetadata()` and define `Key`, `Label`, `Route`, `Description`, and `NavigationOrder`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep metadata close to the feature so the sidebar configuration travels with that slice instead of leaking into `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Models` only when the feature actually needs typed page or request state.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Keep request records, view models, and nested card models inside the feature folder.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Move something into `Shared/Models` only when multiple features genuinely depend on it.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Services/{Feature}ContentService.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Add `CreateMetadata()` and `CreatePageDefinition()` methods.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep nested feature decisions, default step selection, and helper methods in the service rather than inside endpoint classes.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a local `_ViewImports.cshtml` only if the feature needs additional usings.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Create one main detail slice that the shared page shell can render.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Add feature-only partials next to the detail slice instead of pushing them into shared folders.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Endpoints/{Feature}Endpoints.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Implement `IFeatureModule` and return the page definition from the service.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Use `MapEndpoints` for nested routes such as preview handlers or inner HTMX navigation.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Do not manually register each feature in `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Make sure the endpoint module is concrete and implements `IFeatureModule`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Run `dotnet build`, then verify the sidebar item and any nested routes.</span></li>
+-- howto-step-header --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:5: <div class="howto-step-header">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:5: <div class="howto-step-header">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:5: <div class="howto-step-header">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:5: <div class="howto-step-header">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:5: <div class="howto-step-header">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:5: <div class="howto-step-header">
+-- howto-step-item --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a new folder under `Features/{FeatureName}` for the feature.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">In the feature service, add `CreateMetadata()` and define `Key`, `Label`, `Route`, `Description`, and `NavigationOrder`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep metadata close to the feature so the sidebar configuration travels with that slice instead of leaking into `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Models` only when the feature actually needs typed page or request state.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Keep request records, view models, and nested card models inside the feature folder.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Move something into `Shared/Models` only when multiple features genuinely depend on it.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Services/{Feature}ContentService.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Add `CreateMetadata()` and `CreatePageDefinition()` methods.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep nested feature decisions, default step selection, and helper methods in the service rather than inside endpoint classes.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a local `_ViewImports.cshtml` only if the feature needs additional usings.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Create one main detail slice that the shared page shell can render.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Add feature-only partials next to the detail slice instead of pushing them into shared folders.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Endpoints/{Feature}Endpoints.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Implement `IFeatureModule` and return the page definition from the service.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Use `MapEndpoints` for nested routes such as preview handlers or inner HTMX navigation.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Do not manually register each feature in `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Make sure the endpoint module is concrete and implements `IFeatureModule`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Run `dotnet build`, then verify the sidebar item and any nested routes.</span></li>
+-- howto-step-list --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:12: <ol class="howto-step-list">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:12: <ol class="howto-step-list">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:12: <ol class="howto-step-list">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:12: <ol class="howto-step-list">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:12: <ol class="howto-step-list">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:12: <ol class="howto-step-list">
+-- howto-step-number --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a new folder under `Features/{FeatureName}` for the feature.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">In the feature service, add `CreateMetadata()` and define `Key`, `Label`, `Route`, `Description`, and `NavigationOrder`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep metadata close to the feature so the sidebar configuration travels with that slice instead of leaking into `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Models` only when the feature actually needs typed page or request state.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Keep request records, view models, and nested card models inside the feature folder.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Move something into `Shared/Models` only when multiple features genuinely depend on it.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Services/{Feature}ContentService.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Add `CreateMetadata()` and `CreatePageDefinition()` methods.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Keep nested feature decisions, default step selection, and helper methods in the service rather than inside endpoint classes.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create a local `_ViewImports.cshtml` only if the feature needs additional usings.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Create one main detail slice that the shared page shell can render.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Add feature-only partials next to the detail slice instead of pushing them into shared folders.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Create `Features/{Feature}/Endpoints/{Feature}Endpoints.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Implement `IFeatureModule` and return the page definition from the service.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Use `MapEndpoints` for nested routes such as preview handlers or inner HTMX navigation.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:13: <li class="howto-step-item"><span class="howto-step-number">1</span><span class="howto-step-copy">Do not manually register each feature in `Program.cs`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:14: <li class="howto-step-item"><span class="howto-step-number">2</span><span class="howto-step-copy">Make sure the endpoint module is concrete and implements `IFeatureModule`.</span></li>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:15: <li class="howto-step-item"><span class="howto-step-number">3</span><span class="howto-step-copy">Run `dotnet build`, then verify the sidebar item and any nested routes.</span></li>
+-- howto-step-summary --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:10: <p class="section-summary howto-step-summary">Every new feature starts with a `FeatureMetadata` instance. That metadata drives the sidebar label, route, description, and order without mixing navigation concerns into rendering code.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:10: <p class="section-summary howto-step-summary">In this simplified HowTo feature the content is static, so it has no models. In a normal feature, view models and request models should live under `Features/{Feature}/Models` and stay local to that feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:10: <p class="section-summary howto-step-summary">The service should know how to build metadata, page definitions, and any additional feature-specific pieces. Endpoint modules stay thin when all feature composition happens there.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:10: <p class="section-summary howto-step-summary">Feature UI belongs under `Features/{Feature}/Slices`. Shared shell concerns stay in `Shared/Slices`, while feature-specific content and partials stay beside the rest of the feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:10: <p class="section-summary howto-step-summary">A feature becomes discoverable when it has an endpoint module implementing `IFeatureModule`. That class returns the `PageDefinition` and maps any nested HTMX or form endpoints the feature needs.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:10: <p class="section-summary howto-step-summary">Once the endpoint module exists, `FeatureRegistry.Discover(...)` picks it up automatically. The shared shell then uses metadata to show it in the sidebar and route it through the common page rendering pipeline.</p>
+-- howto-step-title --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:7: <h3 class="howto-step-title">Start with feature metadata</h3>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:7: <h3 class="howto-step-title">Create feature-local models only if the feature needs them</h3>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:7: <h3 class="howto-step-title">Use a service as the feature composition root</h3>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:7: <h3 class="howto-step-title">Put rendering in feature-local slices</h3>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:7: <h3 class="howto-step-title">Expose an endpoint module that implements discovery</h3>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:7: <h3 class="howto-step-title">Let discovery and the shared shell do the rest</h3>
+-- items-actions --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:66: <div class="items-actions">
+-- items-active-search --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:57: <div class="items-active-search mt-3">
+-- items-empty --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:35: <div class="items-empty">
+-- items-list-meta --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:13: <div class="items-list-meta">
+-- items-modal-copy --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:13: <p class="items-modal-copy">This will permanently delete <strong>@Model.Name</strong> with code <strong>@Model.Code</strong>.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemForm.cshtml:26: <p class="items-modal-copy">Code must be unique. Both Code and Name are required.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:37: <p class="items-modal-copy">Try a different search term or create the first item.</p>
+-- items-pager --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:92: @Model.PagerContext("/items/list", BootstrapPagerOptions.Default with { PagerContainerClass = "items-pager" }).Render()
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:96: <div class="items-pager">
+-- items-search-form --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:15: <form class="items-search-form"
+-- items-sort-link --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:7: SortButtonClass = "items-sort-link btn btn-link p-0 text-decoration-none",
+-- items-table --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:43: <table class="table items-table mb-0">
+-- items-toolbar --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:14: <div class="items-toolbar">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:26: <div class="items-toolbar-actions">
+-- items-toolbar-actions --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:26: <div class="items-toolbar-actions">
+-- items-toolbar-card --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+-- list-request-form --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:27: <form class="list-request-form"
+-- mb-0 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:6: <dl class="preview-grid mb-0">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:19: <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:14: <p class="mb-0">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:43: <table class="table items-table mb-0">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:29: <ol class="detail-steps mb-0">
+-- mb-2 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:16: <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+-- mb-3 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:17: <div class="mb-3">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:21: <div class="mb-3">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:25: <div class="mb-3">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:34: <div class="mb-3">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- mb-lg-0 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:16: <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+-- me-auto --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:16: <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+-- modal-body --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:12: <div class="modal-body d-flex flex-column gap-3">
+-- modal-content --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:3: <div class="modal-content border-0 shadow-lg">
+-- modal-footer --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:15: <div class="modal-footer">
+-- modal-header --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:5: <div class="modal-header">
+-- modal-title --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:8: <h5 class="modal-title">Remove @Model.Code?</h5>
+-- mt-3 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:57: <div class="items-active-search mt-3">
+-- nav-item --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:22: <li class="nav-item">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:37: <li class="nav-item dropdown">
+-- nav-link --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:28: class="nav-link text-dark @(isActive ? "active" : "")">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:38: <a class="nav-link dropdown-toggle text-dark @(isGroupActive ? "active" : "")" href="#" role="button"
+-- navbar --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:10: <a class="navbar-brand" href="/">RazorSlicesHtmx</a>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:11: <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:13: <span class="navbar-toggler-icon"></span>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:15: <div class="collapse navbar-collapse" id="navbarMain">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:16: <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+-- navbar-brand --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:10: <a class="navbar-brand" href="/">RazorSlicesHtmx</a>
+-- navbar-collapse --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:15: <div class="collapse navbar-collapse" id="navbarMain">
+-- navbar-expand-sm --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- navbar-light --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:8: <nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+-- navbar-nav --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:16: <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+-- navbar-toggler --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:11: <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:13: <span class="navbar-toggler-icon"></span>
+-- navbar-toggler-icon --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:13: <span class="navbar-toggler-icon"></span>
+-- overflow-hidden --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:32: <div class="content-card card border-0 shadow-sm overflow-hidden">
+-- p-0 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:7: SortButtonClass = "items-sort-link btn btn-link p-0 text-decoration-none",
+-- p-4 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:13: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:14: <div class="card-body p-4">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:27: <div class="card-body p-4">
+-- p-xl-5 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:4: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:12: <div class="card-body p-4 p-xl-5">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:12: <div class="card-body p-4 p-xl-5">
+-- pb-3 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\Layout.cshtml:25: <main class="pb-3">
+-- preview-copy --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:44: <p class="preview-copy">@Model.PreviewMessage</p>
+-- preview-grid --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:6: <dl class="preview-grid mb-0">
+-- preview-notes --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:15: <div class="preview-notes">
+-- preview-shell --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:3: <div class="preview-shell-inner">
+-- preview-shell-inner --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:3: <div class="preview-shell-inner">
+-- preview-title --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormPreview.cshtml:5: <h3 class="preview-title">@Model.Title</h3>
+-- pt-2 --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:24: <div class="d-flex flex-wrap gap-2 pt-2">
+-- row --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:11: <div class="row g-4 align-items-start">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:61: <span class="status-pill @(row.IsEnabled ? "enabled" : "disabled")">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:11: <div class="row g-4">
+-- section-eyebrow --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_SectionHero.cshtml:5: <p class="section-eyebrow">@Model.Eyebrow</p>
+-- section-hero --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_SectionHero.cshtml:3: <div class="section-hero">
+-- section-panel --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:3: <article class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\_HowToPage.cshtml:3: <article class="section-panel howto-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:3: <article class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:3: <article class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_FeaturePage.cshtml:3: <div id="items-workspace" class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:12: <section class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:3: <article class="section-panel">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:3: <article class="section-panel">
+-- section-route --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:58: <span class="section-route">Search: @Model.Search.Search</span>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_SectionHero.cshtml:8: <span class="section-route">@Model.Route</span>
+-- section-summary --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:9: <p class="section-summary">@Model.Summary</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\_HowToPage.cshtml:6: <p class="section-summary">Use this feature as the reference implementation for the current vertical-slice architecture. It shows the sequence for metadata, feature-local structure, service composition, slices, endpoint mapping, and automatic discovery.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:10: <p class="section-summary howto-step-summary">Every new feature starts with a `FeatureMetadata` instance. That metadata drives the sidebar label, route, description, and order without mixing navigation concerns into rendering code.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:10: <p class="section-summary howto-step-summary">In this simplified HowTo feature the content is static, so it has no models. In a normal feature, view models and request models should live under `Features/{Feature}/Models` and stay local to that feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:10: <p class="section-summary howto-step-summary">The service should know how to build metadata, page definitions, and any additional feature-specific pieces. Endpoint modules stay thin when all feature composition happens there.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:10: <p class="section-summary howto-step-summary">Feature UI belongs under `Features/{Feature}/Slices`. Shared shell concerns stay in `Shared/Slices`, while feature-specific content and partials stay beside the rest of the feature.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:10: <p class="section-summary howto-step-summary">A feature becomes discoverable when it has an endpoint module implementing `IFeatureModule`. That class returns the `PageDefinition` and maps any nested HTMX or form endpoints the feature needs.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:10: <p class="section-summary howto-step-summary">Once the endpoint module exists, `FeatureRegistry.Discover(...)` picks it up automatically. The shared shell then uses metadata to show it in the sidebar and route it through the common page rendering pipeline.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:9: <p class="section-summary">Create a new item and return to the list with server-rendered feedback. Validation runs through FluentValidation before anything is saved.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:9: <p class="section-summary">Update the item and return to the list with server-rendered feedback. The current list query is preserved through the shared state host.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:9: <p class="section-summary">This feature uses RazorSlices for server-rendered HTML, HTMX for partial updates, and FluentValidation for create and edit validation.</p>
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:9: <p class="section-summary">@Model.Summary</p>
+-- section-title --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_SectionHero.cshtml:6: <h2 class="section-title">@Model.Headline</h2>
+-- shadow-lg --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemDelete.cshtml:3: <div class="modal-content border-0 shadow-lg">
+-- shadow-sm --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:13: <form class="content-card card border-0 shadow-sm p-4 form-surface"
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Form\Slices\_FormDetail.cshtml:42: <div id="form-preview" class="content-card card border-0 shadow-sm p-4 preview-shell">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice01.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice02.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice03.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice04.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice05.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\HowTo\Slices\Slice06.cshtml:3: <section id="howto-content" class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_CreatePage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_EditPage.cshtml:11: <div class="content-card card border-0 shadow-sm">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:32: <div class="content-card card border-0 shadow-sm overflow-hidden">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ListPage.cshtml:12: <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:13: <div class="content-card card border-0 shadow-sm h-100">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Slices\_AboutDetail.cshtml:26: <div class="content-card card border-0 shadow-sm h-100">
+-- status-pill --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:61: <span class="status-pill @(row.IsEnabled ? "enabled" : "disabled")">
+-- table --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:42: <div class="table-responsive">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:43: <table class="table items-table mb-0">
+-- table-responsive --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:42: <div class="table-responsive">
+-- text-dark --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:28: class="nav-link text-dark @(isActive ? "active" : "")">
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Shared\Slices\_TopNav.cshtml:38: <a class="nav-link dropdown-toggle text-dark @(isGroupActive ? "active" : "")" href="#" role="button"
+-- text-decoration-none --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:7: SortButtonClass = "items-sort-link btn btn-link p-0 text-decoration-none",
+-- text-end --
+D:\TinkamasKodas\RazorSlicesHtmx\demo\RazorSlicesHtmx.Demo\Features\Items\Slices\_ItemsList.cshtml:49: <th class="text-end">Actions</th>

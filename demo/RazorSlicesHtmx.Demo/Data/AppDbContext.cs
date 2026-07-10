@@ -12,8 +12,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<Item>(entity =>
         {
             entity.HasKey(item => item.Id);
-            entity.Property(item => item.Code).HasMaxLength(32);
-            entity.Property(item => item.Name).HasMaxLength(128);
+            entity.Property(item => item.Code).HasMaxLength(32).IsRequired();
+            entity.Property(item => item.Name).HasMaxLength(128).IsRequired();
             entity.HasIndex(item => item.Code).IsUnique();
         });
     }

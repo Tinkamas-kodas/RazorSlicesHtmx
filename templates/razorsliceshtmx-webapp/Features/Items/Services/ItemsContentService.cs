@@ -51,7 +51,7 @@ public sealed class ItemsContentService
                 row.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
         }
 
-        var paged = items.AsQueryable().ToPagedList(query);
+        var paged = items.ToPagedList(query);
         return new ItemListModel(paged.Total, search, query, paged.Items);
     }
 
@@ -71,6 +71,19 @@ public sealed class ItemsContentService
     };
 
     public ItemDeleteDialogModel CreateDeleteDialogModel(ItemRowModel row) => new(row.Id, row.Name);
+
+    public async Task<ItemUpsertRequest> ReadUpsertRequestAsync(HttpRequest request, int? id = null)
+    {
+        var form = await request.ReadFormAsync();
+
+        return new ItemUpsertRequest
+        {
+            Id = id,
+            Name = form["Name"].ToString(),
+            Description = form["Description"].ToString(),
+            IsActive = form["IsActive"].ToString().Contains("true", StringComparison.OrdinalIgnoreCase)
+        };
+    }
 
     public void TrimRequest(ItemUpsertRequest request)
     {

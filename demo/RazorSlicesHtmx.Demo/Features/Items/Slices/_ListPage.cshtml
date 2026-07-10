@@ -1,19 +1,14 @@
 @inherits RazorSlice<ItemListModel>
 
+
 <article class="section-panel">
     @await RenderPartialAsync(_SectionHero.Create(new(
         "CRUD feature",
         "Items with search, sort, paging and modal editing",
         "/items")))
 
-    <p class="section-summary">This feature uses EF Core InMemory for storage, RazorSlices for server-rendered HTML, HTMX for partial updates, and FluentValidation for create and edit validation.</p>
+    <p class="section-summary">This feature uses RazorSlices for server-rendered HTML, HTMX for partial updates, and FluentValidation for create and edit validation.</p>
 
-    <div class="content-card card border-0 shadow-sm">
-        <div class="card-body p-4 items-feature-note">
-            <p class="card-kicker">What this proves</p>
-            <p class="mb-0 items-modal-copy">The full CRUD loop stays inside one vertical feature: list state comes from query parameters, dialogs are rendered as slices, success feedback is OOB toast markup, and persistence uses EF Core InMemory without changing the shared shell.</p>
-        </div>
-    </div>
 
     <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
         <div class="card-body p-4">
@@ -24,7 +19,7 @@
                       hx-vals='{"Page":"1"}'
                       hx-target="#feature-details"
                       hx-push-url="true">
-
+                    <div>
                     <div>
                         <label class="form-label" for="items-search">Search</label>
                         <input class="form-control" id="items-search" name="Search" value="@Model.Search.Search" placeholder="Search by code or name">
@@ -43,7 +38,7 @@
                         </button>
 
                     </div>
-
+                </div>
                 </form>
 
                 <button class="btn btn-outline-dark"
@@ -57,22 +52,6 @@
             </div>
         </div>
     </div>
-
-    @if (!string.IsNullOrWhiteSpace(Model.Search.Search))
-    {
-        <div class="items-active-search mt-3">
-            <span class="section-route">Search: @Model.Search.Search</span>
-            <button class="btn btn-sm btn-outline-secondary"
-                    type="button"
-                    hx-get="/items/list"
-                    hx-include="#@ItemListQuery.StateId"
-                    hx-vals='{"Page":"1"}'
-                    hx-target="#feature-details"
-                    hx-push-url="true">
-                Clear search
-            </button>
-        </div>
-    }
 
     @await RenderPartialAsync(_ItemsList.Create(Model))
 </article>

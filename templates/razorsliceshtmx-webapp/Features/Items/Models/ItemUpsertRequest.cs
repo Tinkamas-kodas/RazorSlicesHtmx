@@ -1,7 +1,7 @@
 namespace RshtmxApp.Features.Items.Models;
 
 [GenerateHtmlNames]
-public sealed class ItemUpsertRequest : IHaveValidationResult
+public sealed partial class ItemUpsertRequest : IHaveValidationResult
 {
     public int? Id { get; set; }
 

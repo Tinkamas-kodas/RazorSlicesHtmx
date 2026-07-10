@@ -17,7 +17,8 @@ public sealed class AppFeaturePageRenderer : IFeaturePageRenderer
 
     private static AppLayoutModel CreateLayout(FeatureShellContext context)
     {
-        var title = $"{context.CurrentItem.Label} | RshtmxApp";
+        var title = context.PageTitle ?? context.CurrentItem.Label;
+        title = $"{title} | RshtmxApp";
         return new AppLayoutModel(title, context.CurrentItem.Key, context.Navigation);
     }
 }

@@ -81,7 +81,14 @@ Two builders exist:
 
 Common fluent API: `.AsFragment()`, `.WithOob()`, `.WithState()`, `.WithToast()`,
 `.WithTrigger()`, `.WithNavigation()`, `.WithLocation()`, `.WithRetarget()`, `.WithReswap()`,
-`.WithDialog()`, `.ClearDialog()`.
+`.WithDialog()`, `.ClearDialog()`, `.WithPageTitle()`.
+
+### Page Title Flow
+
+- Default page title is derived from `NavigationRouteItem.Label`.
+- `FeatureResultBuilder.WithPageTitle("...")` overrides title for that specific response.
+- Full-page rendering consumes title via `FeatureShellContext.PageTitle`.
+- HTMX rendering emits OOB `<title hx-swap-oob="true">...</title>` so browser tab title updates on fragment responses.
 
 ### Authorization
 
@@ -107,8 +114,15 @@ No attribute needed — the generator detects call sites. Produces `StateId`, `S
 ### Source Generators
 
 - `[GenerateHtmlNames]` — field name/id/path constants for form models
+- `[GenerateFormBinder]` — generate `FromForm(...)` and `BindAsync(...)` for partial upsert/form models
 - State generator — auto-implements `IHasState` for `WithState()` arguments
 - List request binder — `FromQuery`, `BindAsync`, `SortMap` for `ListRequest<T>` subclasses
+
+### Form Binding
+
+- Prefer `[GenerateFormBinder]` on `partial` create/edit request models that implement `IHaveValidationResult`.
+- Use generated `BindAsync(...)` when the endpoint should accept the model directly.
+- Keep `ListRequest<T>` on the query-string path; its generator still owns `FromQuery(...)` and paging/sort binding.
 
 ## Common Pitfalls
 
@@ -119,3 +133,4 @@ No attribute needed — the generator detects call sites. Produces `StateId`, `S
 5. `Microsoft.Extensions.Options.Options.Create(...)` must be fully qualified in tests (conflicts with `RazorSlicesHtmx.AspNetCore.Options` namespace).
 6. `RazorSlice` abstract method is `ExecuteAsync()` (no params). Test fakes must override it.
 7. The app owns the page shell via `IFeaturePageRenderer` — the library does not provide layouts.
+8. If `WithPageTitle(...)` is not used, title falls back to `NavigationRouteItem.Label`.

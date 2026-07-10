@@ -72,10 +72,11 @@ public sealed class FeatureRegistry
         RazorSlices.RazorSlice detail,
         ClaimsPrincipal? user,
         IAuthorizationService? authService,
+        string? pageTitle = null,
         CancellationToken cancellationToken = default)
     {
         var filtered = await FilterNavigationAsync(_navigation, user, authService, cancellationToken);
-        return new FeatureShellContext(currentItem, filtered, detail);
+        return new FeatureShellContext(currentItem, filtered, detail, pageTitle ?? currentItem.Label);
     }
 
     private static async Task<IReadOnlyList<NavigationItem>> FilterNavigationAsync(

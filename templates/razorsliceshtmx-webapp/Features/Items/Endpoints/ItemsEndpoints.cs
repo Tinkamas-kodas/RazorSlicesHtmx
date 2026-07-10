@@ -34,39 +34,38 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 .BuildAsync());
 
 //#if (fluentValidation)
-        app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
+        app.MapPost("/items/create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 _content.TrimRequest(request);
-                var validationResult = validator.Validate(request);
+                var validationResult = await validator.ValidateAsync(request, ct);
 
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.For(_CreatePage.Create(request))
-                        .BuildAsync();
+                    return await Result.For(_CreatePage.Create(request))
+                        .BuildAsync(ct);
                 }
 
                 _content.Create(request);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was created.")
-                    .BuildAsync();
-            })
-            .DisableAntiforgery();
+                    .BuildAsync(ct);
+            });
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request) =>
+        app.MapPost("/items/create", async (HttpContext http, CancellationToken ct) =>
             {
+                var request = await _content.ReadUpsertRequestAsync(http.Request);
                 _content.TrimRequest(request);
                 _content.Create(request);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was created.")
-                    .BuildAsync();
-            })
-            .DisableAntiforgery();
+                    .BuildAsync(ct);
+            });
 //#endif
 
         app.MapGet("/items/edit/{id:int}", (int id) =>
@@ -80,48 +79,45 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         });
 
 //#if (fluentValidation)
-        app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) =>
+        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)
-                    return Task.FromResult(Results.NotFound());
+                    return Results.NotFound();
 
-                request.Id = id;
                 _content.TrimRequest(request);
-                var validationResult = validator.Validate(request);
+                var validationResult = await validator.ValidateAsync(request, ct);
 
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.For(_EditPage.Create(request))
-                        .BuildAsync();
+                    return await Result.For(_EditPage.Create(request))
+                        .BuildAsync(ct);
                 }
 
                 _content.Apply(id, request);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was updated.")
-                    .BuildAsync();
-            })
-            .DisableAntiforgery();
+                    .BuildAsync(ct);
+            });
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request) =>
+        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)
-                    return Task.FromResult(Results.NotFound());
+                    return Results.NotFound();
 
                 _content.TrimRequest(request);
                 _content.Apply(id, request);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was updated.")
-                    .BuildAsync();
-            })
-            .DisableAntiforgery();
+                    .BuildAsync(ct);
+            });
 //#endif
 
         app.MapGet("/items/delete/{id:int}", (int id) =>
@@ -133,20 +129,19 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
-        app.MapPost("/items/delete/{id:int}", (int id) =>
+        app.MapPost("/items/delete/{id:int}", async (int id, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)
-                    return Task.FromResult(Results.NotFound());
+                    return Results.NotFound();
 
                 _content.Delete(id);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()
-                    .BuildAsync();
-            })
-            .DisableAntiforgery();
+                    .BuildAsync(ct);
+            });
     }
 }

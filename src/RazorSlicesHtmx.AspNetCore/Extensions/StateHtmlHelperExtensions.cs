@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using RazorSlicesHtmx.AspNetCore.Models;
 
 namespace RazorSlicesHtmx.AspNetCore.Extensions;
@@ -13,6 +14,22 @@ public static class StateHtmlHelperExtensions
     {
         ArgumentNullException.ThrowIfNull(state);
         return state.Serialize();
+    }
+}
+
+public static class HtmlHelperExtensions
+{
+    public static bool IsHtmx(this IHtmlHelper helper)
+    {
+        ArgumentNullException.ThrowIfNull(helper);
+        return helper.ViewContext.HttpContext.IsHtmx();
+    }
+
+    public static bool IsHtmx(this HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
+        return string.Equals(httpContext.Request.Headers["HX-Request"], "true",
+            StringComparison.OrdinalIgnoreCase);
     }
 }
 

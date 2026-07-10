@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Features;
-using RazorSlicesHtmx.AspNetCore.Htmx;
 using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Options;
@@ -49,6 +49,7 @@ public sealed class FeatureResultBuilder(
         private bool _replaceLocation = true;
         private string? _retarget;
         private string? _reswap;
+        private string? _pageTitle;
 
         public Builder AsFragment(RazorSlice fragment)
         {
@@ -150,13 +151,24 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
+        public Builder WithPageTitle(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new ArgumentException("Page title is required.", nameof(title));
+            }
+
+            _pageTitle = title;
+            return this;
+        }
+
         public async Task<IResult> BuildAsync(CancellationToken cancellationToken = default)
         {
             var request = owner.Request;
             var httpContext = request.HttpContext;
             var user = httpContext.User;
             var authService = httpContext.RequestServices.GetService<IAuthorizationService>();
-            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService, cancellationToken);
+            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService, _pageTitle, cancellationToken);
 
             if (!request.IsHtmxRequest())
             {
@@ -205,6 +217,11 @@ public sealed class FeatureResultBuilder(
             if (_rawOobParts.Count > 0)
             {
                 htmxBuilder.WithRawOob(_rawOobParts);
+            }
+
+            if (!string.IsNullOrWhiteSpace(shellContext.PageTitle))
+            {
+                htmxBuilder.WithRawOob(CreatePageTitleOob(shellContext.PageTitle));
             }
 
             foreach (var trigger in _triggers)
@@ -259,6 +276,12 @@ public sealed class FeatureResultBuilder(
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             });
+        }
+
+        private static IHtmlContent CreatePageTitleOob(string title)
+        {
+            var encoded = HtmlEncoder.Default.Encode(title);
+            return new HtmlString($"<title hx-swap-oob=\"true\">{encoded}</title>");
         }
 
         private sealed class HeaderResult(IResult inner, string headerName, string headerValue) : IResult

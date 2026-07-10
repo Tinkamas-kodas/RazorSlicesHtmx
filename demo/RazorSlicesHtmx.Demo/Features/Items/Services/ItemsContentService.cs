@@ -19,11 +19,11 @@ public sealed class ItemsContentService
             var db = httpContext.RequestServices.GetRequiredService<AppDbContext>();
             var search = new ItemSearchModel(httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
             var query = ItemListQuery.FromQuery(httpContext.Request.Query);
-            return _FeaturePage.Create(CreateListModel(db, search, query));
+            return _FeaturePage.Create(CreateListModel(db,search, query));
         }),
         Order: 200);
 
-
+   
     public ItemListModel CreateListModel(AppDbContext db, ItemSearchModel search, ItemListQuery query)
     {
         var items = db.Items

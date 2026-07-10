@@ -3,6 +3,33 @@ namespace RazorSlicesHtmx.AspNetCore.Models;
 public static class PageableListExtensions
 {
     public static ListResponse<T, TListRequest> ToPagedList<T, TListRequest>(
+        this IEnumerable<T> source,
+        TListRequest request) where TListRequest : IListRequest<T>
+    {
+        if (!string.IsNullOrWhiteSpace(request.SortBy)
+            && request.SortOperations.TryGetValue(request.SortBy, out var sortOperation))
+        {
+            source = sortOperation(source, request.SortDirection == SortDirection.Desc);
+        }
+
+        var (requestedPage, normalizedPageSize) = request.NormalizePaging(defaultPage: 1, defaultPageSize: 10);
+
+        var items = source.ToList();
+        var totalItems = items.Count;
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)normalizedPageSize));
+        var currentPage = Math.Min(requestedPage, totalPages);
+
+        request.SetPaging(currentPage, normalizedPageSize);
+
+        var pagedItems = items
+            .Skip((currentPage - 1) * normalizedPageSize)
+            .Take(normalizedPageSize)
+            .ToList();
+
+        return new ListResponse<T, TListRequest>(totalItems, request, pagedItems);
+    }
+
+    public static ListResponse<T, TListRequest> ToPagedList<T, TListRequest>(
         this IQueryable<T> source,
         TListRequest request) where TListRequest : IListRequest<T>
     {

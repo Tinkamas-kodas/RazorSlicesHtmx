@@ -43,7 +43,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
                     return null;
                 }
 
-                if (HasFromQuery(symbol))
+                if (HasFromQuery(symbol) || HasBindAsync(symbol))
                 {
                     return null;
                 }
@@ -89,8 +89,14 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
     private static bool HasFromQuery(INamedTypeSymbol symbol) =>
         symbol.GetMembers("FromQuery").OfType<IMethodSymbol>().Any(static m => m.IsStatic);
 
+    private static bool HasBindAsync(INamedTypeSymbol symbol) =>
+        symbol.GetMembers("BindAsync").OfType<IMethodSymbol>().Any(static m => m.IsStatic);
+
     private static bool HasSortMapOverride(INamedTypeSymbol symbol) =>
         symbol.GetMembers("SortMap").OfType<IPropertySymbol>().Any(static p => !p.IsStatic);
+
+    private static bool HasSortOperationsOverride(INamedTypeSymbol symbol) =>
+        symbol.GetMembers("SortOperations").OfType<IPropertySymbol>().Any(static p => !p.IsStatic);
 
     private static ITypeSymbol? GetListItemType(INamedTypeSymbol symbol)
     {
@@ -213,6 +219,54 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         return null;
     }
 
+    private static string? GetCustomSortLambdaBody(IPropertySymbol property)
+    {
+        var methodName = GetCustomSortMethodName(property);
+        if (string.IsNullOrWhiteSpace(methodName))
+        {
+            return null;
+        }
+
+        var method = property.ContainingType.GetMembers(methodName!)
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault(static m => m.IsStatic && m.Parameters.Length == 0);
+
+        if (method is null)
+        {
+            return null;
+        }
+
+        foreach (var syntaxRef in method.DeclaringSyntaxReferences)
+        {
+            if (syntaxRef.GetSyntax() is not MethodDeclarationSyntax methodSyntax)
+            {
+                continue;
+            }
+
+            if (methodSyntax.ExpressionBody?.Expression is not null)
+            {
+                return NormalizeExpression(methodSyntax.ExpressionBody.Expression.ToString());
+            }
+
+            if (methodSyntax.Body is null)
+            {
+                continue;
+            }
+
+            var returnExpression = methodSyntax.Body.Statements
+                .OfType<ReturnStatementSyntax>()
+                .Select(static statement => statement.Expression)
+                .LastOrDefault(expression => expression is not null);
+
+            if (returnExpression is not null)
+            {
+                return NormalizeExpression(returnExpression.ToString());
+            }
+        }
+
+        return null;
+    }
+
     private static string NormalizeExpression(string raw)
     {
         var trimmed = raw.Trim();
@@ -276,6 +330,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         var defaultSortByLiteral = Escape(model.Options.DefaultSortBy);
         var rowType = GetListItemType(model.Symbol);
         var hasSortMapOverride = HasSortMapOverride(model.Symbol);
+        var hasSortOperationsOverride = HasSortOperationsOverride(model.Symbol);
         var sortableProperties = GetSortableProperties(rowType);
 
         var source = new StringBuilder();
@@ -325,6 +380,42 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
 
                 source.Append("            [\"").Append(Escape(key)).Append("\"] = row => ")
                     .Append(expressionBody)
+                    .AppendLine(",");
+            }
+
+            source.AppendLine("        };")
+                .AppendLine();
+        }
+
+        if (!hasSortOperationsOverride && rowType is not null)
+        {
+            var rowTypeName = rowType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            source.Append("    public override global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Func<global::System.Collections.Generic.IEnumerable<")
+                .Append(rowTypeName)
+                .AppendLine(">, bool, global::System.Collections.Generic.IEnumerable<")
+                .Append(rowTypeName)
+                .AppendLine(">>> SortOperations { get; } =")
+                .Append("        new global::System.Collections.Generic.Dictionary<string, global::System.Func<global::System.Collections.Generic.IEnumerable<")
+                .Append(rowTypeName)
+                .AppendLine(">, bool, global::System.Collections.Generic.IEnumerable<")
+                .Append(rowTypeName)
+                .AppendLine(">>>(global::System.StringComparer.OrdinalIgnoreCase)")
+                .AppendLine("        {");
+
+            foreach (var property in sortableProperties)
+            {
+                var key = property.Name.ToLowerInvariant();
+                var sortBody = GetCustomSortLambdaBody(property) ?? GetSortExpressionBody(property) ?? ("row." + property.Name);
+                var usesStringComparer = property.Type.SpecialType == SpecialType.System_String;
+
+                source.Append("            [\"").Append(Escape(key)).Append("\"] = (items, descending) => descending ? ")
+                    .Append(usesStringComparer ? "global::System.Linq.Enumerable.OrderByDescending(items, row => " : "global::System.Linq.Enumerable.OrderByDescending(items, row => ")
+                    .Append(sortBody)
+                    .Append(usesStringComparer ? ", global::System.StringComparer.OrdinalIgnoreCase)" : ")")
+                    .Append(" : ")
+                    .Append(usesStringComparer ? "global::System.Linq.Enumerable.OrderBy(items, row => " : "global::System.Linq.Enumerable.OrderBy(items, row => ")
+                    .Append(sortBody)
+                    .Append(usesStringComparer ? ", global::System.StringComparer.OrdinalIgnoreCase)" : ")")
                     .AppendLine(",");
             }
 

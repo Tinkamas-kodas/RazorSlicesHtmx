@@ -1,5 +1,7 @@
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlices;
@@ -35,7 +37,7 @@ public static class SliceResults
         var transientUiRenderer = request.HttpContext.RequestServices.GetRequiredService<ITransientUiRenderer>();
         var options = request.HttpContext.RequestServices.GetRequiredService<IOptions<RazorSlicesHtmxOptions>>().Value;
         var authService = request.HttpContext.RequestServices.GetService<IAuthorizationService>();
-        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService, cancellationToken);
+        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService, null, cancellationToken);
 
         if (!request.IsHtmxRequest())
         {
@@ -46,7 +48,22 @@ public static class SliceResults
         oobParts.AddRange(CreateTransientOobParts(request, transientUiRenderer, options));
         oobParts.AddRange(additionalOobParts);
 
-        return HtmxFragment.Create(new HtmxFragmentModel(detail, oobParts));
+        var rawOobParts = new List<IHtmlContent>();
+        if (!string.IsNullOrWhiteSpace(shellContext.PageTitle))
+        {
+            rawOobParts.Add(CreatePageTitleOob(shellContext.PageTitle));
+        }
+
+        return HtmxFragment.Create(new HtmxFragmentModel(
+            detail,
+            oobParts,
+            rawOobParts.Count > 0 ? rawOobParts : null));
+    }
+
+    private static IHtmlContent CreatePageTitleOob(string title)
+    {
+        var encoded = HtmlEncoder.Default.Encode(title);
+        return new HtmlString($"<title hx-swap-oob=\"true\">{encoded}</title>");
     }
 
     private static IReadOnlyList<RazorSlice> CreateTransientOobParts(

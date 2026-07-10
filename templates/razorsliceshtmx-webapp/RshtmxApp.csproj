@@ -10,13 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="RazorSlices" Version="0.*" />
-    <PackageReference Include="RazorSlicesHtmx.AspNetCore" Version="0.1.*" />
-    <PackageReference Include="RazorSlicesHtmx.Generators" Version="0.1.*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <PackageReference Include="RazorSlicesHtmx.AspNetCore" Version="0.7.*" />
+    <PackageReference Include="RazorSlicesHtmx.Generators" Version="0.7.*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <!--#if (bootstrap5) -->
-    <PackageReference Include="RazorSlicesHtmx.Bootstrap5" Version="0.1.*" />
+    <PackageReference Include="RazorSlicesHtmx.Bootstrap5" Version="0.7.*" />
     <!--#endif -->
     <!--#if (fluentValidation) -->
-    <PackageReference Include="RazorSlicesHtmx.FluentValidation" Version="0.1.*" />
+    <PackageReference Include="RazorSlicesHtmx.FluentValidation" Version="0.7.*" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
     <!--#endif -->
   </ItemGroup>

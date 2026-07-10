@@ -5,6 +5,8 @@ namespace RazorSlicesHtmx.AspNetCore.Models;
 public interface IListRequest<T> : IListRequest
 {
     IReadOnlyDictionary<string, Expression<Func<T, object?>>> SortMap { get; }
+
+    IReadOnlyDictionary<string, Func<IEnumerable<T>, bool, IEnumerable<T>>> SortOperations { get; }
 }
 
 public abstract class ListRequest<T> : IListRequest<T>
@@ -12,6 +14,10 @@ public abstract class ListRequest<T> : IListRequest<T>
     [StateNotMap]
     public virtual IReadOnlyDictionary<string, Expression<Func<T, object?>>> SortMap { get; } =
         new Dictionary<string, Expression<Func<T, object?>>>(StringComparer.OrdinalIgnoreCase);
+
+    [StateNotMap]
+    public virtual IReadOnlyDictionary<string, Func<IEnumerable<T>, bool, IEnumerable<T>>> SortOperations { get; } =
+        new Dictionary<string, Func<IEnumerable<T>, bool, IEnumerable<T>>>(StringComparer.OrdinalIgnoreCase);
 
     public int Page { get; set; } = 1;
 

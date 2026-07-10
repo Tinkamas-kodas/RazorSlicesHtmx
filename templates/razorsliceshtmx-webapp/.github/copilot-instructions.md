@@ -56,7 +56,16 @@ Result.For(detail).AsFragment(form).WithRetarget("#edit-form").WithReswap(HtmxSw
 
 // With CancellationToken:
 Result.For(detail).AsFragment(fragment).BuildAsync(cancellationToken)
+
+// Override page title for this response:
+Result.For(detail).WithPageTitle("Edit item").BuildAsync()
 ```
+
+### Page title defaults
+
+- If `WithPageTitle(...)` is not called, page title defaults to `NavigationRouteItem.Label`.
+- For HTMX responses, title is sent as OOB `<title hx-swap-oob="true">...</title>`.
+- For full-page responses, title flows through `FeatureShellContext.PageTitle` to the app renderer.
 
 ### Fragment-only endpoints (no full-page fallback):
 ```csharp
@@ -472,7 +481,7 @@ Bootstrap5 validation UI in Razor:
 - Models are `sealed record` types
 - `[GenerateHtmlNames]` attribute on form request models (source-generated)
 - State models must be `partial` for generator support
-- All POST endpoints need `.DisableAntiforgery()` (HTMX doesn't send antiforgery tokens)
+- All POST endpoints should use antiforgery tokens with the shared HTMX header adapter; do not disable antiforgery by default.
 
 ## Available Prompt Skills
 

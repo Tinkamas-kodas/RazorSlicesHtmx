@@ -36,3 +36,17 @@ body {
   right: 1.25rem;
   z-index: 1200;
 }
+
+.details-pane {
+  padding-bottom: 1.25rem;
+}
+
+.section-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.list-request-form {
+  display: grid;
+  gap: 0.75rem;
+}

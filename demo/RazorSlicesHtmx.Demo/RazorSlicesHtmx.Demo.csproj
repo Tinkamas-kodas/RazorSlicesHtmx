@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\src\RazorSlicesHtmx.Generators\RazorSlicesHtmx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+   
     <PackageReference Include="RazorSlices" />
   </ItemGroup>
 

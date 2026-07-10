@@ -1,7 +1,10 @@
 @inherits RazorLayoutSlice<AppLayoutModel>
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
 
 @{
+    var httpContext = HttpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is required to render antiforgery tokens.");
+    var antiforgeryToken = httpContext.Items["RequestVerificationToken"] as string ?? string.Empty;
     var htmxOptions = HtmxOptionsAccessor.Value;
     var detailTargetId = htmxOptions.DetailTargetSelector.TrimStart('#');
     var dialogHostId = htmxOptions.DialogHostSelector.TrimStart('#');
@@ -15,6 +18,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML"}'>
+    <meta name="request-verification-token" content="@antiforgeryToken">
     <title>@Model.Title</title>
     @*#if (bootstrap5)*@
     @*#if (useCdn)*@
@@ -52,6 +56,18 @@
     @*#else*@
     <script src="/lib/htmx/htmx.min.js"></script>
     @*#endif*@
+    <script>
+        (() => {
+            const token = document.querySelector('meta[name="request-verification-token"]')?.getAttribute('content');
+            if (!token) {
+                return;
+            }
+
+            document.body.addEventListener('htmx:configRequest', event => {
+                event.detail.headers['RequestVerificationToken'] = token;
+            });
+        })();
+    </script>
     @*#if (bootstrap5)*@
     <script>
         (() => {

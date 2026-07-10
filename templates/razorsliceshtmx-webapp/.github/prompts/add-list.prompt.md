@@ -248,7 +248,7 @@ public NavigationRouteItem CreateNavigationItem() => new(
 public {FeatureName}ListModel CreateListModel({FeatureName}SearchModel search, {FeatureName}ListQuery query)
 {
     // filter, then paginate
-    var paged = items.AsQueryable().ToPagedList(query);
+    var paged = items.ToPagedList(query);
     return new {FeatureName}ListModel(paged.Total, search, query, paged.Items);
 }
 ```
@@ -260,6 +260,7 @@ app.MapGet("/{route}/list", ([AsParameters] {FeatureName}SearchModel search, {Fe
     var model = _content.CreateListModel(search, query);
     return Result.For(_FeaturePage.Create(model))
         .AsFragment(_ListPage.Create(model))
+    .WithPageTitle("{FeatureName}")
         .WithState(search)
         .WithState(query)
         .BuildAsync();
@@ -288,5 +289,6 @@ Note: `.AsFragment(_ListPage)` — the fragment is the list page (toolbar + tabl
 - `ListRequest<T>` is `partial` — generator auto-creates `SortMap` from row model properties
 - Use `[SortDisable]` on properties you don't want sortable (e.g., Id)
 - `.WithState(search).WithState(query)` sends OOB state updates on fragment responses
+- Use `.WithPageTitle(...)` on list GET when you want a list-specific title; otherwise default title is `NavigationRouteItem.Label`
 - `hx-include` references state by `#@{Model}SearchModel.StateId, #@{Model}ListQuery.StateId`
 - Cancel buttons on create/edit forms should `hx-include` state IDs to preserve list position

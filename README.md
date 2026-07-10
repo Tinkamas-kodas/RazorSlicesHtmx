@@ -18,6 +18,7 @@ Core package for:
 - `IFeatureModule`, `BaseFeatureModule`, `NavigationItem`, `NavigationRouteItem`, `NavigationGroupItem`, `PageDefinition`, and `FeatureRegistry`
 - hierarchical navigation model with ASP.NET Core authorization filtering
 - HTMX response composition through `FeatureResultBuilder` (full-page feature responses) and `HtmxFragmentResult` (fragment-only responses)
+- page title flow for both full-page and HTMX responses (default from `NavigationRouteItem.Label`, optional override via `WithPageTitle(...)`)
 - HTMX error handling middleware (`UseHtmxErrorHandling`)
 - OOB fragments, triggers, navigation, and location responses
 - `ToastTone` enum (`Info`, `Success`, `Warning`, `Error`) for UI-agnostic toast severity
@@ -379,6 +380,34 @@ Exposes: `Total`, `TotalPages`, `CurrentPage`, `FromItem`, `ToItem`, `Items`, `R
 var response = queryableRows.ToPagedList(listQuery);
 ```
 
+### Form Binding
+
+For create/edit request models, prefer a generated form binder over handwritten `ReadFormAsync()` plumbing.
+
+Use `[GenerateFormBinder]` on a `partial` upsert request model, typically one that also implements `IHaveValidationResult`:
+
+```csharp
+[GenerateHtmlNames]
+[GenerateFormBinder]
+public sealed partial class ItemUpsertRequest : IHaveValidationResult
+{
+  public int? Id { get; set; }
+  public string Name { get; set; } = string.Empty;
+  public string Description { get; set; } = string.Empty;
+  public bool IsActive { get; set; }
+
+  public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } = [];
+}
+```
+
+The generator emits `FromForm(...)` and `BindAsync(...)`, so Minimal API endpoints can accept the request type directly:
+
+```csharp
+app.MapPost("/items/create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator) => ...);
+```
+
+`ListRequest<T>` still uses the query-string binder generator and keeps `FromQuery(...)` / `BindAsync(...)` for paging and sort state.
+
 ### Sort Headers and Pager
 
 Sort headers and the pager are deliberately separate so each can be customised or replaced independently.
@@ -572,11 +601,11 @@ The most important core contracts are:
 - `PageDefinition`
   binds a detail slice factory (`Func<HttpContext, RazorSlice>`) to a navigable route
 - `FeatureShellContext`
-  minimal shell context passed to the app-level page renderer: current `NavigationRouteItem`, the filtered navigation tree, and current detail slice
+  minimal shell context passed to the app-level page renderer: current `NavigationRouteItem`, the filtered navigation tree, current detail slice, and computed `PageTitle`
 - `IFeaturePageRenderer`
   implemented by the app; responsible for full-page shell rendering and navigation rendering
 - `FeatureResultBuilder`
-  fluent orchestration API for feature endpoints; used when a response may be a full page render or an HTMX fragment depending on request type; `BuildAsync()` performs authorization filtering automatically
+  fluent orchestration API for feature endpoints; used when a response may be a full page render or an HTMX fragment depending on request type; `BuildAsync()` performs authorization filtering automatically and supports per-response title override via `WithPageTitle(...)`
 - `HtmxFragmentResult`
   lightweight result builder for endpoints that always return a fragment, not a full feature page; supports OOB parts and triggers
 - `IHasState`
@@ -718,6 +747,34 @@ return HtmxFragmentResult.Create(formSliceWithErrors)
     .WithReswap(HtmxSwap.OuterHtml)
     .Build();
 ```
+
+## Page Title Behavior
+
+Page title is resolved in one place and then reused in both rendering modes:
+
+- default: `NavigationRouteItem.Label`
+- override: `Result.For(...).WithPageTitle("...")`
+
+How it is applied:
+
+1. **Full-page response** — the app-level page renderer receives `FeatureShellContext.PageTitle`.
+2. **HTMX response** — an OOB `<title hx-swap-oob="true">...</title>` is included so browser tab title updates during fragment navigation.
+
+Example override in an endpoint:
+
+```csharp
+app.MapGet("/items/edit/{id:int}", (int id, AppDbContext db) =>
+{
+  var entity = db.Items.Find(id);
+  if (entity is null) return Task.FromResult(Results.NotFound());
+
+  return Result.For(_EditPage.Create(_content.CreateEditFormModel(entity)))
+    .WithPageTitle("Edit item")
+    .BuildAsync();
+});
+```
+
+If `WithPageTitle(...)` is omitted, the route label title is used automatically.
 ## Navigation Model
 
 Navigation is built around a hierarchical tree of `NavigationItem` nodes:

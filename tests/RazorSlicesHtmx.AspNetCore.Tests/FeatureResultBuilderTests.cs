@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Models;

@@ -158,22 +158,25 @@ public static class BootstrapFieldContextExtensions
     {
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(5);
-        content.AppendHtml("<input type=\"hidden\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\" value=\"false\">");
+        var content = new HtmlContentBuilder(12);
         content.AppendHtml("<input type=\"checkbox\" id=\"");
         content.Append(field.Id);
-        content.AppendHtml("\" name=\"");
-        content.Append(field.Name);
         content.AppendHtml("\" class=\"");
         content.Append(o.CheckboxClass);
         content.AppendHtml("\" value=\"true\"");
+        content.AppendHtml(" hx-on:change=\"this.nextElementSibling.value = this.checked ? 'true' : 'false'\"");
 
         if (field.Value) content.AppendHtml(" checked");
         if (disabled) content.AppendHtml(" disabled");
 
         content.AppendHtml(">");
+        content.AppendHtml("<input type=\"hidden\" id=\"");
+        content.Append(field.Id);
+        content.AppendHtml("_hidden\" name=\"");
+        content.Append(field.Name);
+        content.AppendHtml("\" value=\"");
+        content.Append(field.Value ? "true" : "false");
+        content.AppendHtml("\">");
         return content;
     }
 

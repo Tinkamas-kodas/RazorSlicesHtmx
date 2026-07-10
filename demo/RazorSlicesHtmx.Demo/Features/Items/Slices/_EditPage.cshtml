@@ -25,10 +25,10 @@
                     <button type="submit" class="btn btn-dark">Save changes</button>
                     <button type="button"
                             class="btn btn-outline-secondary"
-                            hx-get="/items/list"
+                            hx-get="/items/search"
                             hx-target="#feature-details"
-                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-                            hx-push-url="true">
+                            hx-push-url="true"
+                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId">
                         Cancel
                     </button>
                 </div>

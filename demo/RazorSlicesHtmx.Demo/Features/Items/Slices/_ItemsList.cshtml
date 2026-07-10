@@ -27,7 +27,7 @@
     <form class="list-request-form"
           hx-get="/items/list"
           hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-          hx-target="#feature-details"
+            hx-target="#items-list"
           hx-push-url="true">
         <div class="content-card card border-0 shadow-sm overflow-hidden">
             @if (Model.Items.Count == 0)

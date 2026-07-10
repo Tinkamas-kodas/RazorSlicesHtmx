@@ -138,4 +138,18 @@ public sealed class TestListRequest : ListRequest<TestRow>
             ["name"] = row => row.Name,
             ["value"] = row => row.Value
         };
+
+    public override IReadOnlyDictionary<string, Func<IEnumerable<TestRow>, bool, IEnumerable<TestRow>>> SortOperations { get; } =
+        new Dictionary<string, Func<IEnumerable<TestRow>, bool, IEnumerable<TestRow>>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["code"] = (items, descending) => descending
+                ? items.OrderByDescending(row => row.Code)
+                : items.OrderBy(row => row.Code),
+            ["name"] = (items, descending) => descending
+                ? items.OrderByDescending(row => row.Name)
+                : items.OrderBy(row => row.Name),
+            ["value"] = (items, descending) => descending
+                ? items.OrderByDescending(row => row.Value)
+                : items.OrderBy(row => row.Value)
+        };
 }

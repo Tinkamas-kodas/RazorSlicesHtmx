@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using RazorSlicesHtmx.Demo.Data;
 using RazorSlicesHtmx.Demo.Features.Items.Models;
 using RazorSlicesHtmx.Demo.Features.Items.Services;
@@ -29,26 +28,27 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
                 .BuildAsync());
 
-        app.MapPost("/items/create", ([FromForm] ItemUpsertRequest request, AppDbContext db, IValidator<ItemUpsertRequest> validator) =>
+        app.MapPost("/items/create", async (ItemUpsertRequest request, AppDbContext db,
+                IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 _content.TrimRequest(request);
-                var validationResult = validator.Validate(request);
+                var validationResult = await validator.ValidateAsync(request, ct);
 
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.For(_CreatePage.Create(request))
-                        .BuildAsync();
+                    return await Result.For(_CreatePage.Create(request))
+                        .BuildAsync(ct);
                 }
 
                 var entity = _content.CreateEntity(request);
                 db.Items.Add(entity);
-                db.SaveChanges();
+                await db.SaveChangesAsync(ct);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was created.")
-                    .BuildAsync();
+                    .BuildAsync(ct);
             })
             .DisableAntiforgery();
 
@@ -64,32 +64,33 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 .BuildAsync();
         });
 
-        app.MapPost("/items/edit/{id:int}", (int id, [FromForm] ItemUpsertRequest request, AppDbContext db, IValidator<ItemUpsertRequest> validator) =>
+        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, AppDbContext db,
+                IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
-                var entity = db.Items.Find(id);
+                var entity = await db.Items.FindAsync([id], ct);
                 if (entity is null)
                 {
-                    return Task.FromResult(Results.NotFound());
+                    return Results.NotFound();
                 }
 
                 request.Id = id;
                 _content.TrimRequest(request);
-                var validationResult = validator.Validate(request);
+                var validationResult = await validator.ValidateAsync(request, ct);
 
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.For(_EditPage.Create(request))
-                        .BuildAsync();
+                    return await Result.For(_EditPage.Create(request))
+                        .BuildAsync(ct);
                 }
 
                 _content.Apply(entity, request);
-                db.SaveChanges();
+                await db.SaveChangesAsync(ct);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was updated.")
-                    .BuildAsync();
+                    .BuildAsync(ct);
             })
             .DisableAntiforgery();
 
@@ -104,22 +105,22 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(entity)));
         });
 
-        app.MapPost("/items/delete/{id:int}", (int id, AppDbContext db) =>
+        app.MapPost("/items/delete/{id:int}", async (int id, AppDbContext db, CancellationToken ct) =>
             {
-                var entity = db.Items.Find(id);
+                var entity = await db.Items.FindAsync([id], ct);
                 if (entity is null)
                 {
-                    return Task.FromResult(Results.NotFound());
+                    return Results.NotFound();
                 }
 
                 db.Items.Remove(entity);
-                db.SaveChanges();
+                await db.SaveChangesAsync(ct);
 
-                return Result.For(_Empty.Create())
+                return await Result.For(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()
-                    .BuildAsync();
+                    .BuildAsync(ct);
             })
             .DisableAntiforgery();
     }

@@ -9,4 +9,5 @@ namespace RazorSlicesHtmx.AspNetCore.Models;
 public sealed record FeatureShellContext(
     NavigationRouteItem CurrentItem,
     IReadOnlyList<NavigationItem> Navigation,
-    RazorSlice Detail);
+    RazorSlice Detail,
+    string? PageTitle = null);

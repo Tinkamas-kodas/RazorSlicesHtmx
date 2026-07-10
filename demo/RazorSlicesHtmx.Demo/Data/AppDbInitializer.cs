@@ -9,20 +9,25 @@ public static class AppDbInitializer
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        db.Database.EnsureCreated();
-
         if (db.Items.Any())
         {
             return;
         }
 
         db.Items.AddRange(
-            Enumerable.Range(1, 100).Select(i => new Item
-            {
-                Code = $"ITEM-{i:D3}",
-                Name = $"Item number {i}",
-                IsEnabled = i % 3 != 0
-            }));
+            new Item { Code = "WIDGET-001", Name = "Widget Alpha", IsEnabled = true },
+            new Item { Code = "WIDGET-002", Name = "Widget Beta", IsEnabled = true },
+            new Item { Code = "GADGET-003", Name = "Gadget Gamma", IsEnabled = false },
+            new Item { Code = "DOOHICKEY-004", Name = "Doohickey Delta", IsEnabled = true },
+            new Item { Code = "THING-005", Name = "Thingamajig Epsilon", IsEnabled = true },
+            new Item { Code = "CONTRAPTION-006", Name = "Contraption Zeta", IsEnabled = false },
+            new Item { Code = "APPARATUS-007", Name = "Apparatus Eta", IsEnabled = true },
+            new Item { Code = "MECHANISM-008", Name = "Mechanism Theta", IsEnabled = true },
+            new Item { Code = "DEVICE-009", Name = "Device Iota", IsEnabled = false },
+            new Item { Code = "IMPLEMENT-010", Name = "Implement Kappa", IsEnabled = true },
+            new Item { Code = "TOOL-011", Name = "Tool Lambda", IsEnabled = true },
+            new Item { Code = "INSTRUMENT-012", Name = "Instrument Mu", IsEnabled = true }
+        );
 
         db.SaveChanges();
     }

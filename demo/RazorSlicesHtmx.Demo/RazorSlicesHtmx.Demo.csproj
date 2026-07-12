@@ -18,19 +18,5 @@
     <PackageReference Include="RazorSlices" />
   </ItemGroup>
 
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="Features\Slices\_AboutDetail.cshtml" />
-    <_ContentIncludedByDefault Remove="Features\Slices\_ViewImports.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Features\Slices\_AboutDetail.cshtml" />
-    <UpToDateCheckInput Remove="Features\Slices\_ViewImports.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="Features\About\Slices\_AboutDetail.cshtml" />
-    <AdditionalFiles Include="Features\About\Slices\_ViewImports.cshtml" />
-  </ItemGroup>
 
 </Project>

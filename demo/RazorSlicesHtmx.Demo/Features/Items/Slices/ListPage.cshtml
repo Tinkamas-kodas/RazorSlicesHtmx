@@ -21,9 +21,8 @@
                       hx-target="#items-list"
                       hx-push-url="true">
                     <div>
-                    <div class="form-floating">
-                        @searchFor.Search.Input(placeholder: "")
-                        @searchFor.Search.Label("Search", BootstrapFieldOptions.Floating)
+                    <div>
+                        @searchFor.Search.Input(placeholder: "Search by code or name")
                     </div>
                     <div class="items-toolbar-actions">
                         <button class="btn btn-dark" type="submit">Apply</button>

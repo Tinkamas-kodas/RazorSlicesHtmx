@@ -26,13 +26,17 @@
 @foreach (var pill in pills)
 {
     var isActive = string.Equals(activeKey, pill.Key, StringComparison.OrdinalIgnoreCase);
-    var pillClass = isActive ? "howto-pill active" : "howto-pill";
+    var linkClass = isActive ? "nav-link active" : "nav-link";
 
-    <a href="/howto"
-       hx-get="@pill.FragmentRoute"
-       hx-target="#howto-content"
-       hx-swap="outerHTML"
-       class="@pillClass">
-        @pill.Label
-    </a>
+    <li class="nav-item" role="presentation">
+        <a class="@linkClass"
+           aria-current="@(isActive ? "page" : null)"
+           href="/howto"
+           hx-get="@pill.FragmentRoute"
+           hx-target="#howto-content"
+           hx-swap="outerHTML"
+           hx-push-url="true">
+            @pill.Label
+        </a>
+    </li>
 }

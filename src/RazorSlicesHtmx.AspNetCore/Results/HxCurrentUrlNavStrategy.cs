@@ -13,10 +13,12 @@ namespace RazorSlicesHtmx.AspNetCore.Results;
 /// </summary>
 public sealed class HxCurrentUrlNavStrategy(IServiceProvider services) : INavOobStrategy
 {
+    private FeatureRegistry? _registry;
+
     // Lazy to break the circular dependency: FeatureRegistry depends on feature modules
     // which depend on FeatureResultBuilder which depends on INavOobStrategy which would
     // otherwise depend on FeatureRegistry during construction.
-    private FeatureRegistry Registry => field ??= services.GetRequiredService<FeatureRegistry>();
+    private FeatureRegistry Registry => _registry ??= services.GetRequiredService<FeatureRegistry>();
 
     public bool ShouldSendNav(HttpRequest request, NavigationItem routeItem)
     {

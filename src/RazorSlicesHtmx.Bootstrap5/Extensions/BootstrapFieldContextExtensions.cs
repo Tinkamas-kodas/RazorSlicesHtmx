@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Html;
+using RazorSlicesHtmx.AspNetCore.Html;
 using RazorSlicesHtmx.AspNetCore.HtmlNames;
 using RazorSlicesHtmx.Bootstrap5.Options;
 
@@ -10,62 +11,42 @@ namespace RazorSlicesHtmx.Bootstrap5.Extensions;
 /// </summary>
 public static class BootstrapFieldContextExtensions
 {
-    public static IHtmlContent Label<TValue>(this FieldContext<TValue> field, string text,
+    public static FluentTagBuilder Label<TValue>(this FieldContext<TValue> field, string text,
         BootstrapFieldOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(5);
-        content.AppendHtml("<label for=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" class=\"");
-        content.Append(o.LabelClass);
-        content.AppendHtml("\">");
-        content.Append(text);
-        content.AppendHtml("</label>");
-        return content;
+        return new FluentTagBuilder("label")
+            .WithFor(field.Id)
+            .WithClass(o.LabelClass)
+            .WithContent(text);
     }
 
     /// <summary>
     /// Renders a label for a checkbox field using <c>CheckboxLabelClass</c>.
     /// </summary>
-    public static IHtmlContent Label(this FieldContext<bool> field, string text,
+    public static FluentTagBuilder Label(this FieldContext<bool> field, string text,
         BootstrapFieldOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(5);
-        content.AppendHtml("<label for=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" class=\"");
-        content.Append(o.CheckboxLabelClass);
-        content.AppendHtml("\">");
-        content.Append(text);
-        content.AppendHtml("</label>");
-        return content;
+        return new FluentTagBuilder("label")
+            .WithFor(field.Id)
+            .WithClass(o.CheckboxLabelClass)
+            .WithContent(text);
     }
 
-    public static IHtmlContent Hidden<TValue>(this FieldContext<TValue> field)
+    public static FluentTagBuilder Hidden<TValue>(this FieldContext<TValue> field)
     {
-        var content = new HtmlContentBuilder(4);
-        content.AppendHtml("<input type=\"hidden\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\"");
-
-        if (field.Value is not null)
-        {
-            content.AppendHtml(" value=\"");
-            content.Append(field.Value.ToString()!);
-            content.AppendHtml("\"");
-        }
-
-        content.AppendHtml(">");
-        return content;
+        return new FluentTagBuilder("input")
+            .WithAttribute("type", "hidden")
+            .WithName(field.Name)
+            .WithValue(field.Value?.ToString());
     }
 
-    public static IHtmlContent Input<TValue>(this FieldContext<TValue> field,
+    public static FluentTagBuilder Input<TValue>(this FieldContext<TValue> field,
         string type = "text",
         string? placeholder = null,
         bool autoFocus = false,
@@ -77,41 +58,20 @@ public static class BootstrapFieldContextExtensions
         var o = options ?? BootstrapFieldOptions.Current;
         var cssClass = field.HasErrors ? o.InputErrorClass : o.InputClass;
 
-        var content = new HtmlContentBuilder(12);
-        content.AppendHtml("<input type=\"");
-        content.Append(type);
-        content.AppendHtml("\" id=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\" class=\"");
-        content.Append(cssClass);
-        content.AppendHtml("\"");
-
-        if (field.Value is not null)
-        {
-            content.AppendHtml(" value=\"");
-            content.Append(field.Value.ToString()!);
-            content.AppendHtml("\"");
-        }
-
-        if (placeholder is not null)
-        {
-            content.AppendHtml(" placeholder=\"");
-            content.Append(placeholder);
-            content.AppendHtml("\"");
-        }
-
-        if (autoFocus) content.AppendHtml(" autofocus");
-        if (required) content.AppendHtml(" required");
-        if (disabled) content.AppendHtml(" disabled");
-        if (readOnly) content.AppendHtml(" readonly");
-
-        content.AppendHtml(">");
-        return content;
+        return new FluentTagBuilder("input")
+            .WithAttribute("type", type)
+            .WithId(field.Id)
+            .WithName(field.Name)
+            .WithClass(cssClass)
+            .WithValue(field.Value?.ToString())
+            .WithPlaceholder(placeholder)
+            .WithBooleanAttribute("autofocus", autoFocus)
+            .WithBooleanAttribute("required", required)
+            .WithBooleanAttribute("disabled", disabled)
+            .WithBooleanAttribute("readonly", readOnly);
     }
 
-    public static IHtmlContent TextArea<TValue>(this FieldContext<TValue> field,
+    public static FluentTagBuilder TextArea<TValue>(this FieldContext<TValue> field,
         string? placeholder = null,
         int rows = 3,
         bool required = false,
@@ -121,35 +81,15 @@ public static class BootstrapFieldContextExtensions
         var o = options ?? BootstrapFieldOptions.Current;
         var cssClass = field.HasErrors ? o.TextAreaErrorClass : o.TextAreaClass;
 
-        var content = new HtmlContentBuilder(8);
-        content.AppendHtml("<textarea id=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\" class=\"");
-        content.Append(cssClass);
-        content.AppendHtml("\" rows=\"");
-        content.Append(rows.ToString());
-        content.AppendHtml("\"");
-
-        if (placeholder is not null)
-        {
-            content.AppendHtml(" placeholder=\"");
-            content.Append(placeholder);
-            content.AppendHtml("\"");
-        }
-
-        if (required) content.AppendHtml(" required");
-        if (disabled) content.AppendHtml(" disabled");
-
-        content.AppendHtml(">");
-        if (field.Value is not null)
-        {
-            content.Append(field.Value.ToString()!);
-        }
-
-        content.AppendHtml("</textarea>");
-        return content;
+        return new FluentTagBuilder("textarea")
+            .WithId(field.Id)
+            .WithName(field.Name)
+            .WithClass(cssClass)
+            .WithAttribute("rows", rows.ToString())
+            .WithPlaceholder(placeholder)
+            .WithBooleanAttribute("required", required)
+            .WithBooleanAttribute("disabled", disabled)
+            .WithContent(field.Value?.ToString() ?? string.Empty);
     }
 
     public static IHtmlContent Checkbox(this FieldContext<bool> field,
@@ -158,29 +98,27 @@ public static class BootstrapFieldContextExtensions
     {
         var o = options ?? BootstrapFieldOptions.Current;
 
-        var content = new HtmlContentBuilder(12);
-        content.AppendHtml("<input type=\"checkbox\" id=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" class=\"");
-        content.Append(o.CheckboxClass);
-        content.AppendHtml("\" value=\"true\"");
-        content.AppendHtml(" hx-on:change=\"this.nextElementSibling.value = this.checked ? 'true' : 'false'\"");
+        var checkbox = new FluentTagBuilder("input")
+            .WithAttribute("type", "checkbox")
+            .WithId(field.Id)
+            .WithClass(o.CheckboxClass)
+            .WithValue("true")
+            .WithAttribute("hx-on:change", "this.nextElementSibling.value = this.checked ? 'true' : 'false'")
+            .WithBooleanAttribute("checked", field.Value)
+            .WithBooleanAttribute("disabled", disabled);
 
-        if (field.Value) content.AppendHtml(" checked");
-        if (disabled) content.AppendHtml(" disabled");
+        var hidden = new FluentTagBuilder("input")
+            .WithAttribute("type", "hidden")
+            .WithId($"{field.Id}_hidden")
+            .WithName(field.Name)
+            .WithValue(field.Value ? "true" : "false");
 
-        content.AppendHtml(">");
-        content.AppendHtml("<input type=\"hidden\" id=\"");
-        content.Append(field.Id);
-        content.AppendHtml("_hidden\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\" value=\"");
-        content.Append(field.Value ? "true" : "false");
-        content.AppendHtml("\">");
-        return content;
+        return new HtmlContentBuilder()
+            .AppendHtml(checkbox)
+            .AppendHtml(hidden);
     }
 
-    public static IHtmlContent Select<TValue>(this FieldContext<TValue> field,
+    public static FluentTagBuilder Select<TValue>(this FieldContext<TValue> field,
         IEnumerable<(string Value, string Text)> options,
         string? emptyOption = null,
         bool required = false,
@@ -191,49 +129,32 @@ public static class BootstrapFieldContextExtensions
         var cssClass = field.HasErrors ? o.SelectErrorClass : o.SelectClass;
         var currentValue = field.Value?.ToString();
 
-        var content = new HtmlContentBuilder(16);
-        content.AppendHtml("<select id=\"");
-        content.Append(field.Id);
-        content.AppendHtml("\" name=\"");
-        content.Append(field.Name);
-        content.AppendHtml("\" class=\"");
-        content.Append(cssClass);
-        content.AppendHtml("\"");
-
-        if (required) content.AppendHtml(" required");
-        if (disabled) content.AppendHtml(" disabled");
-
-        content.AppendHtml(">");
+        var builder = new FluentTagBuilder("select")
+            .WithId(field.Id)
+            .WithName(field.Name)
+            .WithClass(cssClass)
+            .WithBooleanAttribute("required", required)
+            .WithBooleanAttribute("disabled", disabled);
 
         if (emptyOption is not null)
         {
-            content.AppendHtml("<option value=\"\">");
-            content.Append(emptyOption);
-            content.AppendHtml("</option>");
+            builder.WithContent(
+                new FluentTagBuilder("option").WithValue("").WithContent(emptyOption)
+            );
         }
 
         foreach (var (value, text) in options)
         {
             var selected = string.Equals(value, currentValue, StringComparison.OrdinalIgnoreCase);
-            if (selected)
-            {
-                content.AppendHtml("<option value=\"");
-                content.Append(value);
-                content.AppendHtml("\" selected>");
-            }
-            else
-            {
-                content.AppendHtml("<option value=\"");
-                content.Append(value);
-                content.AppendHtml("\">");
-            }
-
-            content.Append(text);
-            content.AppendHtml("</option>");
+            builder.WithContent(
+                new FluentTagBuilder("option")
+                    .WithValue(value)
+                    .WithBooleanAttribute("selected", selected)
+                    .WithContent(text)
+            );
         }
 
-        content.AppendHtml("</select>");
-        return content;
+        return builder;
     }
 
     public static IHtmlContent Validation<TValue>(this FieldContext<TValue> field,

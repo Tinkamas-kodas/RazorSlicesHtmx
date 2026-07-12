@@ -18,8 +18,11 @@
         <div class="modal-body d-flex flex-column gap-3">
             <p class="items-modal-copy">This will permanently delete <strong>@Model.Name</strong> with code <strong>@Model.Code</strong>.</p>
             <p class="items-modal-copy">Please enter code to delete item.</p>
-            @f.EnteredCode.Input()
-            @f.EnteredCode.Validation()
+            <div class="form-floating">
+                @f.EnteredCode.Input(placeholder: "")
+                @f.EnteredCode.Label("Code", BootstrapFieldOptions.Floating)
+                @f.EnteredCode.Validation()
+            </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

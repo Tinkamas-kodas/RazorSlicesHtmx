@@ -32,6 +32,14 @@ public record BootstrapFieldOptions(
         ValidationClass: "invalid-feedback");
 
     /// <summary>
+    /// Preset for Bootstrap 5 floating labels (<c>form-floating</c> wrapper).
+    /// Labels have no class — Bootstrap's <c>.form-floating &gt; label</c> rule handles positioning.
+    /// Inputs <strong>must</strong> have a non-empty <c>placeholder</c> attribute for the
+    /// <c>:placeholder-shown</c> CSS mechanism to work.
+    /// </summary>
+    public static readonly BootstrapFieldOptions Floating = Default with { LabelClass = "" };
+
+    /// <summary>
     /// Global singleton used by field helpers when no explicit options are passed.
     /// Set via <c>AddRazorSlicesHtmxBootstrap5</c> or directly at startup.
     /// </summary>

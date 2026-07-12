@@ -2,22 +2,23 @@
 @using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 
 @{ var f = Model.For(); }
+@{ var fo = BootstrapFieldOptions.Floating; }
 
 <input type="hidden" name="Id" value="@Model.Id">
 
-<div>
-    @f.Code.Label("Code")
-    @f.Code.Input(placeholder: "ITEM-001", autoFocus: true)
+<div class="form-floating">
+    @f.Code.Input(placeholder: "", autoFocus: true)
+    @f.Code.Label("Code", fo)
     @f.Code.Validation()
 </div>
 
-<div>
-    @f.Name.Label("Name")
-    @f.Name.Input(placeholder: "Item name")
+<div class="form-floating">
+    @f.Name.Input(placeholder: "")
+    @f.Name.Label("Name", fo)
     @f.Name.Validation()
 </div>
 
-<div>
+<div class="form-check">
     @f.IsEnabled.Checkbox()
     @f.IsEnabled.Label("Enabled")
 </div>

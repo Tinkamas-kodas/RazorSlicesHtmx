@@ -155,13 +155,13 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
         {
             source.Append("    public static ").Append(contextName).Append(" For(this ").Append(modelFullName)
                 .AppendLine(" model)")
-                .Append("        => new ").Append(contextName).AppendLine("(model, []);");
+                .Append("        => new ").Append(contextName).AppendLine("(model, global::System.Collections.Immutable.ImmutableDictionary<string, (string, string)[]>.Empty);");
             source.AppendLine();
 
             source.Append("    public static ").Append(contextName).Append(" For(this ").Append(modelFullName)
                 .AppendLine(
                     " model, global::System.Collections.Generic.IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]>? errors = null)")
-                .Append("        => new ").Append(contextName).AppendLine("(model, errors);");
+                .Append("        => new ").Append(contextName).AppendLine("(model, errors ?? global::System.Collections.Immutable.ImmutableDictionary<string, (string, string)[]>.Empty);");
         }
         source.AppendLine("}");
         source.AppendLine();

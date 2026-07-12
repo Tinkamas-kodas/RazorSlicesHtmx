@@ -1,3 +1,4 @@
+@using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 @inherits RazorSlice<ItemListModel>
 
 
@@ -9,7 +10,7 @@
 
     <p class="section-summary">This feature uses RazorSlices for server-rendered HTML, HTMX for partial updates, and FluentValidation for create and edit validation.</p>
 
-
+    @{var searchFor = Model.Search.For();}
     <div id="items-toolbar" class="content-card card border-0 shadow-sm items-toolbar-card">
         <div class="card-body p-4">
             <div class="items-toolbar">
@@ -20,9 +21,9 @@
                       hx-target="#items-list"
                       hx-push-url="true">
                     <div>
-                    <div>
-                        <label class="form-label" for="items-search">Search</label>
-                        <input class="form-control" id="items-search" name="Search" value="@Model.Search.Search" placeholder="Search by code or name">
+                    <div class="form-floating">
+                        @searchFor.Search.Input(placeholder: "")
+                        @searchFor.Search.Label("Search", BootstrapFieldOptions.Floating)
                     </div>
                     <div class="items-toolbar-actions">
                         <button class="btn btn-dark" type="submit">Apply</button>

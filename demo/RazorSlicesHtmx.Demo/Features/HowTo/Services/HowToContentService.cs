@@ -15,13 +15,6 @@ public sealed class HowToContentService
         "discovery"
     ];
 
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "howto",
-        "HowTo",
-        "/howto",
-        new PageDefinition(_HowToPage.Create),
-        Order: 400);
-
     public bool TryCreateStepSlice(string? stepKey, out RazorSlice stepSlice)
     {
         switch (stepKey?.ToLowerInvariant())

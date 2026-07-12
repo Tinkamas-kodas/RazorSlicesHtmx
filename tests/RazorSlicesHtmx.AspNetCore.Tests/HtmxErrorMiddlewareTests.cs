@@ -110,9 +110,8 @@ public class HtmxErrorMiddlewareTests
 
         await middleware.InvokeAsync(context);
 
-        context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        Assert.Contains("Custom error 500", body);
+        var trigger = context.Response.Headers["HX-Trigger-After-Swap"].ToString();
+        Assert.Contains("Custom error 500", trigger);
     }
 
     [Fact]

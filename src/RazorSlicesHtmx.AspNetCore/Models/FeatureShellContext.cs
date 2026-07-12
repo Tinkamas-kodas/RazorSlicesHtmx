@@ -7,7 +7,7 @@ namespace RazorSlicesHtmx.AspNetCore.Models;
 /// Contains the active navigation item, the filtered navigation tree, and the detail slice.
 /// </summary>
 public sealed record FeatureShellContext(
-    NavigationRouteItem CurrentItem,
+    NavigationItem CurrentItem,
     IReadOnlyList<NavigationItem> Navigation,
     RazorSlice Detail,
     string? PageTitle = null);

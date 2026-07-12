@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Html;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Htmx;
@@ -15,17 +17,20 @@ public static class HtmxFragmentResult
         private readonly List<RazorSlice> _oobParts = [];
         private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
+        private readonly List<(string Name, string Json)> _jsonTriggers = [];
+        private readonly List<string> _triggersAfterSwap = [];
+        private readonly List<(string Name, string Json)> _jsonTriggersAfterSwap = [];
         private string? _retarget;
         private string? _reswap;
 
-        public Builder WithOob(string selector, RazorSlice content, string swap = HtmxSwap.InnerHtml)
+        public Builder WithOob(string selector, RazorSlice content, string swap = Hx.Swap.InnerHtml)
         {
             if (string.IsNullOrWhiteSpace(selector))
             {
                 throw new ArgumentException("OOB selector is required.", nameof(selector));
             }
 
-            var resolvedSwap = string.IsNullOrWhiteSpace(swap) ? HtmxSwap.InnerHtml : swap;
+            var resolvedSwap = string.IsNullOrWhiteSpace(swap) ? Hx.Swap.InnerHtml : swap;
             _oobParts.Add(HtmxOob.Create(new HtmxOobModel(selector, resolvedSwap, content)));
             return this;
         }
@@ -38,6 +43,49 @@ public static class HtmxFragmentResult
             }
 
             _triggers.Add(eventName);
+            return this;
+        }
+
+        public Builder WithTrigger(string eventName, string jsonValue)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                throw new ArgumentException("Trigger name is required.", nameof(eventName));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonValue))
+            {
+                throw new ArgumentException("JSON value is required.", nameof(jsonValue));
+            }
+
+            _jsonTriggers.Add((eventName, jsonValue));
+            return this;
+        }
+
+        public Builder WithTriggerAfterSwap(string eventName)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                throw new ArgumentException("Trigger name is required.", nameof(eventName));
+            }
+
+            _triggersAfterSwap.Add(eventName);
+            return this;
+        }
+
+        public Builder WithTriggerAfterSwap(string eventName, string jsonValue)
+        {
+            if (string.IsNullOrWhiteSpace(eventName))
+            {
+                throw new ArgumentException("Trigger name is required.", nameof(eventName));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonValue))
+            {
+                throw new ArgumentException("JSON value is required.", nameof(jsonValue));
+            }
+
+            _jsonTriggersAfterSwap.Add((eventName, jsonValue));
             return this;
         }
 
@@ -96,38 +144,71 @@ public static class HtmxFragmentResult
                     _oobParts,
                     _rawOobParts.Count > 0 ? _rawOobParts : null));
 
-            if (_triggers.Count == 0 && _retarget is null && _reswap is null)
+            if (_triggers.Count == 0 && _jsonTriggers.Count == 0 && _triggersAfterSwap.Count == 0 && _jsonTriggersAfterSwap.Count == 0 && _retarget is null && _reswap is null)
             {
                 return fragment;
             }
 
-            return new HeaderDecoratedResult(fragment, _triggers, _retarget, _reswap);
+            return new HeaderDecoratedResult(fragment, _triggers, _jsonTriggers, _triggersAfterSwap, _jsonTriggersAfterSwap, _retarget, _reswap);
         }
 
         private sealed class HeaderDecoratedResult(
             RazorSlice fragment,
             IReadOnlyCollection<string> triggers,
+            IReadOnlyCollection<(string Name, string Json)> jsonTriggers,
+            IReadOnlyCollection<string> triggersAfterSwap,
+            IReadOnlyCollection<(string Name, string Json)> jsonTriggersAfterSwap,
             string? retarget,
             string? reswap) : IResult
         {
             public Task ExecuteAsync(HttpContext httpContext)
             {
-                if (triggers.Count > 0)
+                if (triggers.Count > 0 || jsonTriggers.Count > 0)
                 {
-                    httpContext.Response.Headers.Append("HX-Trigger", string.Join(",", triggers));
+                    httpContext.Response.Headers.Append(Hx.Trigger, BuildTriggerHeader(triggers, jsonTriggers));
+                }
+
+                if (triggersAfterSwap.Count > 0 || jsonTriggersAfterSwap.Count > 0)
+                {
+                    httpContext.Response.Headers.Append(Hx.TriggerAfterSwap, BuildTriggerHeader(triggersAfterSwap, jsonTriggersAfterSwap));
                 }
 
                 if (retarget is not null)
                 {
-                    httpContext.Response.Headers.Append("HX-Retarget", retarget);
+                    httpContext.Response.Headers.Append(Hx.Retarget, retarget);
                 }
 
                 if (reswap is not null)
                 {
-                    httpContext.Response.Headers.Append("HX-Reswap", reswap);
+                    httpContext.Response.Headers.Append(Hx.Reswap, reswap);
                 }
 
                 return ((IResult)fragment).ExecuteAsync(httpContext);
+            }
+
+            private static string BuildTriggerHeader(
+                IReadOnlyCollection<string> simpleTriggers,
+                IReadOnlyCollection<(string Name, string Json)> jsonTriggers)
+            {
+                if (jsonTriggers.Count == 0)
+                {
+                    return string.Join(",", simpleTriggers);
+                }
+
+                using var ms = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(ms))
+                {
+                    writer.WriteStartObject();
+                    foreach (var t in simpleTriggers)
+                        writer.WriteNull(t);
+                    foreach (var (name, json) in jsonTriggers)
+                    {
+                        writer.WritePropertyName(name);
+                        writer.WriteRawValue(json);
+                    }
+                    writer.WriteEndObject();
+                }
+                return Encoding.UTF8.GetString(ms.ToArray());
             }
         }
     }

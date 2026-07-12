@@ -1,17 +1,9 @@
 using RazorSlicesHtmx.Demo.Features.About.Models;
-using RazorSlicesHtmx.Demo.Features.Slices;
 
 namespace RazorSlicesHtmx.Demo.Features.About.Services;
 
 public sealed class AboutContentService
 {
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "about",
-        "About",
-        "/about",
-        new PageDefinition(() => _AboutDetail.Create(CreateDetailModel())),
-        Order: 100);
-
     public AboutDetailModel CreateDetailModel() => new(
         "This project uses a vertical-slice structure where each feature owns its endpoints, services, slices, and optional models. RazorSlices render the HTML on the server, while HTMX swaps only the parts of the page that need to change.",
         [

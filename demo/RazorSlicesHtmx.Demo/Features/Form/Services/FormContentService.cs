@@ -1,17 +1,9 @@
 using RazorSlicesHtmx.Demo.Features.Form.Models;
-using RazorSlicesHtmx.Demo.Features.Form.Slices;
 
 namespace RazorSlicesHtmx.Demo.Features.Form.Services;
 
 public sealed class FormContentService
 {
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "form",
-        "Form",
-        "/form",
-        new PageDefinition(() => _FormDetail.Create(CreateDetailModel())),
-        Order: 300);
-
     public FormDetailModel CreateDetailModel() => new(
         "This slice contains a real HTMX form. The shared page shell still only swaps the details pane, while the form itself targets a nested preview region inside this page.",
         [

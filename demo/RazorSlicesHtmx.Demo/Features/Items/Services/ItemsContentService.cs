@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RazorSlicesHtmx.Demo.Data;
 using RazorSlicesHtmx.Demo.Features.Items.Models;
-using RazorSlicesHtmx.Demo.Features.Items.Slices;
 
 namespace RazorSlicesHtmx.Demo.Features.Items.Services;
 
@@ -10,20 +9,6 @@ public sealed class ItemsContentService
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "items",
-        "Items",
-        "/items",
-        new PageDefinition(httpContext =>
-        {
-            var db = httpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var search = new ItemSearchModel(httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
-            var query = ItemListQuery.FromQuery(httpContext.Request.Query);
-            return _FeaturePage.Create(CreateListModel(db,search, query));
-        }),
-        Order: 200);
-
-   
     public ItemListModel CreateListModel(AppDbContext db, ItemSearchModel search, ItemListQuery query)
     {
         var items = db.Items
@@ -59,10 +44,12 @@ public sealed class ItemsContentService
 
     
 
-    public ItemDeleteDialogModel CreateDeleteDialogModel(Item item) => new(
-        item.Id,
-        item.Code,
-        item.Name);
+    public ItemDeleteDialogModel CreateDeleteDialogModel(Item item) => new()
+    {
+        Id = item.Id,
+        Code=item.Code,
+        Name = item.Name
+    };
 
     public void TrimRequest(ItemUpsertRequest request)
     {

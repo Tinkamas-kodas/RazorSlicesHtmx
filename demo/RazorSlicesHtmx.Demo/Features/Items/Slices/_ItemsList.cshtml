@@ -9,7 +9,7 @@
 
 }
 
-<section class="section-panel">
+<section id="items-list" class="section-panel">
     <div class="items-list-meta">
         <p class="mb-0">
             @if (Model.Total == 0)
@@ -74,6 +74,7 @@
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger"
                                                 hx-get="/items/delete/@row.Id"
+                                                hx-push-url="false"
                                                 hx-target="#dialog-host"
                                                 type="button">
                                             Delete

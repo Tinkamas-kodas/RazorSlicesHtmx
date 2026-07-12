@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlicesHtmx.AspNetCore.Infrastructure;
+using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Options;
 using RazorSlicesHtmx.AspNetCore.Results;
 
@@ -15,6 +16,8 @@ public static class ServiceCollectionExtensions
         services.AddOptions<RazorSlicesHtmxOptions>();
         services.AddOptions<HtmxErrorOptions>();
         services.AddSingleton<FeatureResultBuilder>();
+        services.AddSingleton<INavOobStrategy, HxCurrentUrlNavStrategy>();
+        services.AddScoped<HtmxStateContext>();
 
         if (configure is not null)
         {

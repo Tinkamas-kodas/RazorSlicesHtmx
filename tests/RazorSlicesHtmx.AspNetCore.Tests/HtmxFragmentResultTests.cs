@@ -74,7 +74,7 @@ public class HtmxFragmentResultTests
     {
         var builder = HtmxFragmentResult.Create(new FakeSlice());
 
-        // Should not throw — uses default HtmxSwap.InnerHtml
+        // Should not throw — uses default Hx.Swap.InnerHtml
         builder.WithOob("#target", new FakeSlice());
 
         var result = builder.Build();
@@ -120,7 +120,7 @@ public class HtmxFragmentResultTests
     public async Task Build_with_reswap_sets_HX_Reswap_header()
     {
         var builder = HtmxFragmentResult.Create(new FakeSlice());
-        builder.WithReswap(HtmxSwap.OuterHtml);
+        builder.WithReswap(Hx.Swap.OuterHtml);
 
         var result = builder.Build();
         var httpContext = new DefaultHttpContext();
@@ -135,7 +135,7 @@ public class HtmxFragmentResultTests
     public async Task Build_with_retarget_and_reswap_sets_both_headers()
     {
         var builder = HtmxFragmentResult.Create(new FakeSlice());
-        builder.WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml);
+        builder.WithRetarget("#edit-form").WithReswap(Hx.Swap.OuterHtml);
 
         var result = builder.Build();
         var httpContext = new DefaultHttpContext();

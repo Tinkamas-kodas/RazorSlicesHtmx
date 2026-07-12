@@ -10,7 +10,8 @@ public sealed class FeatureRegistry
 {
     private readonly IFeatureModule[] _features;
     private readonly IReadOnlyList<NavigationItem> _navigation;
-    private readonly NavigationRouteItem[] _routeItems;
+    private readonly NavigationItem[] _routeItems;
+    private readonly Dictionary<string, int> _keyToFeatureIndex;
 
     private FeatureRegistry(IFeatureModule[] features)
     {
@@ -21,14 +22,15 @@ public sealed class FeatureRegistry
             .ThenBy(item => item.Label, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         _routeItems = CollectRouteItems(_navigation).ToArray();
+        _keyToFeatureIndex = BuildKeyToFeatureIndex(features);
     }
 
-    public NavigationRouteItem DefaultRouteItem =>
+    public NavigationItem DefaultRouteItem =>
         _routeItems.Length > 0
             ? _routeItems[0]
             : throw new InvalidOperationException("No navigable route items are registered.");
 
-    public IReadOnlyList<NavigationRouteItem> RouteItems => _routeItems;
+    public IReadOnlyList<NavigationItem> RouteItems => _routeItems;
 
     public static FeatureRegistry Discover(Assembly assembly, IServiceProvider services) =>
         Discover([assembly], services);
@@ -59,7 +61,7 @@ public sealed class FeatureRegistry
         }
     }
 
-    public bool TryGetRouteItem(string? key, out NavigationRouteItem routeItem)
+    public bool TryGetRouteItem(string? key, out NavigationItem routeItem)
     {
         routeItem = _routeItems.FirstOrDefault(item =>
             string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase)) ?? DefaultRouteItem;
@@ -68,7 +70,7 @@ public sealed class FeatureRegistry
     }
 
     public async Task<FeatureShellContext> CreateShellContextAsync(
-        NavigationRouteItem currentItem,
+        NavigationItem currentItem,
         RazorSlices.RazorSlice detail,
         ClaimsPrincipal? user,
         IAuthorizationService? authService,
@@ -119,21 +121,77 @@ public sealed class FeatureRegistry
         return result;
     }
 
-    private static IEnumerable<NavigationRouteItem> CollectRouteItems(IReadOnlyList<NavigationItem> items)
+    private static IEnumerable<NavigationItem> CollectRouteItems(IReadOnlyList<NavigationItem> items)
     {
         foreach (var item in items)
         {
-            if (item is NavigationRouteItem route)
-            {
-                yield return route;
-            }
-            else if (item is NavigationGroupItem group)
+            if (item is NavigationGroupItem group)
             {
                 foreach (var child in CollectRouteItems(group.Children))
                 {
                     yield return child;
                 }
             }
+            else
+            {
+                yield return item;
+            }
         }
+    }
+
+    private static Dictionary<string, int> BuildKeyToFeatureIndex(IFeatureModule[] features)
+    {
+        var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < features.Length; i++)
+        {
+            foreach (var item in CollectRouteItems(features[i].NavigationItems))
+            {
+                map.TryAdd(item.Key, i);
+            }
+        }
+        return map;
+    }
+
+    /// <summary>Returns the feature index for the given nav item, or -1 if not found.</summary>
+    public int GetFeatureIndex(NavigationItem item) =>
+        _keyToFeatureIndex.TryGetValue(item.Key, out var idx) ? idx : -1;
+
+    /// <summary>
+    /// Resolves the feature index for the feature whose route prefix matches <paramref name="currentUrl"/>.
+    /// Returns -1 when <paramref name="currentUrl"/> is null/empty or no match is found.
+    /// </summary>
+    public int FindActiveFeatureIndex(string? currentUrl)
+    {
+        var path = ExtractPath(currentUrl);
+        if (string.IsNullOrEmpty(path)) return -1;
+
+        foreach (var item in _routeItems)
+        {
+            var prefix = GetFirstPathSegmentPrefix(item.Route);
+            if (prefix is not null && path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return GetFeatureIndex(item);
+            }
+        }
+
+        return -1;
+    }
+
+    private static string? ExtractPath(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return null;
+        if (Uri.TryCreate(url, UriKind.Absolute, out var abs)) return abs.AbsolutePath;
+        var q = url.IndexOf('?');
+        return q >= 0 ? url[..q] : url;
+    }
+
+    private static string? GetFirstPathSegmentPrefix(string route)
+    {
+        // "/items/list" → "/items/"   "/about" → "/about"
+        var trimmed = route.TrimStart('/');
+        if (string.IsNullOrEmpty(trimmed)) return null;
+        var slash = trimmed.IndexOf('/');
+        var segment = slash >= 0 ? trimmed[..slash] : trimmed;
+        return string.IsNullOrEmpty(segment) ? null : $"/{segment}";
     }
 }

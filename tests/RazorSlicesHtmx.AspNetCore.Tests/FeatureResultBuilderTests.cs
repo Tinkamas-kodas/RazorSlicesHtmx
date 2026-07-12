@@ -11,8 +11,7 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 
 public class FeatureResultBuilderTests
 {
-    private static readonly NavigationRouteItem TestRouteItem = new("test", "Test", "/test",
-        new PageDefinition(() => null!));
+    private static readonly NavigationItem TestNavItem = new("test", "Test", "/test");
 
     [Fact]
     public async Task BuildAsync_returns_full_page_for_non_htmx_request()
@@ -20,7 +19,7 @@ public class FeatureResultBuilderTests
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
+        var result = await builder.Create(TestNavItem, detail).BuildAsync();
 
         Assert.True(fakeRenderer.PageRendered);
     }
@@ -31,7 +30,7 @@ public class FeatureResultBuilderTests
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
+        var result = await builder.Create(TestNavItem, detail).BuildAsync();
 
         Assert.False(fakeRenderer.PageRendered);
         Assert.NotNull(result);
@@ -40,15 +39,16 @@ public class FeatureResultBuilderTests
     [Fact]
     public async Task BuildAsync_with_AsFragment_uses_fragment_as_primary()
     {
-        var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
+        // Same-feature HTMX request: HX-Current-URL points to the same route → nav OOB not sent
+        var (builder, fakeRenderer) = CreateBuilder(isHtmx: true, hxCurrentUrl: "http://localhost/test");
         var detail = new FakeSlice();
         var fragment = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .AsFragment(fragment)
             .BuildAsync();
 
-        // When AsFragment is set, navigation OOB should NOT be added
+        // Same feature → navigation OOB should NOT be added
         Assert.False(fakeRenderer.NavigationRendered);
     }
 
@@ -58,7 +58,7 @@ public class FeatureResultBuilderTests
         var (builder, fakeRenderer) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail).BuildAsync();
+        var result = await builder.Create(TestNavItem, detail).BuildAsync();
 
         Assert.True(fakeRenderer.NavigationRendered);
     }
@@ -69,7 +69,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .WithNavigation("/items")
             .BuildAsync();
 
@@ -82,7 +82,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: false);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .WithLocation("/items")
             .BuildAsync();
 
@@ -95,7 +95,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .AsFragment(new FakeSlice())
             .WithNavigation("/items", replace: true)
             .BuildAsync();
@@ -112,7 +112,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .AsFragment(new FakeSlice())
             .WithNavigation("/items", replace: false)
             .BuildAsync();
@@ -129,7 +129,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
         var detail = new FakeSlice();
 
-        var result = await builder.Create(TestRouteItem, detail)
+        var result = await builder.Create(TestNavItem, detail)
             .WithLocation("/items")
             .BuildAsync();
 
@@ -147,7 +147,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithTrigger(""));
+            builder.Create(TestNavItem, new FakeSlice()).WithTrigger(""));
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithNavigation(""));
+            builder.Create(TestNavItem, new FakeSlice()).WithNavigation(""));
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithLocation(""));
+            builder.Create(TestNavItem, new FakeSlice()).WithLocation(""));
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class FeatureResultBuilderTests
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var b = builder.Create(TestRouteItem, new FakeSlice())
+        var b = builder.Create(TestNavItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithToast("Item saved", "Success", ToastTone.Success);
 
@@ -186,7 +186,7 @@ public class FeatureResultBuilderTests
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var b = builder.Create(TestRouteItem, new FakeSlice())
+        var b = builder.Create(TestNavItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithDialog(new FakeSlice());
 
@@ -199,7 +199,7 @@ public class FeatureResultBuilderTests
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var b = builder.Create(TestRouteItem, new FakeSlice())
+        var b = builder.Create(TestNavItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .ClearDialog();
 
@@ -213,7 +213,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
         var state = new FakeState();
 
-        var b = builder.Create(TestRouteItem, new FakeSlice())
+        var b = builder.Create(TestNavItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithState(state);
 
@@ -228,7 +228,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentNullException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithState(null!));
+            builder.Create(TestNavItem, new FakeSlice()).WithState(null!));
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithRetarget(""));
+            builder.Create(TestNavItem, new FakeSlice()).WithRetarget(""));
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public class FeatureResultBuilderTests
         var (builder, _) = CreateBuilder(isHtmx: true);
 
         Assert.Throws<ArgumentException>(() =>
-            builder.Create(TestRouteItem, new FakeSlice()).WithReswap(""));
+            builder.Create(TestNavItem, new FakeSlice()).WithReswap(""));
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class FeatureResultBuilderTests
     {
         var (builder, _) = CreateBuilder(isHtmx: true);
 
-        var result = await builder.Create(TestRouteItem, new FakeSlice())
+        var result = await builder.Create(TestNavItem, new FakeSlice())
             .AsFragment(new FakeSlice())
             .WithRetarget("#edit-form")
             .WithReswap("outerHTML")
@@ -267,9 +267,9 @@ public class FeatureResultBuilderTests
         Assert.Equal("outerHTML", context.Response.Headers["HX-Reswap"].ToString());
     }
 
-    private static (FeatureResultBuilder builder, FakePageRenderer renderer) CreateBuilder(bool isHtmx)
+    private static (FeatureResultBuilder builder, FakePageRenderer renderer) CreateBuilder(bool isHtmx, string? hxCurrentUrl = null)
     {
-        var httpContext = CreateHttpContext(isHtmx);
+        var httpContext = CreateHttpContext(isHtmx, hxCurrentUrl);
         var httpContextAccessor = new FakeHttpContextAccessor(httpContext);
         var renderer = new FakePageRenderer();
         var transientUi = new FakeTransientUiRenderer();
@@ -279,24 +279,30 @@ public class FeatureResultBuilderTests
         services.AddSingleton<IFeaturePageRenderer>(renderer);
         services.AddSingleton<ITransientUiRenderer>(transientUi);
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new RazorSlicesHtmxOptions()));
+        services.AddScoped<HtmxStateContext>();
 
         var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services.BuildServiceProvider());
         services.AddSingleton(registry);
+        services.AddSingleton<INavOobStrategy, HxCurrentUrlNavStrategy>();
 
         var sp = services.BuildServiceProvider();
         httpContext.RequestServices = sp;
 
-        var builder = new FeatureResultBuilder(httpContextAccessor, sp, renderer, transientUi, options);
+        var builder = new FeatureResultBuilder(httpContextAccessor, sp, renderer, transientUi, options, sp.GetRequiredService<INavOobStrategy>());
         return (builder, renderer);
     }
 
-    private static DefaultHttpContext CreateHttpContext(bool isHtmx)
+    private static DefaultHttpContext CreateHttpContext(bool isHtmx, string? hxCurrentUrl = null)
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
         if (isHtmx)
         {
             context.Request.Headers["HX-Request"] = "true";
+        }
+        if (hxCurrentUrl is not null)
+        {
+            context.Request.Headers["HX-Current-URL"] = hxCurrentUrl;
         }
         return context;
     }
@@ -352,3 +358,4 @@ public class FeatureResultBuilderTests
         public override Task ExecuteAsync() => Task.CompletedTask;
     }
 }
+

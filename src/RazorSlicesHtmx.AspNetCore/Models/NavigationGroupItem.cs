@@ -10,4 +10,4 @@ public sealed record NavigationGroupItem(
     IReadOnlyList<NavigationItem> Children,
     int Order = 100,
     string? AuthorizationPolicy = null)
-    : NavigationItem(Key, Label, Order, AuthorizationPolicy);
+    : NavigationItem(Key, Label, Route: string.Empty, Order, AuthorizationPolicy);

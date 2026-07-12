@@ -1,7 +1,13 @@
+@using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 @inherits RazorSlice<ItemDeleteDialogModel>
-
-<div class="modal-content border-0 shadow-lg">
-    <form hx-post="@($"/items/delete/{Model.Id}")" hx-target="closest .modal-content" hx-swap="outerHTML">
+@{
+    var f = Model.For();
+}
+<div id="delete-dialog" class="modal-content border-0 shadow-lg">
+    <form hx-post="@($"/items/delete/{Model.Id}")" hx-target="#delete-dialog" hx-swap="outerHTML">
+        @f.Code.Hidden()
+        @f.Name.Hidden()
+        @f.Id.Hidden()
         <div class="modal-header">
             <div>
                 <p class="card-kicker">Delete item</p>
@@ -11,6 +17,9 @@
         </div>
         <div class="modal-body d-flex flex-column gap-3">
             <p class="items-modal-copy">This will permanently delete <strong>@Model.Name</strong> with code <strong>@Model.Code</strong>.</p>
+            <p class="items-modal-copy">Please enter code to delete item.</p>
+            @f.EnteredCode.Input()
+            @f.EnteredCode.Validation()
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

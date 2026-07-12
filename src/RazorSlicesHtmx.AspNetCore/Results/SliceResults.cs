@@ -1,14 +1,11 @@
-using System.Text.Json;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Models;
-using RazorSlicesHtmx.AspNetCore.Options;
 using RazorSlicesHtmx.AspNetCore.Rendering;
 using RazorSlicesHtmx.AspNetCore.Slices;
 
@@ -19,23 +16,12 @@ public static class SliceResults
     public static async Task<IResult> SlicePageAsync(
         HttpRequest request,
         FeatureRegistry features,
-        NavigationRouteItem routeItem,
-        Func<HttpContext, RazorSlice> detailFactory)
-    {
-        return await SlicePageAsync(request, features, routeItem, detailFactory(request.HttpContext));
-    }
-
-    public static async Task<IResult> SlicePageAsync(
-        HttpRequest request,
-        FeatureRegistry features,
-        NavigationRouteItem routeItem,
+        NavigationItem routeItem,
         RazorSlice detail,
         CancellationToken cancellationToken = default,
         params RazorSlice[] additionalOobParts)
     {
         var pageRenderer = request.HttpContext.RequestServices.GetRequiredService<IFeaturePageRenderer>();
-        var transientUiRenderer = request.HttpContext.RequestServices.GetRequiredService<ITransientUiRenderer>();
-        var options = request.HttpContext.RequestServices.GetRequiredService<IOptions<RazorSlicesHtmxOptions>>().Value;
         var authService = request.HttpContext.RequestServices.GetService<IAuthorizationService>();
         var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService, null, cancellationToken);
 
@@ -45,7 +31,6 @@ public static class SliceResults
         }
 
         var oobParts = new List<RazorSlice> { pageRenderer.RenderNavigation(shellContext) };
-        oobParts.AddRange(CreateTransientOobParts(request, transientUiRenderer, options));
         oobParts.AddRange(additionalOobParts);
 
         var rawOobParts = new List<IHtmlContent>();
@@ -64,32 +49,5 @@ public static class SliceResults
     {
         var encoded = HtmlEncoder.Default.Encode(title);
         return new HtmlString($"<title hx-swap-oob=\"true\">{encoded}</title>");
-    }
-
-    private static IReadOnlyList<RazorSlice> CreateTransientOobParts(
-        HttpRequest request,
-        ITransientUiRenderer transientUiRenderer,
-        RazorSlicesHtmxOptions options)
-    {
-        if (!request.Headers.TryGetValue(TransientUiHeaders.FeatureToast, out var toastPayload))
-        {
-            return [];
-        }
-
-        try
-        {
-            var toasts = JsonSerializer.Deserialize<ToastModel[]>(toastPayload.ToString()) ?? [];
-            return toasts
-                .Select(toast => HtmxOob.Create(new HtmxOobModel(
-                    options.ToastHostSelector,
-                    options.DefaultOobSwap,
-                    transientUiRenderer.RenderToast(toast))))
-                .Cast<RazorSlice>()
-                .ToArray();
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
     }
 }

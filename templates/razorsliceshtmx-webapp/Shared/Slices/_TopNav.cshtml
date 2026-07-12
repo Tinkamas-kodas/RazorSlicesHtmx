@@ -5,7 +5,7 @@
     var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
 }
 
-<nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@HtmxSwap.OuterHtml">
+<nav id="top-nav" class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3" hx-swap-oob="@Hx.Swap.OuterHtml">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">RshtmxApp</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
@@ -23,7 +23,7 @@
                             <a href="@routeItem.Route"
                                hx-get="@routeItem.Route"
                                hx-target="@detailTargetSelector"
-                               hx-swap="@HtmxSwap.InnerHtml"
+                               hx-swap="@Hx.Swap.InnerHtml"
                                hx-push-url="true"
                                class="nav-link text-dark @(isActive ? "active" : "")">
                                 @routeItem.Label
@@ -47,7 +47,7 @@
                                         <a href="@child.Route"
                                            hx-get="@child.Route"
                                            hx-target="@detailTargetSelector"
-                                           hx-swap="@HtmxSwap.InnerHtml"
+                                           hx-swap="@Hx.Swap.InnerHtml"
                                            hx-push-url="true"
                                            class="dropdown-item @(isChildActive ? "active" : "")">
                                             @child.Label

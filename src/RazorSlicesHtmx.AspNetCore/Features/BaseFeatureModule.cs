@@ -1,6 +1,7 @@
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Results;
+using RazorSlicesHtmx.AspNetCore.Slices;
 
 namespace RazorSlicesHtmx.AspNetCore.Features;
 
@@ -16,27 +17,40 @@ public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IF
     {
         public HttpRequest Request => resultBuilder.Request;
 
+        public FeatureResultBuilder.Builder Empty()
+        {
+            var routeItem = FindFirstRouteItem(items)
+                            ?? throw new InvalidOperationException(
+                                "No NavigationItem with a route found in NavigationItems.");
+            return resultBuilder.Create(routeItem, _Empty.Create());
+        }
         public FeatureResultBuilder.Builder For(RazorSlice detail)
         {
             var routeItem = FindFirstRouteItem(items)
-                ?? throw new InvalidOperationException("No NavigationRouteItem found in NavigationItems.");
+                ?? throw new InvalidOperationException("No NavigationItem with a route found in NavigationItems.");
             return resultBuilder.Create(routeItem, detail);
         }
 
-        public FeatureResultBuilder.Builder For(NavigationRouteItem routeItem, RazorSlice detail) =>
+        public FeatureResultBuilder.Builder For(NavigationItem routeItem, RazorSlice detail) =>
             resultBuilder.Create(routeItem, detail);
 
-        public RazorSlice Dialog(RazorSlice content) => resultBuilder.CreateDialog(content);
+        public IResult Dialog(RazorSlice content) =>
+            HtmxFragmentResult.Create(resultBuilder.CreateDialog(content))
+                .WithTriggerAfterSwap("show-dialog")
+                .Build();
 
-        private static NavigationRouteItem? FindFirstRouteItem(IReadOnlyList<NavigationItem> items)
+        private static NavigationItem? FindFirstRouteItem(IReadOnlyList<NavigationItem> items)
         {
             foreach (var item in items)
             {
-                if (item is NavigationRouteItem route) return route;
                 if (item is NavigationGroupItem group)
                 {
                     var found = FindFirstRouteItem(group.Children);
                     if (found is not null) return found;
+                }
+                else
+                {
+                    return item;
                 }
             }
             return null;

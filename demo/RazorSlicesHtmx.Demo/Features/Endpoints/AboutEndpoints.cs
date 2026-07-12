@@ -1,14 +1,20 @@
 using RazorSlicesHtmx.Demo.Features.About.Services;
+using RazorSlicesHtmx.Demo.Features.Slices;
 
 namespace RazorSlicesHtmx.Demo.Features.About.Endpoints;
 
-public sealed class AboutEndpoints : IFeatureModule
+public sealed class AboutEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
 {
     private readonly AboutContentService _content = new();
 
-    public IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new("about", "About", "/about", Order: 100)
+    ];
 
-    public void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(WebApplication app)
     {
+        app.MapGet("/about", () =>
+            Result.For(_AboutDetail.Create(_content.CreateDetailModel())).BuildAsync());
     }
 }

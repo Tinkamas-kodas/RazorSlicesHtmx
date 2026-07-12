@@ -19,7 +19,7 @@ public class FeatureRegistryTests
         Assert.Equal("alpha", shellContext.CurrentItem.Key);
         Assert.Equal("Alpha", shellContext.CurrentItem.Label);
         Assert.Collection(
-            shellContext.Navigation.OfType<NavigationRouteItem>(),
+            shellContext.Navigation,
             item => Assert.Equal("alpha", item.Key),
             item => Assert.Equal("bravo", item.Key),
             item => Assert.Equal("charlie", item.Key));
@@ -77,7 +77,7 @@ public sealed class AlphaFeature : IFeatureModule
 {
     public IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("alpha", "Alpha", "/alpha", new PageDefinition(() => null!))
+        new("alpha", "Alpha", "/alpha")
     ];
 
     public void MapEndpoints(WebApplication app)
@@ -89,7 +89,7 @@ public sealed class BravoFeature : IFeatureModule
 {
     public IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("bravo", "Bravo", "/bravo", new PageDefinition(() => null!))
+        new("bravo", "Bravo", "/bravo")
     ];
 
     public void MapEndpoints(WebApplication app)
@@ -101,7 +101,7 @@ public sealed class CharlieFeature : IFeatureModule
 {
     public IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("charlie", "Charlie", "/charlie", new PageDefinition(() => null!), Order: 200)
+        new("charlie", "Charlie", "/charlie", Order: 200)
     ];
 
     public void MapEndpoints(WebApplication app)

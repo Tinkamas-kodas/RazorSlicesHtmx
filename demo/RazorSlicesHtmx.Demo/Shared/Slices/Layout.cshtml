@@ -39,57 +39,61 @@
             const clearModalArtifacts = () => {
                 document.body.classList.remove("modal-open");
                 document.body.style.removeProperty("padding-right");
-                document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+                document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
             };
 
-            const refreshDialogHost = () => {
+            // Show Bootstrap modal on server trigger
+            document.body.addEventListener("show-dialog", () => {
                 const host = document.getElementById("@dialogHostId");
-                if (!host) {
-                    return;
-                }
-
-                const modalElement = host.querySelector(".modal");
-                if (!modalElement) {
-                    clearModalArtifacts();
-                    return;
-                }
-
+                const modal = host?.querySelector(".modal");
+                if (!modal) return;
                 clearModalArtifacts();
-
-                modalElement.addEventListener("hidden.bs.modal", () => {
+                modal.addEventListener("hidden.bs.modal", () => {
                     host.innerHTML = "";
                     clearModalArtifacts();
                 }, { once: true });
+                bootstrap.Modal.getOrCreateInstance(modal).show();
+            });
 
-                bootstrap.Modal.getOrCreateInstance(modalElement).show();
-            };
+            // Clear dialog on server trigger
+            document.body.addEventListener("dialog:clear", () => {
+                const host = document.getElementById("@dialogHostId");
+                if (host) host.innerHTML = "";
+                clearModalArtifacts();
+            });
 
-            const refreshToastHost = () => {
+            // Show Bootstrap toast on server trigger
+            document.body.addEventListener("show-toast", event => {
+                const { title = "", message = "", tone = "info" } = event.detail ?? {};
                 const host = document.getElementById("@toastHostId");
-                if (!host) {
-                    return;
-                }
-
-                host.querySelectorAll(".toast").forEach(toastElement => {
-                    bootstrap.Toast.getOrCreateInstance(toastElement, { delay: @toastDelayMilliseconds }).show();
-                });
-            };
-
-            const refreshTransientUi = event => {
-                const target = event?.detail?.target;
-
-                if (!target || target.id === "@dialogHostId") {
-                    refreshDialogHost();
-                }
-
-                if (!target || target.id === "@toastHostId") {
-                    refreshToastHost();
-                }
-            };
-
-            document.addEventListener("DOMContentLoaded", refreshTransientUi);
-            document.body.addEventListener("htmx:afterSwap", refreshTransientUi);
-            document.body.addEventListener("htmx:oobAfterSwap", refreshTransientUi);
+                if (!host) return;
+                const bgClass = tone === "error" ? "danger" : tone;
+                const el = document.createElement("div");
+                el.setAttribute("role", "alert");
+                el.setAttribute("aria-live", "assertive");
+                el.setAttribute("aria-atomic", "true");
+                el.className = `toast align-items-center text-bg-${bgClass} border-0 shadow`;
+                const bodyDiv = document.createElement("div");
+                bodyDiv.className = "d-flex";
+                const textDiv = document.createElement("div");
+                textDiv.className = "toast-body";
+                const strong = document.createElement("strong");
+                strong.className = "me-2";
+                strong.textContent = title;
+                const span = document.createElement("span");
+                span.textContent = message;
+                textDiv.append(strong, span);
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "btn-close btn-close-white me-2 m-auto";
+                btn.setAttribute("data-bs-dismiss", "toast");
+                btn.setAttribute("aria-label", "Close");
+                bodyDiv.append(textDiv, btn);
+                el.appendChild(bodyDiv);
+                host.appendChild(el);
+                bootstrap.Toast.getOrCreateInstance(el, { delay: @toastDelayMilliseconds }).show();
+                el.addEventListener("hidden.bs.toast", () => el.remove(), { once: true });
+            });
         })();
     </script>
 </body>

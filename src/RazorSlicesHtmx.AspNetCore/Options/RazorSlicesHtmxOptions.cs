@@ -16,7 +16,7 @@ public sealed class RazorSlicesHtmxOptions
     public int? ToastDelayMilliseconds { get; set; }
         = null;
 
-    public string DefaultOobSwap { get; set; } = HtmxSwap.InnerHtml;
+    public string DefaultOobSwap { get; set; } = Hx.Swap.InnerHtml;
 
     /// <summary>
     /// Optional field options object. Bootstrap5 uses this to configure

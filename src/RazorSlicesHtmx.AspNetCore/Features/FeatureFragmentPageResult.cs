@@ -10,7 +10,7 @@ public static class FeatureFragmentPageResult
     public static async Task<IResult> CreateAsync(
         HttpRequest request,
         FeatureRegistry features,
-        NavigationRouteItem routeItem,
+        NavigationItem routeItem,
         RazorSlice pageDetail,
         RazorSlice htmxFragment)
     {

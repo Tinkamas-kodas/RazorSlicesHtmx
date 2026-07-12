@@ -7,11 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Features;
+using RazorSlicesHtmx.AspNetCore.Htmx;
 using RazorSlicesHtmx.AspNetCore.Infrastructure;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Options;
 using RazorSlicesHtmx.AspNetCore.Rendering;
-using RazorSlicesHtmx.AspNetCore.Slices;
 
 namespace RazorSlicesHtmx.AspNetCore.Results;
 
@@ -20,29 +20,34 @@ public sealed class FeatureResultBuilder(
     IServiceProvider services,
     IFeaturePageRenderer pageRenderer,
     ITransientUiRenderer transientUiRenderer,
-    IOptions<RazorSlicesHtmxOptions> options)
+    IOptions<RazorSlicesHtmxOptions> options,
+    INavOobStrategy navOobStrategy)
 {
     private readonly IFeaturePageRenderer _pageRenderer = pageRenderer;
     private readonly ITransientUiRenderer _transientUiRenderer = transientUiRenderer;
     private readonly RazorSlicesHtmxOptions _options = options.Value;
+    private readonly INavOobStrategy _navOobStrategy = navOobStrategy;
     private FeatureRegistry Features => services.GetRequiredService<FeatureRegistry>();
 
     public HttpRequest Request =>
         httpContextAccessor.HttpContext?.Request ??
         throw new InvalidOperationException("No active HttpContext is available for feature result creation.");
 
-    public Builder Create(NavigationRouteItem routeItem, RazorSlice detail) => new(this, routeItem, detail);
+    public Builder Create(NavigationItem routeItem, RazorSlice detail) => new(this, routeItem, detail);
 
     public RazorSlice CreateDialog(RazorSlice content) => _transientUiRenderer.RenderDialog(content);
 
-    public sealed class Builder(FeatureResultBuilder owner, NavigationRouteItem routeItem, RazorSlice detail)
+    public sealed class Builder(FeatureResultBuilder owner, NavigationItem routeItem, RazorSlice detail)
     {
         private readonly List<RazorSlice> _directOobParts = [];
         private readonly List<(string Selector, RazorSlice Content, string Swap)> _targetedOobParts = [];
         private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
+        private readonly List<string> _triggersAfterSwap = [];
         private readonly List<ToastModel> _toasts = [];
         private RazorSlice? _htmxFragment;
+        private RazorSlice? _workspaceDetail;
+        private bool? _navOverride;
         private string? _navigationUrl;
         private bool _replaceNavigation = true;
         private string? _locationUrl;
@@ -54,6 +59,16 @@ public sealed class FeatureResultBuilder(
         public Builder AsFragment(RazorSlice fragment)
         {
             _htmxFragment = fragment;
+            return this;
+        }
+
+        /// <summary>
+        /// Explicitly controls whether the navigation OOB slice is included in this response.
+        /// When not called the registered <see cref="INavOobStrategy"/> decides (default: send only on feature change).
+        /// </summary>
+        public Builder WithNav(bool sendNavOob = true)
+        {
+            _navOverride = sendNavOob;
             return this;
         }
 
@@ -75,11 +90,18 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
-        public Builder WithDialog(RazorSlice content) =>
+        public Builder WithDialog(RazorSlice content)
+        {
             WithOob(owner._options.DialogHostSelector, owner.CreateDialog(content));
+            _triggersAfterSwap.Add("show-dialog");
+            return this;
+        }
 
-        public Builder ClearDialog() =>
-            WithOob(owner._options.DialogHostSelector, _Empty.Create());
+        public Builder ClearDialog()
+        {
+            _triggers.Add("dialog:clear");
+            return this;
+        }
 
         public Builder WithToast(string message, string title = "Saved", ToastTone tone = ToastTone.Success)
         {
@@ -102,6 +124,25 @@ public sealed class FeatureResultBuilder(
         {
             ArgumentNullException.ThrowIfNull(state);
             _rawOobParts.Add(state.SerializeOob());
+            owner.Request.HttpContext.RequestServices
+                .GetRequiredService<HtmxStateContext>()
+                .Register(state);
+            return this;
+        }
+
+        /// <summary>
+        /// Wraps the detail slice in a workspace using <typeparamref name="TFactory"/>.
+        /// The factory determines which <c>HX-Target</c> values indicate the workspace is already
+        /// in the DOM — for those the inner slice is used as fragment; otherwise the full workspace.
+        /// </summary>
+        public Builder WithWorkspace<TFactory>() where TFactory : BaseWorkspaceFactory
+        {
+            var sp = owner.Request.HttpContext.RequestServices;
+            var factory = ActivatorUtilities.CreateInstance<TFactory>(sp);
+            var target = owner.Request.Headers[Hx.Target].ToString();
+            var (workspace, fragment) = factory.Resolve(detail, target);
+            _workspaceDetail = workspace;
+            _htmxFragment = fragment;
             return this;
         }
 
@@ -168,7 +209,7 @@ public sealed class FeatureResultBuilder(
             var httpContext = request.HttpContext;
             var user = httpContext.User;
             var authService = httpContext.RequestServices.GetService<IAuthorizationService>();
-            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, detail, user, authService, _pageTitle, cancellationToken);
+            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, _workspaceDetail ?? detail, user, authService, _pageTitle, cancellationToken);
 
             if (!request.IsHtmxRequest())
             {
@@ -187,14 +228,21 @@ public sealed class FeatureResultBuilder(
 
             if (!string.IsNullOrWhiteSpace(_locationUrl))
             {
-                var locationPayload = BuildLocationPayload(owner._options, _locationUrl, _replaceLocation, _toasts);
-                return new HeaderResult(detail, "HX-Location", locationPayload);
+                var locationPayload = BuildLocationPayload(owner._options, _locationUrl, _replaceLocation);
+                var locationBuilder = HtmxFragmentResult.Create(detail);
+                foreach (var toast in _toasts)
+                {
+                    var toastPayload = JsonSerializer.Serialize(new { title = toast.Title, message = toast.Message, tone = toast.Tone.ToString().ToLower() });
+                    locationBuilder.WithTriggerAfterSwap("show-toast", toastPayload);
+                }
+                return new HeaderResult(locationBuilder.Build(), Hx.Location, locationPayload);
             }
 
             var primary = _htmxFragment ?? detail;
             var htmxBuilder = HtmxFragmentResult.Create(primary);
 
-            if (_htmxFragment is null)
+            var sendNav = _navOverride ?? owner._navOobStrategy.ShouldSendNav(request, routeItem);
+            if (sendNav)
             {
                 htmxBuilder.WithOob(owner._pageRenderer.RenderNavigation(shellContext));
             }
@@ -206,7 +254,8 @@ public sealed class FeatureResultBuilder(
 
             foreach (var toast in _toasts)
             {
-                htmxBuilder.WithOob(owner._options.ToastHostSelector, owner._transientUiRenderer.RenderToast(toast), owner._options.DefaultOobSwap);
+                var payload = JsonSerializer.Serialize(new { title = toast.Title, message = toast.Message, tone = toast.Tone.ToString().ToLower() });
+                htmxBuilder.WithTriggerAfterSwap("show-toast", payload);
             }
 
             foreach (var targeted in _targetedOobParts)
@@ -227,6 +276,11 @@ public sealed class FeatureResultBuilder(
             foreach (var trigger in _triggers)
             {
                 htmxBuilder.WithTrigger(trigger);
+            }
+
+            foreach (var trigger in _triggersAfterSwap)
+            {
+                htmxBuilder.WithTriggerAfterSwap(trigger);
             }
 
             if (_retarget is not null)
@@ -252,22 +306,13 @@ public sealed class FeatureResultBuilder(
         private static string BuildLocationPayload(
             RazorSlicesHtmxOptions options,
             string url,
-            bool replace,
-            IReadOnlyCollection<ToastModel> toasts)
+            bool replace)
         {
-            var headers = toasts.Count == 0
-                ? null
-                : new Dictionary<string, string>
-                {
-                    [TransientUiHeaders.FeatureToast] = JsonSerializer.Serialize(toasts)
-                };
-
             var payload = new
             {
                 path = url,
                 target = options.DetailTargetSelector,
                 swap = options.DefaultOobSwap,
-                headers,
                 replace = replace ? url : null,
                 push = replace ? null : url
             };
@@ -297,7 +342,7 @@ public sealed class FeatureResultBuilder(
         {
             public Task ExecuteAsync(HttpContext httpContext)
             {
-                httpContext.Response.Headers.Append(replace ? "HX-Replace-Url" : "HX-Push-Url", url);
+                httpContext.Response.Headers.Append(replace ? Hx.ReplaceUrl : Hx.PushUrl, url);
                 return inner.ExecuteAsync(httpContext);
             }
         }

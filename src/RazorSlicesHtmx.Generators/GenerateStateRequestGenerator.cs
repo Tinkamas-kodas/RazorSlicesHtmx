@@ -183,7 +183,7 @@ public sealed class GenerateStateRequestGenerator : IIncrementalGenerator
             .AppendLine("{");
 
         source.Append("    public const string StateId = \"").Append(fieldsConst).AppendLine("\";");
-        source.AppendLine();
+
 
         AppendSerializeMethod(source, "Serialize", fieldsConst, model.Properties, oob: false);
         source.AppendLine();

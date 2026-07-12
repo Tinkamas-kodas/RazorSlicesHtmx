@@ -27,6 +27,12 @@ public static class StateSerializer
         return new HtmlString(sb.ToString());
     }
 
+    /// <summary>Renders an empty state container div with only the <c>id</c> attribute set, for use as an OOB swap target slot.</summary>
+    public static IHtmlContent SerializeEmpty(string stateId)
+    {
+        return new HtmlString($"<div id=\"{HtmlEncoder.Default.Encode(stateId)}\"></div>");
+    }
+
     /// <summary>Renders the same hidden-field div wrapped in an <c>hx-swap-oob</c> element for HTMX OOB updates.</summary>
     public static IHtmlContent SerializeOob(string stateId, StateFieldValue[] fields)
     {

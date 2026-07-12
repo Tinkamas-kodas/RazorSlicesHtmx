@@ -1,11 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RazorSlicesHtmx.AspNetCore.Models;
-using RazorSlicesHtmx.AspNetCore.Options;
-using RazorSlicesHtmx.AspNetCore.Rendering;
-using RazorSlicesHtmx.AspNetCore.Results;
-using RazorSlicesHtmx.AspNetCore.Slices;
+using RazorSlicesHtmx.AspNetCore.Htmx;
 
 namespace RazorSlicesHtmx.AspNetCore.Infrastructure;
 
@@ -35,6 +31,8 @@ public sealed class HtmxErrorMiddleware(
 
             if (context.Response.StatusCode >= 400 && !context.Response.HasStarted)
             {
+                logger.LogError("Rewriting htmx unnsupported status code : {statusCode} to toast result", context
+                    .Response.StatusCode);
                 await WriteErrorToastAsync(context, context.Response.StatusCode);
             }
         }
@@ -54,29 +52,13 @@ public sealed class HtmxErrorMiddleware(
         var title = _errorOptions.FormatTitle?.Invoke(statusCode, exception)
             ?? GetDefaultTitle(statusCode);
 
-        var renderer = context.RequestServices.GetService<ITransientUiRenderer>();
-        var options = context.RequestServices.GetService<IOptions<RazorSlicesHtmxOptions>>()?.Value;
-
-        if (renderer is null || options is null)
-        {
-            // No renderer registered — write a minimal fallback response
-            context.Response.StatusCode = 200;
-            context.Response.ContentType = "text/plain";
-            context.Response.Headers.Append("HX-Reswap", "none");
-            await context.Response.WriteAsync(message);
-            return;
-        }
-
-        var toast = new ToastModel(title, message, ToastTone.Error);
-        var toastSlice = renderer.RenderToast(toast);
-        var hostSelector = options.ToastHostSelector;
-        var swap = options.DefaultOobSwap;
-
-        var fragment = HtmxFragmentResult.Create(HtmxOob.Create(new HtmxOobModel(hostSelector, swap, toastSlice)))
-            .Build();
+        var payload = JsonSerializer.Serialize(new { title, message, tone = "error" });
 
         context.Response.StatusCode = 200; // HTMX ignores non-2xx by default
-        await fragment.ExecuteAsync(context);
+        context.Response.ContentType = "text/html";
+        context.Response.Headers.Append(Hx.Reswap, "none");
+        context.Response.Headers.Append(Hx.TriggerAfterSwap, $"{{\"show-toast\":{payload}}}");
+        await context.Response.WriteAsync(string.Empty);
     }
 
     private static string GetDefaultTitle(int statusCode) => statusCode switch

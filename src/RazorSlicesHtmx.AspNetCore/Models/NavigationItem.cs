@@ -1,11 +1,12 @@
 namespace RazorSlicesHtmx.AspNetCore.Models;
 
 /// <summary>
-/// Base type for navigation tree nodes. Derive from <see cref="NavigationGroupItem"/>
-/// for non-navigable groups, or <see cref="NavigationRouteItem"/> for navigable pages.
+/// A navigable leaf node in the navigation tree.
+/// Use <see cref="NavigationGroupItem"/> for non-navigable group containers.
 /// </summary>
-public abstract record NavigationItem(
+public record NavigationItem(
     string Key,
     string Label,
+    string Route,
     int Order = 100,
     string? AuthorizationPolicy = null);

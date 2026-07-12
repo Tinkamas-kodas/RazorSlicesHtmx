@@ -5,13 +5,13 @@ Authorization uses the standard ASP.NET Core `IAuthorizationService`. Each `Navi
 ## Declaring a policy on a navigation item
 
 ```csharp
-new NavigationRouteItem("admin-users", "Users", "/admin/users", usersPage,
+new NavigationItem("admin-users", "Users", "/admin/users",
     AuthorizationPolicy: "AdminOnly")
 
 new NavigationGroupItem("admin", "Administration",
 [
-    new NavigationRouteItem("users", "Users", "/admin/users", usersPage, AuthorizationPolicy: "AdminOnly"),
-    new NavigationRouteItem("roles", "Roles", "/admin/roles", rolesPage, AuthorizationPolicy: "AdminOnly")
+    new NavigationItem("users", "Users", "/admin/users", AuthorizationPolicy: "AdminOnly"),
+    new NavigationItem("roles", "Roles", "/admin/roles", AuthorizationPolicy: "AdminOnly")
 ],
 AuthorizationPolicy: "AdminOnly")
 ```

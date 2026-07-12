@@ -5,7 +5,7 @@
     var header = Model.SortHeader("/items/list");
 }
 
-<section class="section-panel">
+<section id="items-list" class="section-panel">
     <div class="mb-2">
         <p class="text-muted mb-0">
             @if (Model.Total == 0)
@@ -22,7 +22,7 @@
     <form class="list-request-form"
           hx-get="/items/list"
           hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-          hx-target="#feature-details"
+          hx-target="#items-list"
           hx-push-url="true">
         <div class="card border-0 shadow-sm overflow-hidden">
             @if (Model.Items.Count == 0)

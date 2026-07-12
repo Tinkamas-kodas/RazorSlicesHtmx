@@ -67,7 +67,7 @@ app.MapGet("{route}/details", (int id) =>
 - All POST endpoints should accept antiforgery validation and use the shared HTMX token header adapter.
 - For form posts, prefer generated `BindAsync(...)` / `FromForm(...)` request models over manual `[FromForm]` binding when the model is a partial upsert request.
 - Use `Result.Page(detail)` — on HTMX requests the detail slice is the fragment; on full-page requests it is wrapped in the page shell
-- For GET endpoints, set contextual title with `.WithPageTitle(...)` when needed (otherwise default is `NavigationRouteItem.Label`)
+- For GET endpoints, set contextual title with `.WithPageTitle(...)` when needed (otherwise default is `NavigationItem.Label`)
 - Use `.WithTrigger()` to trigger client-side HTMX events (e.g., refresh a list)
 - Use `.WithRetarget()` / `.WithReswap()` to override the default swap target
 - Create a corresponding `.cshtml` slice for the response

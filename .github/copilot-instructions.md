@@ -47,19 +47,17 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("items", "Items", "/items",
-            new PageDefinition(ctx => _FeaturePage.Create(_content.CreateListModel(ctx))))
+        new("items", "Items", "/items", Order: 200)
     ];
 
     public override void MapEndpoints(WebApplication app)
     {
-        app.MapGet("/items/list", (AppDbContext db, [AsParameters] SearchModel search, ListQuery query) =>
+        app.MapGet("/items", ([AsParameters] SearchModel search, ListQuery query) =>
         {
             var model = _content.CreateListModel(db, search, query);
-            return Result.For(_FeaturePage.Create(model))
+            return Result.Page(_FeaturePage.Create(model))
                 .WithState(search)
-                .WithState(query)
-                .Build();
+                .WithState(query);
         });
     }
 }
@@ -68,15 +66,15 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 ### Navigation Model
 
 ```
-NavigationItem (abstract)
-├── NavigationRouteItem  — navigable leaf: Key, Label, Route, PageDefinition, Order, AuthorizationPolicy
-└── NavigationGroupItem  — group container: Key, Label, Children, Order, AuthorizationPolicy
+NavigationItem (record)
+└── NavigationGroupItem — group container: Key, Label, Children, Order, AuthorizationPolicy
 ```
 
-- Use `NavigationRouteItem` for pages with routes.
-- Use `NavigationGroupItem` to nest items under a collapsible header.
+- `NavigationItem(key, label, route, order?, authPolicy?)` — navigable leaf.
+- `NavigationGroupItem(key, label, children, order?, authPolicy?)` — non-navigable group container.
 - `AuthorizationPolicy` is optional — when set, the item is filtered via `IAuthorizationService`.
 - Groups with no authorized children are automatically excluded.
+- **`PageDefinition` is removed** — page rendering is done by mapping the route in `MapEndpoints`.
 
 ### HTMX Response Patterns
 
@@ -148,7 +146,25 @@ The generator creates `FromQuery`, `BindAsync`, and `SortMap`. Use `[SortDisable
 public sealed class ItemUpsertRequest { ... }
 ```
 
+Note: `[GenerateHtmlNames]` is in namespace `RazorSlicesHtmx.AspNetCore.HtmlNames`.
+
 Use `For.Code.Name`, `For.Code.Id` in Razor for compile-time safe form field references.
+
+For instance context with Bootstrap helpers:
+
+```cshtml
+@using MyApp.HtmlNames.MyApp.Features.Items.Models
+@{ var f = Model.For(); }
+@{ var fo = BootstrapFieldOptions.Floating; }
+
+<div class="form-floating">
+    @f.Code.Input(placeholder: "")
+    @f.Code.Label("Code", fo)
+    @f.Code.Validation()
+</div>
+```
+
+Helpers return `FluentTagBuilder` (chainable) except `.Validation()`. Use `BootstrapFieldOptions.Floating` preset for floating label layout.
 
 ## Service Registration
 
@@ -171,7 +187,7 @@ builder.Services.AddSingleton(sp =>
 app.UseStaticFiles();
 app.UseHtmxErrorHandling();    // HTMX error → toast (before endpoint routing)
 features.MapEndpoints(app);     // feature-local endpoints
-app.MapFeaturePages(features);  // page routes from NavigationRouteItems
+app.MapFeaturePages(features);  // registers GET / redirect to default route
 ```
 
 ## Error Handling
@@ -197,8 +213,7 @@ app.UseHtmxErrorHandling(o =>
 ## Important Rules
 
 1. **Always use `Build()`** — `Build()` does not exist on `FeatureResultBuilder`. Only `HtmxFragmentResult` has sync `Build()`.
-2. **`PageDefinition` takes `Func<HttpContext, RazorSlice>` or `Func<RazorSlice>`** — no `FeatureMetadata`.
-3. **`FeatureMetadata` is removed** — use `NavigationRouteItem` instead.
+3. **`PageDefinition` is removed** — map page routes directly in `MapEndpoints`.
 4. **Toast tones are `ToastTone` enum** — not strings. Bootstrap5 maps enum → CSS class.
 5. **`IFeatureModule.NavigationItems`** — returns `IReadOnlyList<NavigationItem>`, not a single `PageDefinition`.
 6. **Central package management** — versions are in `Directory.Packages.props`.

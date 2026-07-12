@@ -9,10 +9,13 @@ public sealed class HomeEndpoints(FeatureResultBuilder resultBuilder) : BaseFeat
 {
     private readonly HomeContentService _content = new();
 
-    public override IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new("home", "Home", "/home", Order: 0)
+    ];
 
     public override void MapEndpoints(WebApplication app)
     {
-        // Add your HTMX endpoints here
+        app.MapGet("/home", () => Result.Page(_HomePage.Create()));
     }
 }

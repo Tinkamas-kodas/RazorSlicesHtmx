@@ -1,9 +1,11 @@
 @inherits RazorSlice<ItemListModel>
+@using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
 
 <article class="section-panel">
     <h2>Items</h2>
     <p class="text-muted">Sample CRUD feature with in-memory storage, search, sort, paging and modal delete.</p>
 
+    @{ var searchFor = Model.Search.For(); }
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
@@ -11,13 +13,11 @@
                       hx-get="/items/list"
                       hx-include="#@ItemListQuery.StateId"
                       hx-vals='{"Page":"1"}'
-                      hx-target="#feature-details"
+                      hx-target="#items-list"
                       hx-push-url="true">
-
                     <div>
                         <label class="form-label" for="items-search">Search</label>
-                        <input class="form-control" id="items-search" name="Search"
-                               value="@Model.Search.Search" placeholder="Search by name or description">
+                        @searchFor.Search.Input(placeholder: "Search by name or description").WithId("items-search")
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-dark" type="submit">Apply</button>
@@ -26,7 +26,7 @@
                                 hx-get="/items/list"
                                 hx-include="#@ItemListQuery.StateId"
                                 hx-vals='{"Page":"1"}'
-                                hx-target="#feature-details"
+                                hx-target="#items-list"
                                 hx-push-url="true">
                             Reset
                         </button>
@@ -44,22 +44,6 @@
             </div>
         </div>
     </div>
-
-    @if (!string.IsNullOrWhiteSpace(Model.Search.Search))
-    {
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <span class="text-muted">Search: @Model.Search.Search</span>
-            <button class="btn btn-sm btn-outline-secondary"
-                    type="button"
-                    hx-get="/items/list"
-                    hx-include="#@ItemListQuery.StateId"
-                    hx-vals='{"Page":"1"}'
-                    hx-target="#feature-details"
-                    hx-push-url="true">
-                Clear search
-            </button>
-        </div>
-    }
 
     @await RenderPartialAsync(_ItemsList.Create(Model))
 </article>

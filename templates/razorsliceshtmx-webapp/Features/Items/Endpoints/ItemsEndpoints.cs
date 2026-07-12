@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Results;
+using RshtmxApp.Features.Items;
 using RshtmxApp.Features.Items.Models;
 using RshtmxApp.Features.Items.Services;
 using RshtmxApp.Features.Items.Slices;
@@ -15,14 +16,25 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 {
     private readonly ItemsContentService _content = new();
 
-    public override IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new("items", "Items", "/items/list", Order: 10)
+    ];
 
     public override void MapEndpoints(WebApplication app)
     {
-        app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query) =>
+        app.MapGet("/items/list", (HttpContext ctx, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
             var model = _content.CreateListModel(search, query);
-            return Result.Page(_FeaturePage.Create(model))
+            if (ctx.IsHtmxTarget("items-list"))
+            {
+                return Result.Page(_ItemsList.Create(model))
+                    .WithState(search)
+                    .WithState(query)
+                    ;
+            }
+            return Result.Page(_ListPage.Create(model))
+                .WithWorkspace<ItemsWorkspaceFactory>()
                 .WithState(search)
                 .WithState(query)
                 ;
@@ -30,6 +42,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
         app.MapGet("/items/create", () =>
             Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
+                .WithWorkspace<ItemsWorkspaceFactory>()
                 );
 
 //#if (fluentValidation)
@@ -71,9 +84,10 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         {
             var row = _content.FindById(id);
             if (row is null)
-                return Task.FromResult(Results.NotFound());
+                return Results.NotFound();
 
             return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)))
+                .WithWorkspace<ItemsWorkspaceFactory>()
                 ;
         });
 

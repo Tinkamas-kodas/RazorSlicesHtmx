@@ -92,20 +92,11 @@ public static class BootstrapFieldContextExtensions
             .WithContent(field.Value?.ToString() ?? string.Empty);
     }
 
-    public static IHtmlContent Checkbox(this FieldContext<bool> field,
+    public static FluentTagBuilder Checkbox(this FieldContext<bool> field,
         bool disabled = false,
         BootstrapFieldOptions? options = null)
     {
         var o = options ?? BootstrapFieldOptions.Current;
-
-        var checkbox = new FluentTagBuilder("input")
-            .WithAttribute("type", "checkbox")
-            .WithId(field.Id)
-            .WithClass(o.CheckboxClass)
-            .WithValue("true")
-            .WithAttribute("hx-on:change", "this.nextElementSibling.value = this.checked ? 'true' : 'false'")
-            .WithBooleanAttribute("checked", field.Value)
-            .WithBooleanAttribute("disabled", disabled);
 
         var hidden = new FluentTagBuilder("input")
             .WithAttribute("type", "hidden")
@@ -113,9 +104,15 @@ public static class BootstrapFieldContextExtensions
             .WithName(field.Name)
             .WithValue(field.Value ? "true" : "false");
 
-        return new HtmlContentBuilder()
-            .AppendHtml(checkbox)
-            .AppendHtml(hidden);
+        return new FluentTagBuilder("input")
+            .WithAttribute("type", "checkbox")
+            .WithId(field.Id)
+            .WithClass(o.CheckboxClass)
+            .WithValue("true")
+            .WithAttribute("hx-on:change", "this.nextElementSibling.value = this.checked ? 'true' : 'false'")
+            .WithBooleanAttribute("checked", field.Value)
+            .WithBooleanAttribute("disabled", disabled)
+            .WithSuffix(hidden);
     }
 
     public static FluentTagBuilder Select<TValue>(this FieldContext<TValue> field,

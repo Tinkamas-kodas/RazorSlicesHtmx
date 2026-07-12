@@ -16,7 +16,7 @@ src/
     Extensions/                        # DI and middleware registration
     Features/                          # IFeatureModule, BaseFeatureModule, FeatureRegistry
     Infrastructure/                    # HTMX request helpers, error middleware
-    Models/                            # NavigationItem, PageDefinition, ToastModel, ToastTone
+    Models/                            # NavigationItem, ToastModel, ToastTone
     Options/                           # RazorSlicesHtmxOptions
     Rendering/                         # IFeaturePageRenderer, ITransientUiRenderer contracts
     Results/                           # FeatureResultBuilder, HtmxFragmentResult, SliceResults
@@ -47,9 +47,22 @@ Package versions managed centrally via `Directory.Packages.props`.
 
 Navigation is a tree of `NavigationItem` nodes:
 
-- `NavigationItem` — abstract base with `Key`, `Label`, `Order`, `AuthorizationPolicy`
-- `NavigationRouteItem` — navigable leaf with `Route` and `PageDefinition`
-- `NavigationGroupItem` — non-navigable group with `Children`
+- `NavigationItem` — abstract base with `Key`, `Label`, `Route`, `Order`, `AuthorizationPolicy`
+- `NavigationGroupItem` — non-navigable group with `Children` (inherits `NavigationItem` with empty `Route`)
+
+```csharp
+// Leaf (navigable)
+new NavigationItem("my-feature", "My Feature", "/my-feature", Order: 100)
+
+// Group
+new NavigationGroupItem("admin", "Administration",
+[
+    new NavigationItem("users", "Users", "/admin/users"),
+    new NavigationItem("roles", "Roles", "/admin/roles")
+])
+```
+
+Page rendering is done by mapping the route in `MapEndpoints` — there is no `PageDefinition`. `MapFeaturePages` only registers `GET /` redirect.
 
 ### Feature Modules
 
@@ -59,11 +72,13 @@ Each feature implements `IFeatureModule` (or extends `BaseFeatureModule`):
 public sealed class MyFeature(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
 {
     public override IReadOnlyList<NavigationItem> NavigationItems => [
-        new NavigationRouteItem("my-feature", "My Feature", "/my-feature",
-            new PageDefinition(ctx => _Page.Create(model)))
+        new("my-feature", "My Feature", "/my-feature", Order: 100)
     ];
 
-    public override void MapEndpoints(WebApplication app) { /* endpoints */ }
+    public override void MapEndpoints(WebApplication app)
+    {
+        app.MapGet("/my-feature", () => Result.Page(_Page.Create(model)));
+    }
 }
 ```
 
@@ -84,7 +99,7 @@ Two builders exist:
 
 ### Page Title Flow
 
-- Default page title is derived from `NavigationRouteItem.Label`.
+- Default page title is derived from `NavigationItem.Label`.
 - `FeatureResultBuilder.WithPageTitle("...")` overrides title for that specific response.
 - Full-page rendering consumes title via `FeatureShellContext.PageTitle`.
 - HTMX rendering emits OOB `<title hx-swap-oob="true">...</title>` so browser tab title updates on fragment responses.
@@ -123,13 +138,37 @@ No attribute needed — the generator detects call sites. Produces `StateId`, `S
 - Use generated `BindAsync(...)` when the endpoint should accept the model directly.
 - Keep `ListRequest<T>` on the query-string path; its generator still owns `FromQuery(...)` and paging/sort binding.
 
+### Bootstrap 5 Form Helpers
+
+Form field helpers in `RazorSlicesHtmx.Bootstrap5.Extensions` return `FluentTagBuilder` (except `.Validation()`) and support fluent chaining:
+
+```cshtml
+@using MyApp.HtmlNames.MyApp.Features.Items.Models
+@{ var f = Model.For(); }
+@{ var fo = BootstrapFieldOptions.Floating; }
+
+<div class="form-floating">
+    @f.Code.Input(placeholder: "")
+    @f.Code.Label("Code", fo)
+    @f.Code.Validation()
+</div>
+
+@* Fluent chaining *@
+@f.Name.Input().WithClass("border-primary")
+@f.Name.Label("Name").WithClass("fw-bold")
+```
+
+- Use `BootstrapFieldOptions.Floating` (preset with empty `LabelClass`) for floating label layouts.
+- For floating labels: place `Input` **before** `Label`, wrap in `<div class="form-floating">`.
+- `[GenerateHtmlNames]` attribute is in namespace `RazorSlicesHtmx.AspNetCore.HtmlNames` (not `RazorSlicesHtmx.HtmlNames`).
+
 ## Common Pitfalls
 
 1. `FeatureResultBuilder` has only `Build()`, not `Build()`.
-2. `FeatureMetadata` no longer exists — replaced by `NavigationRouteItem`.
-3. `PageDefinition` takes `Func<HttpContext, RazorSlice>` or `Func<RazorSlice>`.
+2. `FeatureMetadata` no longer exists — use `NavigationItem` instead.
+3. `PageDefinition` is removed — map routes directly in `MapEndpoints`.
 4. `IFeatureModule.NavigationItems` returns `IReadOnlyList<NavigationItem>`.
 5. `Microsoft.Extensions.Options.Options.Create(...)` must be fully qualified in tests (conflicts with `RazorSlicesHtmx.AspNetCore.Options` namespace).
 6. `RazorSlice` abstract method is `ExecuteAsync()` (no params). Test fakes must override it.
 7. The app owns the page shell via `IFeaturePageRenderer` — the library does not provide layouts.
-8. If `WithPageTitle(...)` is not used, title falls back to `NavigationRouteItem.Label`.
+8. If `WithPageTitle(...)` is not used, title falls back to `NavigationItem.Label`.

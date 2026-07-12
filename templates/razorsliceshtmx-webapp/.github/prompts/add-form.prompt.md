@@ -322,7 +322,7 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
 ## Important:
 - `[GenerateHtmlNames]` creates `For.{Field}.Name` / `For.{Field}.Id` const strings
 - Forms use `hx-post` (no explicit URL) — posts to the current URL
-- For GET screens like create/edit/list, use `.WithPageTitle(...)` when you need a contextual title; without it, title defaults to `NavigationRouteItem.Label`
+- For GET screens like create/edit/list, use `.WithPageTitle(...)` when you need a contextual title; without it, title defaults to `NavigationItem.Label`
 - Cancel buttons `hx-include` search/query state IDs to preserve list position
 - All POST endpoints need `[FromForm]` and antiforgery validation via the shared HTMX token header adapter.
 - Delete uses `Result.ShowDialog()` directly (not `.WithDialog()`)

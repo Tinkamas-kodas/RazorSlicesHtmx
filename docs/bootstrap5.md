@@ -41,12 +41,12 @@ From `RazorSlicesHtmx.Bootstrap5.Extensions`:
 
 @{ var f = Model.Request.For(Model.Errors); }
 
-@f.Code.Label("Code")
 @f.Code.Input(placeholder: "ITEM-001", autoFocus: true)
+@f.Code.Label("Code")
 @f.Code.Validation()
 
-@f.Name.Label("Name")
 @f.Name.Input()
+@f.Name.Label("Name")
 @f.Name.Validation()
 
 @f.Note.TextArea(placeholder: "Optional note", rows: 3)
@@ -59,19 +59,67 @@ From `RazorSlicesHtmx.Bootstrap5.Extensions`:
 @f.Status.Validation()
 ```
 
+> **Note:** For Bootstrap 5 [floating labels](https://getbootstrap.com/docs/5.3/forms/floating-labels/), wrap the field in `<div class="form-floating">` and place `Input` **before** `Label`.
+
+### Fluent chaining
+
+All helpers (except `.Validation()`) return `FluentTagBuilder` — an `IHtmlContent` builder that allows chaining additional HTML attributes:
+
+```cshtml
+@* Add extra CSS classes *@
+@f.Code.Label("Code").WithClass("fw-bold")
+
+@* Add arbitrary HTML attributes *@
+@f.Name.Input(placeholder: "Name").WithAttribute("data-validate", "true")
+
+@* Boolean (valueless) attributes *@
+@f.Note.TextArea().WithBooleanAttribute("spellcheck")
+
+@* Conditional class *@
+@f.Code.Input().WithClass("border-primary", condition: Model.IsNew)
+```
+
+See [FluentTagBuilder](#fluenttagbuilder) for full method reference.
+
 ### Helper reference
 
-| Helper | Signature | Notes |
-|--------|-----------|-------|
-| `.Label(text)` | `Label(string text, BootstrapFieldOptions? options = null)` | Uses `CheckboxLabelClass` on `FieldContext<bool>` |
-| `.Input(...)` | `Input(string? type, string? placeholder, bool autoFocus, bool required, bool disabled, bool readOnly, BootstrapFieldOptions?)` | Adds `is-invalid` when field has errors |
-| `.TextArea(...)` | `TextArea(string? placeholder, int? rows, BootstrapFieldOptions?)` | |
-| `.Checkbox(...)` | `Checkbox(bool disabled, BootstrapFieldOptions?)` | Auto-generates hidden false input + checkbox |
-| `.Select(...)` | `Select(IEnumerable<SelectListItem> options, string? emptyOption, BootstrapFieldOptions?)` | |
-| `.Validation()` | `Validation(BootstrapFieldOptions?)` | Renders `invalid-feedback` div; nothing when no errors |
-| `.Hidden()` | `Hidden()` | Renders hidden input |
+| Helper | Return type | Notes |
+|--------|-------------|-------|
+| `.Label(text)` | `FluentTagBuilder` | Uses `CheckboxLabelClass` on `FieldContext<bool>` |
+| `.Input(...)` | `FluentTagBuilder` | Adds `is-invalid` when field has errors |
+| `.TextArea(...)` | `FluentTagBuilder` | |
+| `.Select(options, ...)` | `FluentTagBuilder` | |
+| `.Hidden()` | `FluentTagBuilder` | Renders `<input type="hidden">` |
+| `.Checkbox(...)` | `FluentTagBuilder` | Chains apply to the checkbox `<input>`; hidden false input is always appended automatically via suffix |
+| `.Validation()` | `IHtmlContent` | Renders `invalid-feedback` divs; empty when no errors |
 
 All helpers accept an optional `BootstrapFieldOptions` to override CSS classes per-call.
+
+## FluentTagBuilder
+
+`FluentTagBuilder` is a fluent HTML element builder in `RazorSlicesHtmx.AspNetCore.Html`. It wraps ASP.NET Core's `TagBuilder` and implements `IHtmlContent`, so it can be rendered directly with `@` in Razor.
+
+```cshtml
+@using RazorSlicesHtmx.AspNetCore.Html
+
+@(new FluentTagBuilder("span").WithClass("badge text-bg-primary").WithContent("New"))
+```
+
+### Method reference
+
+| Method | Description |
+|--------|-------------|
+| `.WithId(id)` | Sets `id` attribute |
+| `.WithName(name)` | Sets `name` attribute |
+| `.WithFor(id)` | Sets `for` attribute (for `<label>`) |
+| `.WithValue(value)` | Sets `value` attribute; no-op when `null` |
+| `.WithClass(classes, condition?)` | Appends CSS class(es); skipped when `null`/empty or `condition` is `false` |
+| `.WithPlaceholder(placeholder)` | Sets `placeholder` attribute; no-op when `null` |
+| `.WithAttribute(name, value, condition?)` | Sets arbitrary attribute; no-op when `value` is `null` or `condition` is `false` |
+| `.WithBooleanAttribute(name, condition?)` | Adds boolean/valueless attribute (e.g. `disabled`, `required`); skipped when `condition` is `false` |
+| `.WithContent(string)` | Appends text content (HTML-encoded) |
+| `.WithContent(IHtmlContent)` | Appends raw HTML content |
+| `.WithSuffix(IHtmlContent)` | Appends sibling HTML rendered **after** the closing tag (used internally by `.Checkbox()` to emit the hidden input) |
 
 ### BootstrapFieldOptions
 

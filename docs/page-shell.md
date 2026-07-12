@@ -40,10 +40,10 @@ Passed to both `RenderPage` and `RenderNavigation`:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `RouteItem` | `NavigationRouteItem` | Currently active route item |
+| `RouteItem` | `NavigationItem` | Currently active route item |
 | `NavigationItems` | `IReadOnlyList<NavigationItem>` | Authorization-filtered navigation tree |
 | `Detail` | `RazorSlice` | Current feature detail slice |
-| `PageTitle` | `string` | Resolved title (from `WithPageTitle` or `NavigationRouteItem.Label`) |
+| `PageTitle` | `string` | Resolved title (from `WithPageTitle` or `NavigationItem.Label`) |
 
 ## ITransientUiRenderer
 

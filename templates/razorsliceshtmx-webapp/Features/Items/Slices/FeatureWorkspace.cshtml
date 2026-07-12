@@ -1,8 +1,9 @@
-@inherits RazorSlice<ItemListModel>
+@inherits RazorSlice<RazorSlices.RazorSlice>
+@inject HtmxStateContext StateContext
 
 <div id="items-workspace" class="section-panel">
-    @Model.Search.Serialize()
-    @Model.Request.Serialize()
+    @(StateContext.Serialize<ItemSearchModel>(ItemSearchModel.StateId))
+    @(StateContext.Serialize<ItemListQuery>(ItemListQuery.StateId))
 
     <div id="feature-details"
          hx-get="/items/list"
@@ -10,6 +11,6 @@
          hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
          hx-push-url="true"
          hx-target="#feature-details">
-        @await RenderPartialAsync(_ListPage.Create(Model))
+        @await RenderPartialAsync(Model)
     </div>
 </div>

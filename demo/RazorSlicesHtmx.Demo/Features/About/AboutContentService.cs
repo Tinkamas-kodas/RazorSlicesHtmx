@@ -7,7 +7,7 @@ public sealed class AboutContentService
         [
             "Features are grouped under Features/{FeatureName} so routes, rendering, and feature-specific logic stay together.",
             "Shared shell pieces live outside features: the layout, sidebar, shared section hero, and HTMX fragment helpers sit in Shared or Helpers.",
-            "The root page router stays generic: it resolves a PageDefinition from the feature registry and renders either a full page or an HTMX fragment.",
+            "The root page router stays generic: it resolves the active NavigationItem from the feature registry and renders either a full page or an HTMX fragment.",
             "Nested interactions, such as HowTo pills, Form preview updates, and the new Items CRUD dialogs, remain local to the owning feature instead of leaking into Program.cs."
         ],
         [

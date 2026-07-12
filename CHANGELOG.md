@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.1.0
+## 1.0.0
 
 Initial public package split and documentation baseline.
 
-Included in `0.1.0`:
+Included in `1.0.0`:
 
 ### `RazorSlicesHtmx.AspNetCore`
 

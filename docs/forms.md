@@ -53,19 +53,29 @@ From `RazorSlicesHtmx.Bootstrap5`:
 
 @{ var f = Model.Request.For(Model.Errors); }
 
+@* Standard layout *@
 @f.Code.Label("Code")
 @f.Code.Input(placeholder: "ITEM-001", autoFocus: true)
 @f.Code.Validation()
 
-@f.Name.Label("Name")
-@f.Name.Input()
-@f.Name.Validation()
+@* Bootstrap 5 floating labels — input must come before label *@
+<div class="form-floating">
+    @f.Name.Input(placeholder: "Name")
+    @f.Name.Label("Name")
+    @f.Name.Validation()
+</div>
 
 @f.IsEnabled.Checkbox()
 @f.IsEnabled.Label("Enabled")
 ```
 
-Available helpers: `.Label(text)`, `.Input(type?, placeholder?, autoFocus?, required?, disabled?, readOnly?)`, `.TextArea(placeholder?, rows?)`, `.Checkbox(disabled?)`, `.Select(options, emptyOption?)`, `.Validation()`.
+Helpers `.Label()`, `.Input()`, `.TextArea()`, `.Select()`, and `.Hidden()` return `FluentTagBuilder`, which allows fluent chaining of additional HTML attributes:
+
+```cshtml
+@f.Code.Input(placeholder: "ITEM-001").WithClass("border-primary")
+@f.Name.Label("Name").WithClass("fw-bold")
+@f.Note.TextArea().WithBooleanAttribute("spellcheck")
+```
 
 All helpers accept an optional `BootstrapFieldOptions` to override CSS classes per-call. Global defaults configured via `BootstrapFieldOptions.Current` (set through DI — see [Bootstrap5](bootstrap5.md)).
 

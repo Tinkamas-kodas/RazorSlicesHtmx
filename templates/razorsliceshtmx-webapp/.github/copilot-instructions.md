@@ -63,7 +63,7 @@ Result.Page(detail).WithPageTitle("Edit item").Build()
 
 ### Page title defaults
 
-- If `WithPageTitle(...)` is not called, page title defaults to `NavigationRouteItem.Label`.
+- If `WithPageTitle(...)` is not called, page title defaults to `NavigationItem.Label`.
 - For HTMX responses, title is sent as OOB `<title hx-swap-oob="true">...</title>`.
 - For full-page responses, title flows through `FeatureShellContext.PageTitle` to the app renderer.
 
@@ -78,14 +78,13 @@ return HtmxFragmentResult.Create(fragment)
 ## Navigation Model
 
 ```
-NavigationItem (abstract)
-├── NavigationRouteItem — navigable leaf with Route + PageDefinition
+NavigationItem (record)
 └── NavigationGroupItem — non-navigable group with Children
 ```
 
-- `NavigationRouteItem(key, label, route, pageDefinition, Order, AuthorizationPolicy?)` — leaf with route
+- `NavigationItem(key, label, route, Order, AuthorizationPolicy?)` — navigable leaf with route
 - `NavigationGroupItem(key, label, children, Order, AuthorizationPolicy?)` — folder/group
-- `PageDefinition(() => slice)` — lazy factory for full-page rendering
+- Page rendering is done by mapping the route in `MapEndpoints` — there is no `PageDefinition`
 
 ### Grouped navigation
 ```csharp
@@ -93,8 +92,8 @@ public override IReadOnlyList<NavigationItem> NavigationItems =>
 [
     new NavigationGroupItem("admin", "Administration",
     [
-        new NavigationRouteItem("users", "Users", "/admin/users", usersPage),
-        new NavigationRouteItem("roles", "Roles", "/admin/roles", rolesPage)
+        new NavigationItem("users", "Users", "/admin/users"),
+        new NavigationItem("roles", "Roles", "/admin/roles")
     ])
 ];
 ```
@@ -129,21 +128,36 @@ public IHtmlContent SerializeOob();   // same with hx-swap-oob
 
 ### Endpoint usage
 ```csharp
-app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
+app.MapGet("/items/list", (HttpContext ctx, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
 {
-    var model = service.CreateListModel(db, search, query);
-    return Result.Page(_FeaturePage.Create(model))
-        )
+    var model = service.CreateListModel(search, query);
+    if (ctx.IsHtmxTarget("items-list"))
+        return Result.Page(_ItemsList.Create(model)).WithState(search).WithState(query);
+    return Result.Page(_ListPage.Create(model))
+        .WithWorkspace<ItemsWorkspaceFactory>()
         .WithState(search)
-        .WithState(query)
-        .Build();
+        .WithState(query);
 });
 ```
 
-### Host slice — render initial hidden divs
+### Workspace slice — injects HtmxStateContext, serializes state
 ```cshtml
-@Model.Search.Serialize()
-@Model.List.Serialize()
+@inherits RazorSlice<RazorSlice>
+@inject HtmxStateContext StateContext
+
+<div id="items-workspace">
+    @(StateContext.Serialize<ItemSearchModel>(ItemSearchModel.StateId))
+    @(StateContext.Serialize<ItemListQuery>(ItemListQuery.StateId))
+    <div id="feature-details" ...>@await RenderPartialAsync(Model)</div>
+</div>
+```
+
+### Workspace factory
+```csharp
+public sealed class ItemsWorkspaceFactory() : BaseWorkspaceFactory("feature-details")
+{
+    protected override RazorSlice Wrap(RazorSlice inner) => FeatureWorkspace.Create(inner);
+}
 ```
 
 ### HTMX include — reference by StateId
@@ -401,7 +415,7 @@ HtmxFragmentResult.Create(form).WithRetarget("#edit-form").WithReswap(HtmxSwap.O
 
 Each `NavigationItem` can declare an `AuthorizationPolicy`:
 ```csharp
-new NavigationRouteItem("admin-users", "Users", "/admin/users", usersPage,
+new NavigationItem("admin-users", "Users", "/admin/users",
     AuthorizationPolicy: "AdminOnly")
 ```
 

@@ -7,6 +7,7 @@ namespace RazorSlicesHtmx.AspNetCore.Html;
 public class FluentTagBuilder(string tagName) : IHtmlContent
 {
     private readonly TagBuilder _tagBuilder = new(tagName);
+    private HtmlContentBuilder? _suffix;
 
     public FluentTagBuilder WithId(string id)
     {
@@ -65,6 +66,17 @@ public class FluentTagBuilder(string tagName) : IHtmlContent
         return this;
     }
 
+    /// <summary>
+    /// Appends additional HTML content that is rendered after the closing tag of this element.
+    /// Useful when a logical helper must emit more than one sibling element (e.g. checkbox + hidden input).
+    /// </summary>
+    public FluentTagBuilder WithSuffix(IHtmlContent suffix)
+    {
+        _suffix ??= new HtmlContentBuilder();
+        _suffix.AppendHtml(suffix);
+        return this;
+    }
+
     public FluentTagBuilder WithAttribute(string name, string? value, bool condition = true)
     {
         if (condition && value is not null)
@@ -86,5 +98,6 @@ public class FluentTagBuilder(string tagName) : IHtmlContent
     public void WriteTo(TextWriter writer, HtmlEncoder encoder)
     {
         _tagBuilder.WriteTo(writer, encoder);
+        _suffix?.WriteTo(writer, encoder);
     }
 }

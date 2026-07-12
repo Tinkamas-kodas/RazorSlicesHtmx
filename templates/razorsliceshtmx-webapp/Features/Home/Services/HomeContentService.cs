@@ -1,14 +1,6 @@
-using RazorSlicesHtmx.AspNetCore.Models;
-using RshtmxApp.Features.Home.Slices;
-
 namespace RshtmxApp.Features.Home.Services;
 
 public sealed class HomeContentService
 {
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "home",
-        "Home",
-        "/home",
-        new PageDefinition(() => _HomePage.Create()),
-        Order: 0);
+    // Content creation methods go here
 }

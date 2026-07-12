@@ -44,8 +44,8 @@ var features = app.Services.GetRequiredService<FeatureRegistry>();
 app.UseStaticFiles();
 app.UseHtmxErrorHandling(); // HTMX-aware error toasts — must be before endpoint routing
 
-features.MapEndpoints(app);   // feature-local endpoints (GET /items/list, POST /items, ...)
-app.MapFeaturePages(features); // page routes derived from NavigationRouteItem.Route
+features.MapEndpoints(app);   // feature-local endpoints (GET /items, POST /items, ...)
+app.MapFeaturePages(features); // registers GET / → redirect to default feature route
 
 app.Run();
 ```
@@ -59,14 +59,13 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 {
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("items", "Items", "/items",
-            new PageDefinition(_ => _FeaturePage.Create()))
+        new("items", "Items", "/items")
     ];
 
     public override void MapEndpoints(WebApplication app)
     {
         app.MapGet("/items", () =>
-            Result.Page(TestNavItem, _FeaturePage.Create()));
+            Result.Page(_FeaturePage.Create()));
     }
 }
 ```

@@ -69,14 +69,15 @@ public sealed record {FeatureName}ListModel(
     : ListResponse<{Entity}RowModel, {FeatureName}ListQuery>(Total, Request, Items);
 ```
 
-### `Features/{FeatureName}/Slices/_FeaturePage.cshtml`
-The **host slice** — serializes state into hidden divs, wraps `#feature-details` with the `ListRefresh` trigger:
+### `Features/{FeatureName}/Slices/FeatureWorkspace.cshtml`
+The **workspace slice** — injects `HtmxStateContext`, serializes state, wraps `#feature-details`:
 ```razor
-@inherits RazorSlice<{FeatureName}ListModel>
+@inherits RazorSlice<RazorSlice>
+@inject HtmxStateContext StateContext
 
 <div id="{featurename}-workspace" class="section-panel">
-    @Model.Search.Serialize()
-    @Model.Request.Serialize()
+    @(StateContext.Serialize<{FeatureName}SearchModel>({FeatureName}SearchModel.StateId))
+    @(StateContext.Serialize<{FeatureName}ListQuery>({FeatureName}ListQuery.StateId))
 
     <div id="feature-details"
          hx-get="/{route}/list"
@@ -84,9 +85,17 @@ The **host slice** — serializes state into hidden divs, wraps `#feature-detail
          hx-include="#@{FeatureName}SearchModel.StateId, #@{FeatureName}ListQuery.StateId"
          hx-push-url="true"
          hx-target="#feature-details">
-        @await RenderPartialAsync(_ListPage.Create(Model))
+        @await RenderPartialAsync(Model)
     </div>
 </div>
+```
+
+### `Features/{FeatureName}/{FeatureName}WorkspaceFactory.cs`
+```csharp
+public sealed class {FeatureName}WorkspaceFactory() : BaseWorkspaceFactory("feature-details")
+{
+    protected override RazorSlice Wrap(RazorSlice inner) => FeatureWorkspace.Create(inner);
+}
 ```
 
 ### `Features/{FeatureName}/Slices/_ListPage.cshtml`
@@ -218,33 +227,21 @@ Table with sort headers, rows, and pager — this is the **fragment** returned b
 ### Slice hierarchy
 
 ```
-_FeaturePage.cshtml      ← state serialization + #feature-details refresh wrapper
+FeatureWorkspace.cshtml  ← workspace: state serialization + #feature-details trigger
   └─ _ListPage.cshtml    ← toolbar (search + create) + renders list partial
-       └─ _{Name}List.cshtml  ← table + sort headers + pager
+       └─ _{Name}List.cshtml  ← table + sort headers + pager (id="{name}-list")
 ```
 
-- **State** is serialized in `_FeaturePage` as hidden divs
+- **State** is serialized in `FeatureWorkspace` via `HtmxStateContext.Serialize<T>()`
 - **`#feature-details`** has `hx-trigger="{Name}.ListRefresh from:body"` — refreshes the full list
-- **Toolbar** (search form) stays stable — it's inside `_ListPage` which is only re-rendered on full page load
-- The list endpoint returns `_ListPage` as `Result.Page(detail)` — the whole list area swaps on HTMX requests
+- **Toolbar** (search form) targets `#{featurename}-list` (only the table swaps, not toolbar)
+- When HTMX target is `{featurename}-list` (sort/page), only `_{Name}List` fragment is returned
+- When HTMX target is `feature-details` (navigation), `_ListPage` + workspace are returned
 
 ## Update existing files:
 
 ### Update `{FeatureName}ContentService.cs`
 ```csharp
-public NavigationRouteItem CreateNavigationItem() => new(
-    "{featurename}",
-    "{FeatureName}",
-    "/{route}",
-    new PageDefinition(httpContext =>
-    {
-        var search = new {FeatureName}SearchModel(
-            httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
-        var query = {FeatureName}ListQuery.FromQuery(httpContext.Request.Query);
-        return _FeaturePage.Create(CreateListModel(search, query));
-    }),
-    Order: {order});
-
 public {FeatureName}ListModel CreateListModel({FeatureName}SearchModel search, {FeatureName}ListQuery query)
 {
     // filter, then paginate
@@ -255,16 +252,24 @@ public {FeatureName}ListModel CreateListModel({FeatureName}SearchModel search, {
 
 ### Update `{FeatureName}Endpoints.cs`
 ```csharp
-app.MapGet("/{route}/list", ([AsParameters] {FeatureName}SearchModel search, {FeatureName}ListQuery query) =>
+app.MapGet("/{route}/list", (HttpContext ctx, [AsParameters] {FeatureName}SearchModel search, {FeatureName}ListQuery query) =>
 {
     var model = _content.CreateListModel(search, query);
-    return Result.Page(_FeaturePage.Create(model))
-        )
-    .WithPageTitle("{FeatureName}")
+    if (ctx.IsHtmxTarget("{featurename}-list"))
+    {
+        return Result.Page(_{FeatureName}List.Create(model))
+            .WithState(search)
+            .WithState(query);
+    }
+    return Result.Page(_ListPage.Create(model))
+        .WithWorkspace<{FeatureName}WorkspaceFactory>()
         .WithState(search)
-        .WithState(query)
-        .Build();
+        .WithState(query);
 });
+
+app.MapGet("/{route}/create", () =>
+    Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
+        .WithWorkspace<{FeatureName}WorkspaceFactory>());
 ```
 
 Note: `` — the fragment is the list page (toolbar + table), not just the table. The `_FeaturePage` wrapper with state serialization is only sent on full page loads.
@@ -289,6 +294,6 @@ Note: `` — the fragment is the list page (toolbar + table), not just the table
 - `ListRequest<T>` is `partial` — generator auto-creates `SortMap` from row model properties
 - Use `[SortDisable]` on properties you don't want sortable (e.g., Id)
 - `.WithState(search).WithState(query)` sends OOB state updates on fragment responses
-- Use `.WithPageTitle(...)` on list GET when you want a list-specific title; otherwise default title is `NavigationRouteItem.Label`
+- Use `.WithPageTitle(...)` on list GET when you want a list-specific title; otherwise default title is `NavigationItem.Label`
 - `hx-include` references state by `#@{Model}SearchModel.StateId, #@{Model}ListQuery.StateId`
 - Cancel buttons on create/edit forms should `hx-include` state IDs to preserve list position

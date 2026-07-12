@@ -2,7 +2,7 @@
 
 ## Default behaviour
 
-The page title is derived from `NavigationRouteItem.Label` automatically. No code required for the common case.
+The page title is derived from `NavigationItem.Label` automatically. No code required for the common case.
 
 ## Override per response
 

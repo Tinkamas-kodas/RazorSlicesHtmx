@@ -28,30 +28,25 @@ public sealed class {FeatureName}Endpoints(FeatureResultBuilder resultBuilder) :
 {
     private readonly {FeatureName}ContentService _content = new();
 
-    public override IReadOnlyList<NavigationItem> NavigationItems => [_content.CreateNavigationItem()];
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new("{featurename-lowercase}", "{FeatureName}", "{route}", Order: {order})
+    ];
 
     public override void MapEndpoints(WebApplication app)
     {
-        // Add HTMX endpoints here
+        app.MapGet("{route}", () => Result.Page(_{FeatureName}Page.Create()));
     }
 }
 ```
 
 ### `Features/{FeatureName}/Services/{FeatureName}ContentService.cs`
 ```csharp
-using RazorSlicesHtmx.AspNetCore.Models;
-using {RootNamespace}.Features.{FeatureName}.Slices;
-
 namespace {RootNamespace}.Features.{FeatureName}.Services;
 
 public sealed class {FeatureName}ContentService
 {
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "{featurename-lowercase}",
-        "{FeatureName}",
-        "{route}",
-        new PageDefinition(() => _{FeatureName}Page.Create()),
-        Order: {order});
+    // Content creation methods go here
 }
 ```
 
@@ -75,4 +70,4 @@ public sealed class {FeatureName}ContentService
 - The feature is auto-discovered by `FeatureRegistry.Discover()` — no manual registration needed
 - Use the project's root namespace from the .csproj `<RootNamespace>` element
 - Follow existing code style in the project
-- Page title defaults to `NavigationRouteItem.Label`; for specific screens use `Result.Page(...).WithPageTitle("...")`
+- Page title defaults to `NavigationItem.Label`; for specific screens use `Result.Page(...).WithPageTitle("...")`

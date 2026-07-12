@@ -1,5 +1,4 @@
 using RshtmxApp.Features.Items.Models;
-using RshtmxApp.Features.Items.Slices;
 
 namespace RshtmxApp.Features.Items.Services;
 
@@ -25,19 +24,6 @@ public sealed class ItemsContentService
     ];
 
     private static int _nextId = 13;
-
-    public NavigationRouteItem CreateNavigationItem() => new(
-        "items",
-        "Items",
-        "/items",
-        new PageDefinition(httpContext =>
-        {
-            var search = new ItemSearchModel(
-                httpContext.Request.Query["Search"].ToString() is { Length: > 0 } s ? s : null);
-            var query = ItemListQuery.FromQuery(httpContext.Request.Query);
-            return _FeaturePage.Create(CreateListModel(search, query));
-        }),
-        Order: 10);
 
     public ItemListModel CreateListModel(ItemSearchModel search, ItemListQuery query)
     {

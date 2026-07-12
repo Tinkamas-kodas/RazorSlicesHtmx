@@ -13,19 +13,17 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new NavigationRouteItem("items", "Items", "/items",
-            new PageDefinition(ctx => _FeaturePage.Create(_content.CreateListModel(ctx))))
+        new("items", "Items", "/items", Order: 100)
     ];
 
     public override void MapEndpoints(WebApplication app)
     {
-        app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
+        app.MapGet("/items", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
         {
             var model = _content.CreateListModel(db, search, query);
             return Result.Page(_FeaturePage.Create(model))
                 .WithState(search)
-                .WithState(query)
-                .Build();
+                .WithState(query);
         });
     }
 }
@@ -39,34 +37,22 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
 | Type | Purpose |
 |------|---------|
-| `NavigationRouteItem` | Navigable leaf — has `Route`, `PageDefinition`, optional `AuthorizationPolicy` |
-| `NavigationGroupItem` | Non-navigable group — has `Children`, optional `AuthorizationPolicy` |
+| `NavigationItem` | Navigable leaf — has `Key`, `Label`, `Route`, `Order`, optional `AuthorizationPolicy` |
+| `NavigationGroupItem` | Non-navigable group — inherits `NavigationItem`, adds `Children` |
 
 ```csharp
 // Leaf
-new NavigationRouteItem("items", "Items", "/items", pageDef)
+new NavigationItem("items", "Items", "/items")
 
 // Group
 new NavigationGroupItem("admin", "Administration",
 [
-    new NavigationRouteItem("users", "Users", "/admin/users", usersPage),
-    new NavigationRouteItem("roles", "Roles", "/admin/roles", rolesPage)
+    new NavigationItem("users", "Users", "/admin/users"),
+    new NavigationItem("roles", "Roles", "/admin/roles")
 ])
 ```
 
 Groups with no authorized children are automatically hidden.
-
-## PageDefinition
-
-Binds a slice factory to a navigable route. `MapFeaturePages(features)` registers one GET endpoint per `NavigationRouteItem` using this factory:
-
-```csharp
-// With HttpContext (for context-aware initialization)
-new PageDefinition(ctx => _FeaturePage.Create(_content.CreateModel(ctx)))
-
-// Without context
-new PageDefinition(() => _FeaturePage.Create())
-```
 
 ## Feature discovery
 

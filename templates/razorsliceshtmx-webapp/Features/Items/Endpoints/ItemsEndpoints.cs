@@ -22,16 +22,15 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
             var model = _content.CreateListModel(search, query);
-            return Result.For(_FeaturePage.Create(model))
-                .AsFragment(_ListPage.Create(model))
+            return Result.Page(_FeaturePage.Create(model))
                 .WithState(search)
                 .WithState(query)
-                .BuildAsync();
+                ;
         });
 
         app.MapGet("/items/create", () =>
-            Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
-                .BuildAsync());
+            Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
+                );
 
 //#if (fluentValidation)
         app.MapPost("/items/create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
@@ -42,16 +41,16 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return await Result.For(_CreatePage.Create(request))
-                        .BuildAsync(ct);
+                    return Result.Page(_CreatePage.Create(request))
+                        ;
                 }
 
                 _content.Create(request);
 
-                return await Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was created.")
-                    .BuildAsync(ct);
+                    ;
             });
 //#endif
 //#if (!fluentValidation)
@@ -61,10 +60,10 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 _content.TrimRequest(request);
                 _content.Create(request);
 
-                return await Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was created.")
-                    .BuildAsync(ct);
+                    ;
             });
 //#endif
 
@@ -74,8 +73,8 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             if (row is null)
                 return Task.FromResult(Results.NotFound());
 
-            return Result.For(_EditPage.Create(_content.CreateEditFormModel(row)))
-                .BuildAsync();
+            return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)))
+                ;
         });
 
 //#if (fluentValidation)
@@ -91,16 +90,16 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return await Result.For(_EditPage.Create(request))
-                        .BuildAsync(ct);
+                    return Result.Page(_EditPage.Create(request))
+                        ;
                 }
 
                 _content.Apply(id, request);
 
-                return await Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was updated.")
-                    .BuildAsync(ct);
+                    ;
             });
 //#endif
 //#if (!fluentValidation)
@@ -113,10 +112,10 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 _content.TrimRequest(request);
                 _content.Apply(id, request);
 
-                return await Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{request.Name}' was updated.")
-                    .BuildAsync(ct);
+                    ;
             });
 //#endif
 
@@ -126,7 +125,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             if (row is null)
                 return Results.NotFound();
 
-            return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(row)));
+            return Result.ShowDialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
         app.MapPost("/items/delete/{id:int}", async (int id, CancellationToken ct) =>
@@ -137,11 +136,11 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
                 _content.Delete(id);
 
-                return await Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()
-                    .BuildAsync(ct);
+                    ;
             });
     }
 }

@@ -1,7 +1,6 @@
-using RazorSlicesHtmx.Demo.Features.About.Services;
-using RazorSlicesHtmx.Demo.Features.Slices;
+using RazorSlicesHtmx.Demo.Features.About.Slices;
 
-namespace RazorSlicesHtmx.Demo.Features.About.Endpoints;
+namespace RazorSlicesHtmx.Demo.Features.About;
 
 public sealed class AboutEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
 {
@@ -15,6 +14,6 @@ public sealed class AboutEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
     public override void MapEndpoints(WebApplication app)
     {
         app.MapGet("/about", () =>
-            Result.For(_AboutDetail.Create(_content.CreateDetailModel())).BuildAsync());
+            Result.Page(_AboutDetail.Create(_content.CreateDetailModel())));
     }
 }

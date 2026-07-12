@@ -26,23 +26,23 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             if (ctx.IsHtmxTarget("items-list"))
             {
                 //refresh only list without search bar
-                return Result.For(_ItemsList.Create(model))
+                return Result.Page(_ItemsList.Create(model))
                     .WithState(search)
                     .WithState(query)
-                    .BuildAsync();
+                    ;
             }
             
-            return Result.For(ListPage.Create(model))
+            return Result.Page(ListPage.Create(model))
                 .WithWorkspace<ItemsWorkspaceFactory>()
                 .WithState(search)
                 .WithState(query)
-                .BuildAsync();
+                ;
         });
 
         app.MapGet("/items/create", () => Result
-            .For(CreatePage.Create(_content.CreateCreateFormModel()))
+            .Page(CreatePage.Create(_content.CreateCreateFormModel()))
             .WithWorkspace<ItemsWorkspaceFactory>()
-            .BuildAsync());
+            );
 
         app.MapPost("/items/create", async (ItemUpsertRequest request, AppDbContext db,
                 IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
@@ -53,18 +53,18 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return await Result.For(CreatePage.Create(request))
-                        .BuildAsync(ct);
+                    return Result.Page(CreatePage.Create(request))
+                        ;
                 }
 
                 var entity = _content.CreateEntity(request);
                 db.Items.Add(entity);
                 await db.SaveChangesAsync(ct);
 
-                return await Result.Empty()
+                return Result.Empty()
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was created.")
-                    .BuildAsync(ct);
+                    ;
             })
             .DisableAntiforgery();
 
@@ -73,13 +73,13 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var entity = db.Items.Find(id);
             if (entity is null)
             {
-                return Task.FromResult(Results.NotFound());
+                return Results.NotFound();
             }
 
             return Result
-                .For(EditPage.Create(_content.CreateEditFormModel(entity)))
+                .Page(EditPage.Create(_content.CreateEditFormModel(entity)))
                 .WithWorkspace<ItemsWorkspaceFactory>()
-                .BuildAsync();
+                ;
         });
 
         app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, AppDbContext db,
@@ -98,17 +98,17 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return await Result.For(EditPage.Create(request))
-                        .BuildAsync(ct);
+                    return Result.Page(EditPage.Create(request))
+                        ;
                 }
 
                 _content.Apply(entity, request);
                 await db.SaveChangesAsync(ct);
 
-                return await Result.Empty()
+                return Result.Empty()
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was updated.")
-                    .BuildAsync(ct);
+                    ;
             })
             .DisableAntiforgery();
 
@@ -120,7 +120,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Results.NotFound();
             }
 
-            return Result.Dialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(entity)));
+            return Result.ShowDialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(entity)));
         });
 
         app.MapPost("/items/delete/{id:int}", async (int id, ItemDeleteDialogModel request,IValidator<ItemDeleteDialogModel> validator, AppDbContext db, CancellationToken ct) =>
@@ -130,8 +130,8 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return await Result.For(_ItemDelete.Create(request))
-                        .BuildAsync(ct);
+                    return Result.Page(_ItemDelete.Create(request))
+                        ;
                 }
 
                 var entity = await db.Items.FindAsync([id], ct);
@@ -143,11 +143,11 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 db.Items.Remove(entity);
                 await db.SaveChangesAsync(ct);
 
-                return await Result.For(_ItemDelete.Create(request))
+                return Result.Page(_ItemDelete.Create(request))
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()
-                    .BuildAsync(ct);
+                    ;
             })
             .DisableAntiforgery();
     }

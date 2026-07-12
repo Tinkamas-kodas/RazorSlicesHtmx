@@ -24,7 +24,6 @@ public sealed class FeatureResultBuilder(
     INavOobStrategy navOobStrategy)
 {
     private readonly IFeaturePageRenderer _pageRenderer = pageRenderer;
-    private readonly ITransientUiRenderer _transientUiRenderer = transientUiRenderer;
     private readonly RazorSlicesHtmxOptions _options = options.Value;
     private readonly INavOobStrategy _navOobStrategy = navOobStrategy;
     private FeatureRegistry Features => services.GetRequiredService<FeatureRegistry>();
@@ -35,9 +34,9 @@ public sealed class FeatureResultBuilder(
 
     public Builder Create(NavigationItem routeItem, RazorSlice detail) => new(this, routeItem, detail);
 
-    public RazorSlice CreateDialog(RazorSlice content) => _transientUiRenderer.RenderDialog(content);
+    public RazorSlice CreateDialog(RazorSlice content) => transientUiRenderer.RenderDialog(content);
 
-    public sealed class Builder(FeatureResultBuilder owner, NavigationItem routeItem, RazorSlice detail)
+    public sealed class Builder(FeatureResultBuilder owner, NavigationItem routeItem, RazorSlice detail) : IResult
     {
         private readonly List<RazorSlice> _directOobParts = [];
         private readonly List<(string Selector, RazorSlice Content, string Swap)> _targetedOobParts = [];
@@ -55,12 +54,6 @@ public sealed class FeatureResultBuilder(
         private string? _retarget;
         private string? _reswap;
         private string? _pageTitle;
-
-        public Builder AsFragment(RazorSlice fragment)
-        {
-            _htmxFragment = fragment;
-            return this;
-        }
 
         /// <summary>
         /// Explicitly controls whether the navigation OOB slice is included in this response.
@@ -155,6 +148,7 @@ public sealed class FeatureResultBuilder(
 
             _navigationUrl = url;
             _replaceNavigation = replace;
+            _navOverride ??= false;
             return this;
         }
 
@@ -203,13 +197,15 @@ public sealed class FeatureResultBuilder(
             return this;
         }
 
-        public async Task<IResult> BuildAsync(CancellationToken cancellationToken = default)
+        public Task ExecuteAsync(HttpContext httpContext) => Build().ExecuteAsync(httpContext);
+
+        public IResult Build()
         {
             var request = owner.Request;
             var httpContext = request.HttpContext;
             var user = httpContext.User;
             var authService = httpContext.RequestServices.GetService<IAuthorizationService>();
-            var shellContext = await owner.Features.CreateShellContextAsync(routeItem, _workspaceDetail ?? detail, user, authService, _pageTitle, cancellationToken);
+            var shellContext = owner.Features.CreateShellContext(routeItem, _workspaceDetail ?? detail, user, authService, _pageTitle);
 
             if (!request.IsHtmxRequest())
             {

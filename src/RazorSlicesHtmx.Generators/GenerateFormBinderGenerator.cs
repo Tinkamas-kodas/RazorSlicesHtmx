@@ -453,14 +453,9 @@ public sealed class GenerateFormBinderGenerator : IIncrementalGenerator
 
     private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
-    private sealed class FormBinderTarget
+    private sealed class FormBinderTarget(INamedTypeSymbol symbol)
     {
-        public FormBinderTarget(INamedTypeSymbol symbol)
-        {
-            Symbol = symbol;
-        }
-
-        public INamedTypeSymbol Symbol { get; }
+        public INamedTypeSymbol Symbol { get; } = symbol;
     }
 
     private sealed class FormBinderTargetComparer : IEqualityComparer<FormBinderTarget>

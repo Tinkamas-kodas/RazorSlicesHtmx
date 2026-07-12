@@ -246,17 +246,11 @@ public sealed class GenerateStateRequestGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private sealed class StateTarget
+    private sealed class StateTarget(INamedTypeSymbol symbol, IReadOnlyList<IPropertySymbol> properties)
     {
-        public StateTarget(INamedTypeSymbol symbol, IReadOnlyList<IPropertySymbol> properties)
-        {
-            Symbol = symbol;
-            Properties = properties;
-        }
+        public INamedTypeSymbol Symbol { get; } = symbol;
 
-        public INamedTypeSymbol Symbol { get; }
-
-        public IReadOnlyList<IPropertySymbol> Properties { get; }
+        public IReadOnlyList<IPropertySymbol> Properties { get; } = properties;
     }
 
     private sealed class StateTargetComparer : IEqualityComparer<StateTarget>

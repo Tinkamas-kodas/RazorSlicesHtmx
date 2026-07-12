@@ -180,7 +180,7 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
 
         foreach (var entry in entries)
         {
-            source.Append("    public global::RazorSlicesHtmx.HtmlNames.FieldContext<").Append(entry.PropertyTypeName).Append("> ").Append(entry.FieldClassName).AppendLine()
+            source.Append("    public global::RazorSlicesHtmx.AspNetCore.HtmlNames.FieldContext<").Append(entry.PropertyTypeName).Append("> ").Append(entry.FieldClassName).AppendLine()
                 .Append("        => new(")
                 .Append(model.Symbol.Name).Append("Html.").Append(entry.FieldClassName).Append("Values.Name, ")
                 .Append(model.Symbol.Name).Append("Html.").Append(entry.FieldClassName).Append("Values.Path, ")
@@ -213,7 +213,7 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
         var entries = new List<PropertyEntry>();
         var visited = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
-        Walk(symbol, maxDepth, new List<string>(), entries, visited);
+        Walk(symbol, maxDepth, [], entries, visited);
 
         return entries;
     }
@@ -361,42 +361,32 @@ public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
         return sb.ToString();
     }
 
-    private sealed class TargetModel
+    private sealed class TargetModel(INamedTypeSymbol symbol, int maxDepth)
     {
-        public TargetModel(INamedTypeSymbol symbol, int maxDepth)
-        {
-            Symbol = symbol;
-            MaxDepth = maxDepth;
-        }
+        public INamedTypeSymbol Symbol { get; } = symbol;
 
-        public INamedTypeSymbol Symbol { get; }
-
-        public int MaxDepth { get; }
+        public int MaxDepth { get; } = maxDepth;
     }
 
-    private sealed class PropertyEntry
+    private sealed class PropertyEntry(
+        string fieldClassName,
+        string name,
+        string path,
+        string id,
+        string propertyTypeName,
+        string propertyAccessPath)
     {
-        public PropertyEntry(string fieldClassName, string name, string path, string id, string propertyTypeName, string propertyAccessPath)
-        {
-            FieldClassName = fieldClassName;
-            Name = name;
-            Path = path;
-            Id = id;
-            PropertyTypeName = propertyTypeName;
-            PropertyAccessPath = propertyAccessPath;
-        }
+        public string FieldClassName { get; } = fieldClassName;
 
-        public string FieldClassName { get; }
+        public string Name { get; } = name;
 
-        public string Name { get; }
+        public string Path { get; } = path;
 
-        public string Path { get; }
+        public string Id { get; } = id;
 
-        public string Id { get; }
+        public string PropertyTypeName { get; } = propertyTypeName;
 
-        public string PropertyTypeName { get; }
-
-        public string PropertyAccessPath { get; }
+        public string PropertyAccessPath { get; } = propertyAccessPath;
     }
 
     private sealed class TargetModelComparer : IEqualityComparer<TargetModel>

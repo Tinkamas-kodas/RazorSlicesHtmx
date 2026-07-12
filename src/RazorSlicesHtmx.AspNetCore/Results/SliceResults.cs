@@ -13,17 +13,16 @@ namespace RazorSlicesHtmx.AspNetCore.Results;
 
 public static class SliceResults
 {
-    public static async Task<IResult> SlicePageAsync(
+    public static IResult SlicePage(
         HttpRequest request,
         FeatureRegistry features,
         NavigationItem routeItem,
         RazorSlice detail,
-        CancellationToken cancellationToken = default,
         params RazorSlice[] additionalOobParts)
     {
         var pageRenderer = request.HttpContext.RequestServices.GetRequiredService<IFeaturePageRenderer>();
         var authService = request.HttpContext.RequestServices.GetService<IAuthorizationService>();
-        var shellContext = await features.CreateShellContextAsync(routeItem, detail, request.HttpContext.User, authService, null, cancellationToken);
+        var shellContext = features.CreateShellContext(routeItem, detail, request.HttpContext.User, authService);
 
         if (!request.IsHtmxRequest())
         {

@@ -1,6 +1,4 @@
-using RazorSlicesHtmx.Demo.Features.About.Models;
-
-namespace RazorSlicesHtmx.Demo.Features.About.Services;
+namespace RazorSlicesHtmx.Demo.Features.About;
 
 public sealed class AboutContentService
 {

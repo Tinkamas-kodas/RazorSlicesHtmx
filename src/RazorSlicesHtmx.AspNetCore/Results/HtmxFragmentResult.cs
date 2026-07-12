@@ -12,7 +12,7 @@ public static class HtmxFragmentResult
 {
     public static Builder Create(RazorSlice primary) => new(primary);
 
-    public sealed class Builder(RazorSlice primary)
+    public sealed class Builder(RazorSlice primary) : IResult
     {
         private readonly List<RazorSlice> _oobParts = [];
         private readonly List<IHtmlContent> _rawOobParts = [];
@@ -134,6 +134,8 @@ public static class HtmxFragmentResult
             _reswap = swapMode;
             return this;
         }
+
+        public Task ExecuteAsync(HttpContext httpContext) => Build().ExecuteAsync(httpContext);
 
         public IResult Build()
         {

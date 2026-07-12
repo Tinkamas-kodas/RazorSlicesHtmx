@@ -17,22 +17,21 @@ public sealed class MyFeatureEndpoints(FeatureResultBuilder resultBuilder) : Bas
         app.MapGet("/my-feature-route/list", () =>
         {
             var model = _content.CreateListModel();
-            return Result.For(_FeaturePage.Create(model))
-                .AsFragment(_ListPage.Create(model))
-                .BuildAsync();
+            return Result.Page(_FeaturePage.Create(model))
+                ;
         });
 
         app.MapGet("/my-feature-route/create", () =>
-            Result.For(_CreatePage.Create(new MyEntityUpsertRequest()))
-                .BuildAsync());
+            Result.Page(_CreatePage.Create(new MyEntityUpsertRequest()))
+                );
 
         app.MapPost("/my-feature-route/create", (MyEntityUpsertRequest request) =>
             {
                 // TODO: validate and save
-                return Result.For(_Empty.Create())
+                return Result.Page(_Empty.Create())
                     .WithTrigger("MyFeature.ListRefresh")
                     .WithToast($"MyEntity was created.")
-                    .BuildAsync();
+                    ;
             })
             .DisableAntiforgery();
     }

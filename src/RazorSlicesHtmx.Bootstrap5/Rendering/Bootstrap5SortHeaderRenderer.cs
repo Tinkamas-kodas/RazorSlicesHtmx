@@ -9,14 +9,9 @@ namespace RazorSlicesHtmx.Bootstrap5.Rendering;
 /// <summary>
 /// Bootstrap 5 implementation of <see cref="IListSortHeaderRenderer"/>.
 /// </summary>
-public sealed class Bootstrap5SortHeaderRenderer : IListSortHeaderRenderer
+public sealed class Bootstrap5SortHeaderRenderer(BootstrapHeaderOptions? options = null) : IListSortHeaderRenderer
 {
-    private readonly BootstrapHeaderOptions _options;
-
-    public Bootstrap5SortHeaderRenderer(BootstrapHeaderOptions? options = null)
-    {
-        _options = options ?? BootstrapHeaderOptions.Default;
-    }
+    private readonly BootstrapHeaderOptions _options = options ?? BootstrapHeaderOptions.Default;
 
     public IHtmlContent RenderHeader(SortButtonModel model)
     {

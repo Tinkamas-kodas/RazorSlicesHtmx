@@ -9,14 +9,9 @@ namespace RazorSlicesHtmx.Bootstrap5.Rendering;
 /// <summary>
 /// Bootstrap 5 implementation of <see cref="IListPagerRenderer"/>.
 /// </summary>
-public sealed class Bootstrap5PagerRenderer : IListPagerRenderer
+public sealed class Bootstrap5PagerRenderer(BootstrapPagerOptions? options = null) : IListPagerRenderer
 {
-    private readonly BootstrapPagerOptions _options;
-
-    public Bootstrap5PagerRenderer(BootstrapPagerOptions? options = null)
-    {
-        _options = options ?? BootstrapPagerOptions.Default;
-    }
+    private readonly BootstrapPagerOptions _options = options ?? BootstrapPagerOptions.Default;
 
     public IHtmlContent RenderPager(PagerModel model)
     {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Models;
@@ -8,12 +8,12 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 public class FeatureRegistryTests
 {
     [Fact]
-    public async Task Discover_orders_pages_and_builds_navigation_layout()
+    public void Discover_orders_pages_and_builds_navigation_layout()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services);
 
-        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
+        var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
 
         Assert.Equal("alpha", registry.DefaultRouteItem.Key);
         Assert.Equal("alpha", shellContext.CurrentItem.Key);
@@ -38,19 +38,19 @@ public class FeatureRegistryTests
     }
 
     [Fact]
-    public async Task Discover_multi_assembly_merges_features()
+    public void Discover_multi_assembly_merges_features()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var assemblies = new[] { typeof(FeatureRegistryTests).Assembly };
 
         var registry = FeatureRegistry.Discover(assemblies, services);
 
-        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
+        var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
         Assert.Equal(3, shellContext.Navigation.Count);
     }
 
     [Fact]
-    public async Task Discover_multi_assembly_deduplicates_same_assembly()
+    public void Discover_multi_assembly_deduplicates_same_assembly()
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var assembly = typeof(FeatureRegistryTests).Assembly;
@@ -58,7 +58,7 @@ public class FeatureRegistryTests
 
         var registry = FeatureRegistry.Discover(assemblies, services);
 
-        var shellContext = await registry.CreateShellContextAsync(registry.DefaultRouteItem, null!, null, null);
+        var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
         Assert.Equal(3, shellContext.Navigation.Count);
     }
 

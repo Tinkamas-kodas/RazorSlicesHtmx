@@ -15,7 +15,7 @@ public sealed class HowToEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
     public override void MapEndpoints(WebApplication app)
     {
         app.MapGet("/howto", () =>
-            Result.For(_HowToPage.Create()).BuildAsync());
+            Result.Page(_HowToPage.Create()));
 
         app.MapGet("/howto/step/{key}", (string key) =>
         {
@@ -26,8 +26,7 @@ public sealed class HowToEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
             return HtmxFragmentResult
                 .Create(stepSlice)
-                .WithOob("#howto-pills", _HowToPillsBody.Create())
-                .Build();
+                .WithOob("#howto-pills", _HowToPillsBody.Create());
         });
     }
 }

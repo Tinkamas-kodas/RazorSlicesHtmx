@@ -57,10 +57,9 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         {
             var model = _content.CreateListModel(db, search, query);
             return Result.For(_FeaturePage.Create(model))
-                .AsFragment(_ListPage.Create(model))
                 .WithState(search)
                 .WithState(query)
-                .BuildAsync();
+                .Build();
         });
     }
 }
@@ -84,11 +83,10 @@ NavigationItem (abstract)
 **Full page or fragment (auto-detect):**
 ```csharp
 return Result.For(detail)           // full-page detail slice
-    .AsFragment(fragment)            // HTMX fragment (optional)
     .WithState(search)               // OOB state update
     .WithToast("Saved")              // toast notification
     .WithTrigger("Items.ListRefresh") // client-side event
-    .BuildAsync(cancellationToken);  // async with auth filtering
+    .Build();  // includes auth filtering
 ```
 
 **Fragment-only (no page shell):**
@@ -198,7 +196,7 @@ app.UseHtmxErrorHandling(o =>
 
 ## Important Rules
 
-1. **Always use `BuildAsync()`** — `Build()` does not exist on `FeatureResultBuilder`. Only `HtmxFragmentResult` has sync `Build()`.
+1. **Always use `Build()`** — `Build()` does not exist on `FeatureResultBuilder`. Only `HtmxFragmentResult` has sync `Build()`.
 2. **`PageDefinition` takes `Func<HttpContext, RazorSlice>` or `Func<RazorSlice>`** — no `FeatureMetadata`.
 3. **`FeatureMetadata` is removed** — use `NavigationRouteItem` instead.
 4. **Toast tones are `ToastTone` enum** — not strings. Bootstrap5 maps enum → CSS class.

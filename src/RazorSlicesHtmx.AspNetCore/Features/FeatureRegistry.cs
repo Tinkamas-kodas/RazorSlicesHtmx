@@ -69,23 +69,21 @@ public sealed class FeatureRegistry
         return _routeItems.Any(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase));
     }
 
-    public async Task<FeatureShellContext> CreateShellContextAsync(
+    public FeatureShellContext CreateShellContext(
         NavigationItem currentItem,
         RazorSlices.RazorSlice detail,
         ClaimsPrincipal? user,
         IAuthorizationService? authService,
-        string? pageTitle = null,
-        CancellationToken cancellationToken = default)
+        string? pageTitle = null)
     {
-        var filtered = await FilterNavigationAsync(_navigation, user, authService, cancellationToken);
+        var filtered = FilterNavigation(_navigation, user, authService);
         return new FeatureShellContext(currentItem, filtered, detail, pageTitle ?? currentItem.Label);
     }
 
-    private static async Task<IReadOnlyList<NavigationItem>> FilterNavigationAsync(
+    private static IReadOnlyList<NavigationItem> FilterNavigation(
         IReadOnlyList<NavigationItem> items,
         ClaimsPrincipal? user,
-        IAuthorizationService? authService,
-        CancellationToken cancellationToken)
+        IAuthorizationService? authService)
     {
         if (user is null || authService is null)
         {
@@ -96,17 +94,15 @@ public sealed class FeatureRegistry
 
         foreach (var item in items)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (item.AuthorizationPolicy is not null)
             {
-                var authResult = await authService.AuthorizeAsync(user, item.AuthorizationPolicy);
+                var authResult = authService.AuthorizeAsync(user, item.AuthorizationPolicy).GetAwaiter().GetResult();
                 if (!authResult.Succeeded) continue;
             }
 
             if (item is NavigationGroupItem group)
             {
-                var filteredChildren = await FilterNavigationAsync(group.Children, user, authService, cancellationToken);
+                var filteredChildren = FilterNavigation(group.Children, user, authService);
                 if (filteredChildren.Count > 0)
                 {
                     result.Add(group with { Children = filteredChildren });

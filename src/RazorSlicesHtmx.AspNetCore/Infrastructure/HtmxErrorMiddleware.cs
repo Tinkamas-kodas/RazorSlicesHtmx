@@ -29,7 +29,7 @@ public sealed class HtmxErrorMiddleware(
         {
             await next(context);
 
-            if (context.Response.StatusCode >= 400 && !context.Response.HasStarted)
+            if (context.Response is { StatusCode: >= 400, HasStarted: false })
             {
                 logger.LogError("Rewriting htmx unnsupported status code : {statusCode} to toast result", context
                     .Response.StatusCode);

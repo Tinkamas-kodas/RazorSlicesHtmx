@@ -142,7 +142,7 @@ Same structure as create — uses the shared `_{Entity}Form`:
 ```
 
 ### `Features/{FeatureName}/Slices/_{Entity}Delete.cshtml`
-Delete confirmation dialog — rendered inside Bootstrap modal via `Result.Dialog()`:
+Delete confirmation dialog — rendered inside Bootstrap modal via `Result.ShowDialog()`:
 ```razor
 @inherits RazorSlice<{Entity}DeleteDialogModel>
 
@@ -217,9 +217,9 @@ public void TrimRequest({Entity}UpsertRequest request)
 // ─── CREATE ───
 
 app.MapGet("/{route}/create", () =>
-    Result.For(_CreatePage.Create(_content.CreateCreateFormModel()))
+    Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
         .WithPageTitle("Create {Entity}")
-        .BuildAsync());
+        .Build());
 
 app.MapPost("/{route}/create", ({Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
     {
@@ -229,15 +229,15 @@ app.MapPost("/{route}/create", ({Entity}UpsertRequest request, IValidator<{Entit
         if (!validationResult.IsValid)
         {
             request.Errors = validationResult.ToErrorDictionary();
-            return Result.For(_CreatePage.Create(request))
-                .BuildAsync();
+            return Result.Page(_CreatePage.Create(request))
+                .Build();
         }
 
         _content.Create(request);
-        return Result.For(_Empty.Create())
+        return Result.Page(_Empty.Create())
             .WithTrigger("{FeatureName}.ListRefresh")
             .WithToast($"{Entity} '{request.Name}' was created.")
-            .BuildAsync();
+            .Build();
     });
 
 // ─── EDIT ───
@@ -246,9 +246,9 @@ app.MapGet("/{route}/edit/{id:int}", (int id) =>
 {
     var row = _content.FindById(id);
     if (row is null) return Task.FromResult(Results.NotFound());
-    return Result.For(_EditPage.Create(_content.CreateEditFormModel(row)))
+    return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)))
     .WithPageTitle("Edit {Entity}")
-        .BuildAsync();
+        .Build();
 });
 
 app.MapPost("/{route}/edit/{id:int}", (int id, {Entity}UpsertRequest request, IValidator<{Entity}UpsertRequest> validator) =>
@@ -263,15 +263,15 @@ app.MapPost("/{route}/edit/{id:int}", (int id, {Entity}UpsertRequest request, IV
         if (!validationResult.IsValid)
         {
             request.Errors = validationResult.ToErrorDictionary();
-            return Result.For(_EditPage.Create(request))
-                .BuildAsync();
+            return Result.Page(_EditPage.Create(request))
+                .Build();
         }
 
         _content.Apply(id, request);
-        return Result.For(_Empty.Create())
+        return Result.Page(_Empty.Create())
             .WithTrigger("{FeatureName}.ListRefresh")
             .WithToast($"{Entity} '{request.Name}' was updated.")
-            .BuildAsync();
+            .Build();
     });
 
 // ─── DELETE ───
@@ -280,7 +280,7 @@ app.MapGet("/{route}/delete/{id:int}", (int id) =>
 {
     var row = _content.FindById(id);
     if (row is null) return Results.NotFound();
-    return Result.Dialog(_{Entity}Delete.Create(_content.CreateDeleteDialogModel(row)));
+    return Result.ShowDialog(_{Entity}Delete.Create(_content.CreateDeleteDialogModel(row)));
 });
 
 app.MapPost("/{route}/delete/{id:int}", (int id) =>
@@ -289,11 +289,11 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
         if (row is null) return Task.FromResult(Results.NotFound());
 
         _content.Delete(id);
-        return Result.For(_Empty.Create())
+        return Result.Page(_Empty.Create())
             .WithTrigger("{FeatureName}.ListRefresh")
             .WithToast($"{Entity} '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
             .ClearDialog()
-            .BuildAsync();
+            .Build();
     });
 ```
 
@@ -309,7 +309,7 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
 
 ### Delete dialog flow
 1. Table row has `hx-get="/{route}/delete/{id}"` targeting `#dialog-host`
-2. Endpoint returns `Result.Dialog(content)` — wraps in Bootstrap modal markup
+2. Endpoint returns `Result.ShowDialog(content)` — wraps in Bootstrap modal markup
 3. Modal contains a `<form>` with `hx-post` and `hx-target="closest .modal-content"`
 4. Success returns `_Empty` + `.WithTrigger()` + `.WithToast()` + `.ClearDialog()`
 5. `.ClearDialog()` removes the modal from `#dialog-host`
@@ -325,5 +325,5 @@ app.MapPost("/{route}/delete/{id:int}", (int id) =>
 - For GET screens like create/edit/list, use `.WithPageTitle(...)` when you need a contextual title; without it, title defaults to `NavigationRouteItem.Label`
 - Cancel buttons `hx-include` search/query state IDs to preserve list position
 - All POST endpoints need `[FromForm]` and antiforgery validation via the shared HTMX token header adapter.
-- Delete uses `Result.Dialog()` directly (not `.WithDialog()`)
+- Delete uses `Result.ShowDialog()` directly (not `.WithDialog()`)
 - Delete POST uses `.ClearDialog()` to dismiss the modal

@@ -24,20 +24,23 @@ public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IF
                                 "No NavigationItem with a route found in NavigationItems.");
             return resultBuilder.Create(routeItem, _Empty.Create());
         }
-        public FeatureResultBuilder.Builder For(RazorSlice detail)
+
+        public FeatureResultBuilder.Builder Page(RazorSlice detail)
         {
             var routeItem = FindFirstRouteItem(items)
                 ?? throw new InvalidOperationException("No NavigationItem with a route found in NavigationItems.");
             return resultBuilder.Create(routeItem, detail);
         }
 
-        public FeatureResultBuilder.Builder For(NavigationItem routeItem, RazorSlice detail) =>
+        public FeatureResultBuilder.Builder Page(NavigationItem routeItem, RazorSlice detail) =>
             resultBuilder.Create(routeItem, detail);
 
-        public IResult Dialog(RazorSlice content) =>
+        public IResult ShowDialog(RazorSlice content) =>
             HtmxFragmentResult.Create(resultBuilder.CreateDialog(content))
                 .WithTriggerAfterSwap("show-dialog")
                 .Build();
+
+        
 
         private static NavigationItem? FindFirstRouteItem(IReadOnlyList<NavigationItem> items)
         {

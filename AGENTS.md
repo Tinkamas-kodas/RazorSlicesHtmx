@@ -74,12 +74,11 @@ Feature folder convention: `Features/{Name}/Endpoints/`, `Models/`, `Services/`,
 Two builders exist:
 
 1. **`FeatureResultBuilder`** — for feature page endpoints (auto-detects HTMX vs full page).
-   Uses `BuildAsync()` (async, includes auth filtering). No sync `Build()`.
+   Uses `Build()` (async, includes auth filtering). No sync `Build()`.
 
 2. **`HtmxFragmentResult`** — for fragment-only endpoints.
    Uses `Build()` (sync, no auth).
 
-Common fluent API: `.AsFragment()`, `.WithOob()`, `.WithState()`, `.WithToast()`,
 `.WithTrigger()`, `.WithNavigation()`, `.WithLocation()`, `.WithRetarget()`, `.WithReswap()`,
 `.WithDialog()`, `.ClearDialog()`, `.WithPageTitle()`.
 
@@ -92,7 +91,7 @@ Common fluent API: `.AsFragment()`, `.WithOob()`, `.WithState()`, `.WithToast()`
 
 ### Authorization
 
-`NavigationItem.AuthorizationPolicy` declares required policy. `FeatureRegistry.CreateShellContextAsync`
+`NavigationItem.AuthorizationPolicy` declares required policy. `FeatureRegistry.CreateShellContext`
 filters the tree via `IAuthorizationService`. Groups with no visible children are excluded.
 Endpoint-level auth uses standard `.RequireAuthorization()`.
 
@@ -126,7 +125,7 @@ No attribute needed — the generator detects call sites. Produces `StateId`, `S
 
 ## Common Pitfalls
 
-1. `FeatureResultBuilder` has only `BuildAsync()`, not `Build()`.
+1. `FeatureResultBuilder` has only `Build()`, not `Build()`.
 2. `FeatureMetadata` no longer exists — replaced by `NavigationRouteItem`.
 3. `PageDefinition` takes `Func<HttpContext, RazorSlice>` or `Func<RazorSlice>`.
 4. `IFeatureModule.NavigationItems` returns `IReadOnlyList<NavigationItem>`.

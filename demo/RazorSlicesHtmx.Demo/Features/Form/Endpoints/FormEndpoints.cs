@@ -17,7 +17,7 @@ public sealed class FormEndpoints(FeatureResultBuilder resultBuilder) : BaseFeat
     public override void MapEndpoints(WebApplication app)
     {
         app.MapGet("/form", () =>
-            Result.For(_FormDetail.Create(_content.CreateDetailModel())).BuildAsync());
+            Result.Page(_FormDetail.Create(_content.CreateDetailModel())));
 
         app.MapPost("/form/preview", ([FromForm] FormPreviewRequest request) =>
                 _FormPreview.Create(_content.CreatePreviewModel(request)))

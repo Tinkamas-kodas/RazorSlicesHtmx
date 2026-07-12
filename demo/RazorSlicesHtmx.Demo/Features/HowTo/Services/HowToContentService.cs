@@ -5,15 +5,7 @@ namespace RazorSlicesHtmx.Demo.Features.HowTo.Services;
 
 public sealed class HowToContentService
 {
-    private static readonly string[] StepKeys =
-    [
-        "metadata",
-        "models",
-        "services",
-        "slices",
-        "endpoints",
-        "discovery"
-    ];
+
 
     public bool TryCreateStepSlice(string? stepKey, out RazorSlice stepSlice)
     {

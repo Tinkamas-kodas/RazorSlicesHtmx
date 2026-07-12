@@ -75,4 +75,4 @@ public sealed class {FeatureName}ContentService
 - The feature is auto-discovered by `FeatureRegistry.Discover()` — no manual registration needed
 - Use the project's root namespace from the .csproj `<RootNamespace>` element
 - Follow existing code style in the project
-- Page title defaults to `NavigationRouteItem.Label`; for specific screens use `Result.For(...).WithPageTitle("...")`
+- Page title defaults to `NavigationRouteItem.Label`; for specific screens use `Result.Page(...).WithPageTitle("...")`

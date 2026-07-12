@@ -455,39 +455,29 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
 
     private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
-    private sealed class BinderTarget
+    private sealed class BinderTarget(INamedTypeSymbol symbol, BinderOptions options)
     {
-        public BinderTarget(INamedTypeSymbol symbol, BinderOptions options)
-        {
-            Symbol = symbol;
-            Options = options;
-        }
+        public INamedTypeSymbol Symbol { get; } = symbol;
 
-        public INamedTypeSymbol Symbol { get; }
-
-        public BinderOptions Options { get; }
+        public BinderOptions Options { get; } = options;
     }
 
-    private sealed class BinderOptions
+    private sealed class BinderOptions(
+        string searchQueryKey,
+        string defaultSortBy,
+        int defaultPage,
+        int defaultPageSize,
+        int maxPageSize)
     {
-        public BinderOptions(string searchQueryKey, string defaultSortBy, int defaultPage, int defaultPageSize, int maxPageSize)
-        {
-            SearchQueryKey = searchQueryKey;
-            DefaultSortBy = defaultSortBy;
-            DefaultPage = defaultPage;
-            DefaultPageSize = defaultPageSize;
-            MaxPageSize = maxPageSize;
-        }
+        public string SearchQueryKey { get; } = searchQueryKey;
 
-        public string SearchQueryKey { get; }
+        public string DefaultSortBy { get; } = defaultSortBy;
 
-        public string DefaultSortBy { get; }
+        public int DefaultPage { get; } = defaultPage;
 
-        public int DefaultPage { get; }
+        public int DefaultPageSize { get; } = defaultPageSize;
 
-        public int DefaultPageSize { get; }
-
-        public int MaxPageSize { get; }
+        public int MaxPageSize { get; } = maxPageSize;
 
         public static BinderOptions FromSymbol(INamedTypeSymbol symbol)
         {

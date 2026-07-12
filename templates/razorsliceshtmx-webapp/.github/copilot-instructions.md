@@ -36,29 +36,29 @@ Features are auto-discovered by `FeatureRegistry.Discover()` — no manual regis
 Always use `FeatureResultBuilder` — never return raw `IResult`:
 ```csharp
 // Full page (detail swap + navigation update):
-Result.For(_PageSlice.Create(model)).BuildAsync()
+Result.Page(_PageSlice.Create(model)).Build()
 
 // HTMX fragment (detail swap only):
-Result.For(_PageSlice.Create(model)).AsFragment(_FragmentSlice.Create(model)).BuildAsync()
+Result.Page(_PageSlice.Create(model))).Build()
 
 // With toast notification:
-Result.For(_Empty.Create()).WithToast("Saved!").BuildAsync()
-Result.For(_Empty.Create()).WithToast("Deleted", title: "Done", tone: ToastTone.Warning).BuildAsync()
+Result.Page(_Empty.Create()).WithToast("Saved!").Build()
+Result.Page(_Empty.Create()).WithToast("Deleted", title: "Done", tone: ToastTone.Warning).Build()
 
 // With HTMX trigger:
-Result.For(_Empty.Create()).WithTrigger("Items.ListRefresh").BuildAsync()
+Result.Page(_Empty.Create()).WithTrigger("Items.ListRefresh").Build()
 
 // With state preservation:
-Result.For(page).AsFragment(list).WithState(search).WithState(query).BuildAsync()
+Result.Page(page).WithState(search).WithState(query).Build()
 
 // With retarget/reswap (override where/how response is swapped):
-Result.For(detail).AsFragment(form).WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml).BuildAsync()
+Result.Page(detail).WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml).Build()
 
 // With CancellationToken:
-Result.For(detail).AsFragment(fragment).BuildAsync(cancellationToken)
+Result.Page(detail).Build()
 
 // Override page title for this response:
-Result.For(detail).WithPageTitle("Edit item").BuildAsync()
+Result.Page(detail).WithPageTitle("Edit item").Build()
 ```
 
 ### Page title defaults
@@ -132,11 +132,11 @@ public IHtmlContent SerializeOob();   // same with hx-swap-oob
 app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
 {
     var model = service.CreateListModel(db, search, query);
-    return Result.For(_FeaturePage.Create(model))
-        .AsFragment(_ListPage.Create(model))
+    return Result.Page(_FeaturePage.Create(model))
+        )
         .WithState(search)
         .WithState(query)
-        .BuildAsync();
+        .Build();
 });
 ```
 
@@ -378,18 +378,18 @@ builder.Services.Configure<RazorSlicesHtmxOptions>(
 
 ### `WithRetarget(selector)` — override target element
 ```csharp
-Result.For(detail).AsFragment(formWithErrors).WithRetarget("#edit-form").BuildAsync();
+Result.Page(detail).WithRetarget("#edit-form").Build();
 ```
 
 ### `WithReswap(swapMode)` — override swap strategy
 ```csharp
-Result.For(detail).AsFragment(item).WithReswap(HtmxSwap.BeforeEnd).BuildAsync();
+Result.Page(detail).WithReswap(HtmxSwap.BeforeEnd).Build();
 ```
 
 ### Combined — validation error pattern
 ```csharp
-Result.For(detail).AsFragment(formWithErrors)
-    .WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml).BuildAsync();
+Result.Page(detail)
+    .WithRetarget("#edit-form").WithReswap(HtmxSwap.OuterHtml).Build();
 ```
 
 Also available on `HtmxFragmentResult`:
@@ -406,7 +406,7 @@ new NavigationRouteItem("admin-users", "Users", "/admin/users", usersPage,
 ```
 
 - Endpoint auth: `.RequireAuthorization(policy)` on endpoint registrations.
-- Navigation filtering: `BuildAsync()` automatically filters navigation tree via `IAuthorizationService`. Groups with no authorized children are excluded.
+- Navigation filtering: `Build()` automatically filters navigation tree via `IAuthorizationService`. Groups with no authorized children are excluded.
 - No auth: when `IAuthorizationService` is not registered, all items pass through.
 
 ## HTMX Error Handling
@@ -477,7 +477,7 @@ Bootstrap5 validation UI in Razor:
 
 - Never create controllers — use minimal API endpoints in `MapEndpoints`
 - Never reference `Microsoft.AspNetCore.Mvc` — use RazorSlices only
-- All endpoints return `Task<IResult>` via `BuildAsync()`
+- All endpoints return `Task<IResult>` via `Build()`
 - Models are `sealed record` types
 - `[GenerateHtmlNames]` attribute on form request models (source-generated)
 - State models must be `partial` for generator support

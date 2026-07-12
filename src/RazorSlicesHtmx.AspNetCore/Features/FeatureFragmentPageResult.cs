@@ -7,7 +7,7 @@ namespace RazorSlicesHtmx.AspNetCore.Features;
 
 public static class FeatureFragmentPageResult
 {
-    public static async Task<IResult> CreateAsync(
+    public static IResult Create(
         HttpRequest request,
         FeatureRegistry features,
         NavigationItem routeItem,
@@ -16,6 +16,6 @@ public static class FeatureFragmentPageResult
     {
         return request.IsHtmxRequest()
             ? htmxFragment
-            : await SliceResults.SlicePageAsync(request, features, routeItem, pageDetail);
+            : SliceResults.SlicePage(request, features, routeItem, pageDetail);
     }
 }

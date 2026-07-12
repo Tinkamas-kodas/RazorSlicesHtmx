@@ -33,8 +33,13 @@ public class HtmxFragmentResultTests
         builder.WithTrigger("list-refresh");
 
         var result = builder.Build();
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.Body = new MemoryStream();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
 
         await result.ExecuteAsync(httpContext);
 
@@ -50,8 +55,13 @@ public class HtmxFragmentResultTests
         var builder = HtmxFragmentResult.Create(new FakeSlice());
 
         var result = builder.Build();
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.Body = new MemoryStream();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
 
         await result.ExecuteAsync(httpContext);
 
@@ -108,8 +118,13 @@ public class HtmxFragmentResultTests
         builder.WithRetarget("#form-container");
 
         var result = builder.Build();
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.Body = new MemoryStream();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
 
         await result.ExecuteAsync(httpContext);
 
@@ -123,8 +138,13 @@ public class HtmxFragmentResultTests
         builder.WithReswap(Hx.Swap.OuterHtml);
 
         var result = builder.Build();
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.Body = new MemoryStream();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
 
         await result.ExecuteAsync(httpContext);
 
@@ -138,8 +158,13 @@ public class HtmxFragmentResultTests
         builder.WithRetarget("#edit-form").WithReswap(Hx.Swap.OuterHtml);
 
         var result = builder.Build();
-        var httpContext = new DefaultHttpContext();
-        httpContext.Response.Body = new MemoryStream();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
 
         await result.ExecuteAsync(httpContext);
 

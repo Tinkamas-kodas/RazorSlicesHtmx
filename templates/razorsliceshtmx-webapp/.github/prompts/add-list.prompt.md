@@ -226,7 +226,7 @@ _FeaturePage.cshtml      ← state serialization + #feature-details refresh wrap
 - **State** is serialized in `_FeaturePage` as hidden divs
 - **`#feature-details`** has `hx-trigger="{Name}.ListRefresh from:body"` — refreshes the full list
 - **Toolbar** (search form) stays stable — it's inside `_ListPage` which is only re-rendered on full page load
-- The list endpoint returns `_ListPage` as `.AsFragment()` — the whole list area swaps on HTMX requests
+- The list endpoint returns `_ListPage` as `Result.Page(detail)` — the whole list area swaps on HTMX requests
 
 ## Update existing files:
 
@@ -258,16 +258,16 @@ public {FeatureName}ListModel CreateListModel({FeatureName}SearchModel search, {
 app.MapGet("/{route}/list", ([AsParameters] {FeatureName}SearchModel search, {FeatureName}ListQuery query) =>
 {
     var model = _content.CreateListModel(search, query);
-    return Result.For(_FeaturePage.Create(model))
-        .AsFragment(_ListPage.Create(model))
+    return Result.Page(_FeaturePage.Create(model))
+        )
     .WithPageTitle("{FeatureName}")
         .WithState(search)
         .WithState(query)
-        .BuildAsync();
+        .Build();
 });
 ```
 
-Note: `.AsFragment(_ListPage)` — the fragment is the list page (toolbar + table), not just the table. The `_FeaturePage` wrapper with state serialization is only sent on full page loads.
+Note: `` — the fragment is the list page (toolbar + table), not just the table. The `_FeaturePage` wrapper with state serialization is only sent on full page loads.
 
 ## Key concepts:
 

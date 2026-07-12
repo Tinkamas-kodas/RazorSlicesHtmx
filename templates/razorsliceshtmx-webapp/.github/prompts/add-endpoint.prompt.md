@@ -23,10 +23,10 @@ Add a new HTMX endpoint (GET or POST) to an existing feature module.
 app.MapGet("{route}/{action}", (int id) =>
 {
     var model = _content.GetModel(id);
-    return Result.For(_{FeatureName}Page.Create(model))
-        .AsFragment(_FragmentSlice.Create(model))
+    return Result.Page(_{FeatureName}Page.Create(model))
+        )
     .WithPageTitle("{FeatureName}")
-        .BuildAsync();
+        .Build();
 });
 ```
 
@@ -35,10 +35,10 @@ app.MapGet("{route}/{action}", (int id) =>
 app.MapPost("{route}/delete", (int id) =>
 {
     // TODO: delete the item
-    return Result.For(_Empty.Create())
+    return Result.Page(_Empty.Create())
         .WithTrigger("{FeatureName}.ListRefresh")
         .WithToast("Item deleted.")
-        .BuildAsync();
+        .Build();
 });
 ```
 
@@ -47,7 +47,7 @@ app.MapPost("{route}/delete", (int id) =>
 app.MapGet("{route}/confirm-delete/{id:int}", (int id) =>
 {
     var model = _content.CreateDeleteDialogModel(id);
-    return Result.Dialog(_{Entity}Delete.Create(model));
+    return Result.ShowDialog(_{Entity}Delete.Create(model));
 });
 ```
 
@@ -56,17 +56,17 @@ app.MapGet("{route}/confirm-delete/{id:int}", (int id) =>
 app.MapGet("{route}/details", (int id) =>
 {
     var model = _content.GetDetails(id);
-    return Result.For(_DetailsSlice.Create(model))
+    return Result.Page(_DetailsSlice.Create(model))
         .WithRetarget("#details-panel")
         .WithReswap(HtmxSwap.InnerHtml)
-        .BuildAsync();
+        .Build();
 });
 ```
 
 ## Important:
 - All POST endpoints should accept antiforgery validation and use the shared HTMX token header adapter.
 - For form posts, prefer generated `BindAsync(...)` / `FromForm(...)` request models over manual `[FromForm]` binding when the model is a partial upsert request.
-- Use `.AsFragment()` when the endpoint should return just a fragment for HTMX but the full page for direct browser navigation
+- Use `Result.Page(detail)` — on HTMX requests the detail slice is the fragment; on full-page requests it is wrapped in the page shell
 - For GET endpoints, set contextual title with `.WithPageTitle(...)` when needed (otherwise default is `NavigationRouteItem.Label`)
 - Use `.WithTrigger()` to trigger client-side HTMX events (e.g., refresh a list)
 - Use `.WithRetarget()` / `.WithReswap()` to override the default swap target

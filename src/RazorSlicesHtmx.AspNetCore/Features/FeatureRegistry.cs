@@ -12,17 +12,19 @@ public sealed class FeatureRegistry
     private readonly IReadOnlyList<NavigationItem> _navigation;
     private readonly NavigationItem[] _routeItems;
     private readonly Dictionary<string, int> _keyToFeatureIndex;
+    private readonly string[] _featureRouteGroups;
 
-    private FeatureRegistry(IFeatureModule[] features)
+    private FeatureRegistry((IFeatureModule Module, string RouteGroupPrefix)[] featureDefinitions)
     {
-        _features = features;
-        _navigation = features
-            .SelectMany(f => f.NavigationItems)
+        _features = featureDefinitions.Select(x => x.Module).ToArray();
+        _featureRouteGroups = featureDefinitions.Select(x => NormalizeRouteGroupPrefix(x.RouteGroupPrefix)).ToArray();
+        _navigation = featureDefinitions
+            .SelectMany(x => ApplyRouteGroupPrefix(x.Module.NavigationItems, NormalizeRouteGroupPrefix(x.RouteGroupPrefix)))
             .OrderBy(item => item.Order)
             .ThenBy(item => item.Label, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         _routeItems = CollectRouteItems(_navigation).ToArray();
-        _keyToFeatureIndex = BuildKeyToFeatureIndex(features);
+        _keyToFeatureIndex = BuildKeyToFeatureIndex(_features);
     }
 
     public NavigationItem DefaultRouteItem =>
@@ -32,32 +34,42 @@ public sealed class FeatureRegistry
 
     public IReadOnlyList<NavigationItem> RouteItems => _routeItems;
 
-    public static FeatureRegistry Discover(Assembly assembly, IServiceProvider services) =>
-        Discover([assembly], services);
+    
 
-    public static FeatureRegistry Discover(IEnumerable<Assembly> assemblies, IServiceProvider services)
+    public static FeatureRegistry FromRegistrations(IServiceProvider services)
     {
-        var features = assemblies
-            .SelectMany(a => a.GetTypes())
-            .Where(type => typeof(IFeatureModule).IsAssignableFrom(type))
-            .Where(type => !type.IsAbstract && !type.IsInterface)
-            .Distinct()
-            .Select(type => (IFeatureModule)ActivatorUtilities.CreateInstance(services, type))
-            .ToArray();
-
-        if (features.Length == 0)
+        var options = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<FeatureRegistrationOptions>>().Value;
+        if (options.Registrations.Count == 0)
         {
-            throw new InvalidOperationException("No feature modules were discovered.");
+            throw new InvalidOperationException(
+                "No features were registered. Register features explicitly with services.AddFeature<TFeature>(...).");
         }
+
+        var features = options.Registrations.Select(registration =>
+        {
+            if (!typeof(IFeatureModule).IsAssignableFrom(registration.FeatureType))
+            {
+                throw new InvalidOperationException(
+                    $"Type '{registration.FeatureType.FullName}' must implement {nameof(IFeatureModule)}.");
+            }
+
+            var module = (IFeatureModule)ActivatorUtilities.CreateInstance(services, registration.FeatureType);
+            var routeGroupPrefix = string.IsNullOrWhiteSpace(registration.RouteGroupPrefix)
+                ? InferRouteGroupPrefix(module)
+                : registration.RouteGroupPrefix!;
+
+            return (module, routeGroupPrefix);
+        }).ToArray();
 
         return new FeatureRegistry(features);
     }
 
     public void MapEndpoints(WebApplication app)
     {
-        foreach (var feature in _features)
+        for (var i = 0; i < _features.Length; i++)
         {
-            feature.MapEndpoints(app);
+            var group = app.MapGroup(_featureRouteGroups[i]);
+            _features[i].MapEndpoints(group);
         }
     }
 
@@ -135,6 +147,45 @@ public sealed class FeatureRegistry
         }
     }
 
+    private static IReadOnlyList<NavigationItem> ApplyRouteGroupPrefix(IReadOnlyList<NavigationItem> items, string routeGroupPrefix)
+    {
+        return items.Select(item => ApplyRouteGroupPrefix(item, routeGroupPrefix)).ToArray();
+    }
+
+    private static NavigationItem ApplyRouteGroupPrefix(NavigationItem item, string routeGroupPrefix)
+    {
+        if (item is NavigationGroupItem group)
+        {
+            return group with { Children = ApplyRouteGroupPrefix(group.Children, routeGroupPrefix) };
+        }
+
+        var route = CombineRoute(routeGroupPrefix, item.Route);
+        return item with { Route = route };
+    }
+
+    private static string CombineRoute(string routeGroupPrefix, string route)
+    {
+        if (string.IsNullOrWhiteSpace(route))
+        {
+            return routeGroupPrefix;
+        }
+
+        if (Uri.TryCreate(route, UriKind.Absolute, out _))
+        {
+            return route;
+        }
+
+        // Backward compatibility: keep explicit absolute app routes unchanged.
+        if (route.StartsWith('/'))
+        {
+            return route;
+        }
+
+        return routeGroupPrefix == "/"
+            ? "/" + route.TrimStart('/')
+            : $"{routeGroupPrefix}/{route.TrimStart('/')}";
+    }
+
     private static Dictionary<string, int> BuildKeyToFeatureIndex(IFeatureModule[] features)
     {
         var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -161,16 +212,27 @@ public sealed class FeatureRegistry
         var path = ExtractPath(currentUrl);
         if (string.IsNullOrEmpty(path)) return -1;
 
-        foreach (var item in _routeItems)
+        var activeIndex = -1;
+        var bestMatchLength = -1;
+
+        for (var i = 0; i < _featureRouteGroups.Length; i++)
         {
-            var prefix = GetFirstPathSegmentPrefix(item.Route);
-            if (prefix is not null && path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            var prefix = _featureRouteGroups[i];
+            if (!PathMatchesPrefix(path, prefix))
             {
-                return GetFeatureIndex(item);
+                continue;
             }
+
+            if (prefix.Length <= bestMatchLength)
+            {
+                continue;
+            }
+
+            activeIndex = i;
+            bestMatchLength = prefix.Length;
         }
 
-        return -1;
+        return activeIndex;
     }
 
     private static string? ExtractPath(string? url)
@@ -181,13 +243,83 @@ public sealed class FeatureRegistry
         return q >= 0 ? url[..q] : url;
     }
 
-    private static string? GetFirstPathSegmentPrefix(string route)
+    private static string NormalizeRouteGroupPrefix(string? prefix)
     {
-        // "/items/list" → "/items/"   "/about" → "/about"
-        var trimmed = route.TrimStart('/');
-        if (string.IsNullOrEmpty(trimmed)) return null;
-        var slash = trimmed.IndexOf('/');
-        var segment = slash >= 0 ? trimmed[..slash] : trimmed;
-        return string.IsNullOrEmpty(segment) ? null : $"/{segment}";
+        if (string.IsNullOrWhiteSpace(prefix))
+        {
+            return "/";
+        }
+
+        var normalized = ExtractPath(prefix) ?? "/";
+        if (!normalized.StartsWith('/'))
+        {
+            normalized = "/" + normalized;
+        }
+
+        if (normalized.Length > 1 && normalized.EndsWith('/'))
+        {
+            normalized = normalized.TrimEnd('/');
+        }
+
+        return normalized;
+    }
+
+    private static bool PathMatchesPrefix(string path, string prefix)
+    {
+        if (prefix == "/")
+        {
+            return true;
+        }
+
+        var normalizedPath = NormalizeRouteGroupPrefix(path);
+        return normalizedPath.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string InferRouteGroupPrefix(IFeatureModule feature)
+    {
+        var routes = CollectRouteItems(feature.NavigationItems)
+            .Select(x => ExtractPath(x.Route))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => NormalizeRouteGroupPrefix(x!))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (routes.Length == 0)
+        {
+            throw new InvalidOperationException(
+                $"Feature '{feature.GetType().FullName}' does not define navigable routes.");
+        }
+
+        if (routes.Length == 1)
+        {
+            return routes[0];
+        }
+
+        var commonSegments = routes
+            .Select(route => route.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries))
+            .ToArray();
+
+        var maxLength = commonSegments.Min(parts => parts.Length);
+        var take = 0;
+
+        for (var i = 0; i < maxLength; i++)
+        {
+            var segment = commonSegments[0][i];
+            if (commonSegments.All(parts => string.Equals(parts[i], segment, StringComparison.OrdinalIgnoreCase)))
+            {
+                take++;
+                continue;
+            }
+
+            break;
+        }
+
+        if (take == 0)
+        {
+            return routes[0];
+        }
+
+        return "/" + string.Join('/', commonSegments[0].Take(take));
     }
 }

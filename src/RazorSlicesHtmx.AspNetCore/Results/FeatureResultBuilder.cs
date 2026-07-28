@@ -1,5 +1,5 @@
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
@@ -42,7 +42,6 @@ public sealed class FeatureResultBuilder(
         private readonly List<(string Selector, RazorSlice Content, string Swap)> _targetedOobParts = [];
         private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
-        private readonly List<string> _triggersAfterSwap = [];
         private readonly List<ToastModel> _toasts = [];
         private RazorSlice? _htmxFragment;
         private RazorSlice? _workspaceDetail;
@@ -86,7 +85,7 @@ public sealed class FeatureResultBuilder(
         public Builder WithDialog(RazorSlice content)
         {
             WithOob(owner._options.DialogHostSelector, owner.CreateDialog(content));
-            _triggersAfterSwap.Add("show-dialog");
+            _triggers.Add("show-dialog");
             return this;
         }
 
@@ -228,8 +227,7 @@ public sealed class FeatureResultBuilder(
                 var locationBuilder = HtmxFragmentResult.Create(detail);
                 foreach (var toast in _toasts)
                 {
-                    var toastPayload = JsonSerializer.Serialize(new { title = toast.Title, message = toast.Message, tone = toast.Tone.ToString().ToLower() });
-                    locationBuilder.WithTriggerAfterSwap("show-toast", toastPayload);
+                    locationBuilder.WithTrigger("show-toast", BuildToastJson(toast));
                 }
                 return new HeaderResult(locationBuilder.Build(), Hx.Location, locationPayload);
             }
@@ -250,8 +248,7 @@ public sealed class FeatureResultBuilder(
 
             foreach (var toast in _toasts)
             {
-                var payload = JsonSerializer.Serialize(new { title = toast.Title, message = toast.Message, tone = toast.Tone.ToString().ToLower() });
-                htmxBuilder.WithTriggerAfterSwap("show-toast", payload);
+                htmxBuilder.WithTrigger("show-toast", BuildToastJson(toast));
             }
 
             foreach (var targeted in _targetedOobParts)
@@ -272,11 +269,6 @@ public sealed class FeatureResultBuilder(
             foreach (var trigger in _triggers)
             {
                 htmxBuilder.WithTrigger(trigger);
-            }
-
-            foreach (var trigger in _triggersAfterSwap)
-            {
-                htmxBuilder.WithTriggerAfterSwap(trigger);
             }
 
             if (_retarget is not null)
@@ -304,19 +296,32 @@ public sealed class FeatureResultBuilder(
             string url,
             bool replace)
         {
-            var payload = new
-            {
-                path = url,
-                target = options.DetailTargetSelector,
-                swap = options.DefaultOobSwap,
-                replace = replace ? url : null,
-                push = replace ? null : url
-            };
+            using var ms = new MemoryStream();
+            using var writer = new Utf8JsonWriter(ms);
+            writer.WriteStartObject();
+            writer.WriteString("path", url);
+            writer.WriteString("target", options.DetailTargetSelector);
+            writer.WriteString("swap", options.DefaultOobSwap);
+            if (replace)
+                writer.WriteString("replace", url);
+            else
+                writer.WriteString("push", url);
+            writer.WriteEndObject();
+            writer.Flush();
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }
 
-            return JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            });
+        private static string BuildToastJson(ToastModel toast)
+        {
+            using var ms = new MemoryStream();
+            using var writer = new Utf8JsonWriter(ms);
+            writer.WriteStartObject();
+            writer.WriteString("title", toast.Title);
+            writer.WriteString("message", toast.Message);
+            writer.WriteString("tone", toast.Tone.ToString().ToLower());
+            writer.WriteEndObject();
+            writer.Flush();
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
         private static IHtmlContent CreatePageTitleOob(string title)

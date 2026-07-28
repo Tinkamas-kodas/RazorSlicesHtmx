@@ -55,7 +55,7 @@ For endpoints that always return a fragment — no full-page rendering, no auth 
 ```csharp
 return HtmxFragmentResult.Create(primary)
     .WithOob("#sidebar", sidebar)
-    .WithTriggerAfterSwap("show-dialog");
+    .WithTrigger("show-dialog");
 ```
 
 ### Full API
@@ -68,10 +68,8 @@ return HtmxFragmentResult.Create(primary)
 | `WithOob(IEnumerable<slice>)` | Multiple direct OOB slices |
 | `WithRawOob(IHtmlContent)` | Raw HTML content as OOB |
 | `WithRawOob(IEnumerable<IHtmlContent>)` | Multiple raw OOB parts |
-| `WithTrigger(eventName)` | Add `HX-Trigger` event |
+| `WithTrigger(eventName)` | Add `HX-Trigger` event (fires after swap in htmx 4) |
 | `WithTrigger(eventName, jsonValue)` | Add `HX-Trigger` with JSON payload |
-| `WithTriggerAfterSwap(eventName)` | Add `HX-Trigger-After-Swap` event |
-| `WithTriggerAfterSwap(eventName, jsonValue)` | Add `HX-Trigger-After-Swap` with JSON payload |
 | `WithRetarget(selector)` | Add `HX-Retarget` |
 | `WithReswap(swapMode)` | Add `HX-Reswap` |
 | `Build()` | Explicitly build the result (optional — `Builder` implements `IResult` directly) |

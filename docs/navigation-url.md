@@ -37,7 +37,7 @@ return Result.Page(detail)
     .Build();
 ```
 
-The `HX-Location` payload includes `target` (from `RazorSlicesHtmxOptions.DetailTargetSelector`) and `swap` (from `DefaultOobSwap`). Toasts are sent as `HX-Trigger-After-Swap` on the same response — they fire after the location follow-up swap completes.
+The `HX-Location` payload includes `target` (from `RazorSlicesHtmxOptions.DetailTargetSelector`) and `swap` (from `DefaultOobSwap`). Toasts are sent as `HX-Trigger` on the same response — they fire after the location follow-up swap completes.
 
 ## Navigation OOB
 
@@ -45,6 +45,8 @@ On HTMX requests, `FeatureResultBuilder` sends navigation as an OOB update so th
 
 - **Default (`HxCurrentUrlNavStrategy`)** — sends nav OOB only when the active feature changes (compares `HX-Current-URL` header against the requested route item).
 - **Override** — call `WithNav(true/false)` to force send or skip for a specific response.
+
+When features are registered with route-group prefixes, navigation routes can stay relative in the feature module. The registry composes absolute routes from `prefix + relative route` before nav matching.
 
 ```csharp
 return Result.Page(detail)

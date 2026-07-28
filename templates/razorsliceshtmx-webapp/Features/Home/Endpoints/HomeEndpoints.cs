@@ -11,11 +11,11 @@ public sealed class HomeEndpoints(FeatureResultBuilder resultBuilder) : BaseFeat
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("home", "Home", "/home", Order: 0)
+        new("home", "Home", "", Order: 0)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/home", () => Result.Page(_HomePage.Create()));
+        group.MapGet("", () => Result.Page(_HomePage.Create()));
     }
 }

@@ -30,9 +30,9 @@
     "route": {
       "type": "parameter",
       "datatype": "text",
-      "description": "Base route for the feature (e.g. /products). Defaults to /featurename.",
+      "description": "Route-group prefix for AddFeature<TFeature>(prefix), for example products.",
       "defaultValue": "",
-      "replaces": "/my-feature-route"
+      "replaces": "my-feature-route"
     },
     "order": {
       "type": "parameter",
@@ -58,7 +58,7 @@
       "description": "Reminder to register the feature module",
       "manualInstructions": [
         {
-          "text": "Ensure the feature assembly is included in FeatureRegistry.Discover()."
+          "text": "Register the feature explicitly: options.FeatureRegistration.AddFeature<MyFeatureEndpoints>(\"my-feature-route\")."
         }
       ],
       "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C"

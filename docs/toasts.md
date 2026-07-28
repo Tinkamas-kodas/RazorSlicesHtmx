@@ -26,10 +26,10 @@ The error middleware always uses `ToastTone.Error`. See [Error Handling](error-h
 
 ## How it works
 
-`WithToast(...)` queues a `ToastModel`. On `Build()`, each toast is serialized as a `show-toast` JSON trigger on `HX-Trigger-After-Swap`:
+`WithToast(...)` queues a `ToastModel`. On `Build()`, each toast is serialized as a `show-toast` JSON trigger on `HX-Trigger`:
 
 ```
-HX-Trigger-After-Swap: {"show-toast":{"title":"Saved","message":"Item saved","tone":"success"}}
+HX-Trigger: {"show-toast":{"title":"Saved","message":"Item saved","tone":"success"}}
 ```
 
 The app shell JavaScript listens for `show-toast` and creates the Bootstrap toast element dynamically.

@@ -2,6 +2,7 @@ using RazorSlices;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Results;
 using RazorSlicesHtmx.AspNetCore.Slices;
+using Microsoft.AspNetCore.Routing;
 
 namespace RazorSlicesHtmx.AspNetCore.Features;
 
@@ -11,7 +12,7 @@ public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IF
 
     public abstract IReadOnlyList<NavigationItem> NavigationItems { get; }
 
-    public abstract void MapEndpoints(WebApplication app);
+    public abstract void MapEndpoints(RouteGroupBuilder group);
 
     protected sealed class ModuleResultFacade(FeatureResultBuilder resultBuilder, IReadOnlyList<NavigationItem> items)
     {
@@ -37,7 +38,7 @@ public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IF
 
         public IResult ShowDialog(RazorSlice content) =>
             HtmxFragmentResult.Create(resultBuilder.CreateDialog(content))
-                .WithTriggerAfterSwap("show-dialog")
+                .WithTrigger("show-dialog")
                 .Build();
 
         

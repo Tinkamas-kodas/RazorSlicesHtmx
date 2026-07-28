@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Models;
@@ -80,7 +81,7 @@ public sealed class AlphaFeature : IFeatureModule
         new("alpha", "Alpha", "/alpha")
     ];
 
-    public void MapEndpoints(WebApplication app)
+    public void MapEndpoints(RouteGroupBuilder group)
     {
     }
 }
@@ -92,7 +93,7 @@ public sealed class BravoFeature : IFeatureModule
         new("bravo", "Bravo", "/bravo")
     ];
 
-    public void MapEndpoints(WebApplication app)
+    public void MapEndpoints(RouteGroupBuilder group)
     {
     }
 }
@@ -104,7 +105,7 @@ public sealed class CharlieFeature : IFeatureModule
         new("charlie", "Charlie", "/charlie", Order: 200)
     ];
 
-    public void MapEndpoints(WebApplication app)
+    public void MapEndpoints(RouteGroupBuilder group)
     {
     }
 }

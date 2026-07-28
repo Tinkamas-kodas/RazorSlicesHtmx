@@ -13,12 +13,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("items", "Items", "/items", Order: 100)
+        new("items", "Items", "list", Order: 100)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/items", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
+        group.MapGet("list", ([AsParameters] ItemSearchModel search, ItemListQuery query, AppDbContext db) =>
         {
             var model = _content.CreateListModel(db, search, query);
             return Result.Page(_FeaturePage.Create(model))
@@ -28,6 +28,18 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
     }
 }
 ```
+
+Register each feature and its route-group prefix in startup:
+
+```csharp
+builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
+{
+    options.FeatureRegistration
+        .AddFeature<ItemsEndpoints>("items");
+});
+```
+
+With this setup, feature endpoints stay relative (`"list"`, `"create"`, `"edit/{id}"`) and startup owns the absolute prefix (`/items`).
 
 `BaseFeatureModule` provides the `Result` convenience facade backed by `FeatureResultBuilder`. Implement `IFeatureModule` directly only when you don't use `FeatureResultBuilder`.
 
@@ -54,7 +66,19 @@ new NavigationGroupItem("admin", "Administration",
 
 Groups with no authorized children are automatically hidden.
 
-## Feature discovery
+## Feature registration
+
+Preferred approach:
+
+```csharp
+builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
+{
+    options.FeatureRegistration
+        .AddFeature<ItemsEndpoints>("items");
+});
+```
+
+Optional legacy fallback:
 
 `FeatureRegistry.Discover` scans assemblies for `IFeatureModule` implementations and registers them:
 

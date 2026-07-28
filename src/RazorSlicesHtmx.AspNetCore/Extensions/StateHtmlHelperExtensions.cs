@@ -36,8 +36,28 @@ public static class HtmlHelperExtensions
     public static bool IsHtmxTarget(this HttpContext httpContext, string target)
     {
         ArgumentNullException.ThrowIfNull(httpContext);
-        return string.Equals(httpContext.Request.Headers[Hx.Target], target,
-            StringComparison.OrdinalIgnoreCase);
+
+        var actual = httpContext.Request.Headers[Hx.Target].ToString();
+        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(target))
+        {
+            return false;
+        }
+
+        static string NormalizeTarget(string value)
+        {
+            var normalized = value.Trim();
+
+            // htmx 4 may send CSS-like selectors, e.g. "section#clients-list".
+            var hashIndex = normalized.LastIndexOf('#');
+            if (hashIndex >= 0 && hashIndex < normalized.Length - 1)
+            {
+                normalized = normalized[(hashIndex + 1)..];
+            }
+
+            return normalized.TrimStart('#');
+        }
+
+        return string.Equals(NormalizeTarget(actual), NormalizeTarget(target), StringComparison.OrdinalIgnoreCase);
     }
 }
 

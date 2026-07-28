@@ -25,7 +25,12 @@ dotnet add package RazorSlicesHtmx.Generators
 builder.Services.AddRazorSlicesHtmx();
 builder.Services.AddRazorSlicesHtmxBootstrap5();
 builder.Services.AddSingleton<IFeaturePageRenderer, MyFeaturePageRenderer>();
-builder.Services.AddSingleton(sp => FeatureRegistry.Discover(typeof(Program).Assembly, sp));
+builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
+{
+	options.FeatureRegistration
+		.AddFeature<HomeEndpoints>("home")
+		.AddFeature<ItemsEndpoints>("items");
+});
 
 var features = app.Services.GetRequiredService<FeatureRegistry>();
 app.UseHtmxErrorHandling();
@@ -46,7 +51,7 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 | [Authorization](docs/authorization.md) | Policy-based nav filtering, endpoint auth |
 | [Dialogs](docs/dialogs.md) | `WithDialog`, `ClearDialog`, modal lifecycle |
 | [Toasts](docs/toasts.md) | `WithToast`, `ToastTone`, trigger timing |
-| [Triggers](docs/triggers.md) | `WithTrigger`, `WithTriggerAfterSwap`, `Hx.*` constants |
+| [Triggers](docs/triggers.md) | `WithTrigger`, `Hx.*` constants |
 | [Retarget & Reswap](docs/retarget-reswap.md) | `WithRetarget`, `WithReswap`, `Hx.Swap.*`, validation error pattern |
 | [Page Title](docs/page-title.md) | Default from nav label, `WithPageTitle`, OOB update |
 | [State](docs/state.md) | `partial` models, `WithState`, `StateId`, `[StateNotMap]` |

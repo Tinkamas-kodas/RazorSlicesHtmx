@@ -9,15 +9,15 @@ public sealed class HowToEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("howto", "HowTo", "/howto", Order: 400)
+        new("howto", "HowTo", "", Order: 400)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/howto", () =>
+        group.MapGet("", () =>
             Result.Page(_HowToPage.Create()));
 
-        app.MapGet("/howto/step/{key}", (string key) =>
+        group.MapGet("step/{key}", (string key) =>
         {
             if (!_content.TryCreateStepSlice(key, out var stepSlice))
             {

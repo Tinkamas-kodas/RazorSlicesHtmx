@@ -18,8 +18,6 @@ public static class HtmxFragmentResult
         private readonly List<IHtmlContent> _rawOobParts = [];
         private readonly List<string> _triggers = [];
         private readonly List<(string Name, string Json)> _jsonTriggers = [];
-        private readonly List<string> _triggersAfterSwap = [];
-        private readonly List<(string Name, string Json)> _jsonTriggersAfterSwap = [];
         private string? _retarget;
         private string? _reswap;
 
@@ -62,32 +60,6 @@ public static class HtmxFragmentResult
             return this;
         }
 
-        public Builder WithTriggerAfterSwap(string eventName)
-        {
-            if (string.IsNullOrWhiteSpace(eventName))
-            {
-                throw new ArgumentException("Trigger name is required.", nameof(eventName));
-            }
-
-            _triggersAfterSwap.Add(eventName);
-            return this;
-        }
-
-        public Builder WithTriggerAfterSwap(string eventName, string jsonValue)
-        {
-            if (string.IsNullOrWhiteSpace(eventName))
-            {
-                throw new ArgumentException("Trigger name is required.", nameof(eventName));
-            }
-
-            if (string.IsNullOrWhiteSpace(jsonValue))
-            {
-                throw new ArgumentException("JSON value is required.", nameof(jsonValue));
-            }
-
-            _jsonTriggersAfterSwap.Add((eventName, jsonValue));
-            return this;
-        }
 
         public Builder WithOob(params RazorSlice[] parts)
         {
@@ -146,20 +118,18 @@ public static class HtmxFragmentResult
                     _oobParts,
                     _rawOobParts.Count > 0 ? _rawOobParts : null));
 
-            if (_triggers.Count == 0 && _jsonTriggers.Count == 0 && _triggersAfterSwap.Count == 0 && _jsonTriggersAfterSwap.Count == 0 && _retarget is null && _reswap is null)
+            if (_triggers.Count == 0 && _jsonTriggers.Count == 0 && _retarget is null && _reswap is null)
             {
                 return fragment;
             }
 
-            return new HeaderDecoratedResult(fragment, _triggers, _jsonTriggers, _triggersAfterSwap, _jsonTriggersAfterSwap, _retarget, _reswap);
+            return new HeaderDecoratedResult(fragment, _triggers, _jsonTriggers, _retarget, _reswap);
         }
 
         private sealed class HeaderDecoratedResult(
             RazorSlice fragment,
             IReadOnlyCollection<string> triggers,
             IReadOnlyCollection<(string Name, string Json)> jsonTriggers,
-            IReadOnlyCollection<string> triggersAfterSwap,
-            IReadOnlyCollection<(string Name, string Json)> jsonTriggersAfterSwap,
             string? retarget,
             string? reswap) : IResult
         {
@@ -168,11 +138,6 @@ public static class HtmxFragmentResult
                 if (triggers.Count > 0 || jsonTriggers.Count > 0)
                 {
                     httpContext.Response.Headers.Append(Hx.Trigger, BuildTriggerHeader(triggers, jsonTriggers));
-                }
-
-                if (triggersAfterSwap.Count > 0 || jsonTriggersAfterSwap.Count > 0)
-                {
-                    httpContext.Response.Headers.Append(Hx.TriggerAfterSwap, BuildTriggerHeader(triggersAfterSwap, jsonTriggersAfterSwap));
                 }
 
                 if (retarget is not null)

@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -52,13 +53,26 @@ public sealed class HtmxErrorMiddleware(
         var title = _errorOptions.FormatTitle?.Invoke(statusCode, exception)
             ?? GetDefaultTitle(statusCode);
 
-        var payload = JsonSerializer.Serialize(new { title, message, tone = "error" });
+        var payload = BuildToastJson(title, message, "error");
 
         context.Response.StatusCode = 200; // HTMX ignores non-2xx by default
         context.Response.ContentType = "text/html";
         context.Response.Headers.Append(Hx.Reswap, "none");
-        context.Response.Headers.Append(Hx.TriggerAfterSwap, $"{{\"show-toast\":{payload}}}");
+        context.Response.Headers.Append(Hx.Trigger, $"{{\"show-toast\":{payload}}}");
         await context.Response.WriteAsync(string.Empty);
+    }
+
+    private static string BuildToastJson(string title, string message, string tone)
+    {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        writer.WriteStartObject();
+        writer.WriteString("title", title);
+        writer.WriteString("message", message);
+        writer.WriteString("tone", tone);
+        writer.WriteEndObject();
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray());
     }
 
     private static string GetDefaultTitle(int statusCode) => statusCode switch

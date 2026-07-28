@@ -110,7 +110,7 @@ public class HtmxErrorMiddlewareTests
 
         await middleware.InvokeAsync(context);
 
-        var trigger = context.Response.Headers["HX-Trigger-After-Swap"].ToString();
+        var trigger = context.Response.Headers["HX-Trigger"].ToString();
         Assert.Contains("Custom error 500", trigger);
     }
 

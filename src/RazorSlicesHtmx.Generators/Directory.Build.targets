@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    When PublishTrimmed=true (or PublishAot/PublishSingleFile), the SDK target
+    _ComputeToolPackInputsToProcessFrameworkReferences sets _RequiresILLinkPack=true.
+    That causes ProcessFrameworkReferences to run and pass PublishTrimmed=true to the
+    ProcessFrameworkReferences C# task, which raises NETSDK1124 for netstandard2.0 targets.
+
+    Fix: run before _ComputeToolPackInputsToProcessFrameworkReferences and pre-set
+    _RequiresILLinkPack=false. The SDK condition checks "== ''" before overwriting,
+    so a non-empty value here prevents it from being set to true.
+    This project is a Roslyn analyzer and is never published, so skipping ILLink is correct.
+  -->
+  <Target Name="DisableILLinkPackForAnalyzer"
+          BeforeTargets="_ComputeToolPackInputsToProcessFrameworkReferences">
+    <PropertyGroup>
+      <_RequiresILLinkPack>false</_RequiresILLinkPack>
+    </PropertyGroup>
+  </Target>
+</Project>

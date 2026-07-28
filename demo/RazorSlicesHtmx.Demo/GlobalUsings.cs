@@ -4,6 +4,7 @@ global using RazorSlicesHtmx.AspNetCore.Models;
 global using RazorSlicesHtmx.AspNetCore.Rendering;
 global using RazorSlicesHtmx.AspNetCore.Results;
 global using RazorSlicesHtmx.AspNetCore.Slices;
+global using Microsoft.AspNetCore.Routing;
 global using RazorSlicesHtmx.Bootstrap5.Extensions;
 global using RazorSlicesHtmx.Bootstrap5.Slices;
 global using RazorSlicesHtmx.FluentValidation.Extensions;

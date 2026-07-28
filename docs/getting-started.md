@@ -23,12 +23,15 @@ builder.Services.AddRazorSlicesHtmxBootstrap5(); // optional
 // App-owned page shell renderer (required)
 builder.Services.AddSingleton<IFeaturePageRenderer, MyFeaturePageRenderer>();
 
-// Feature discovery — scans assembly for IFeatureModule implementations
-builder.Services.AddSingleton(sp =>
-    FeatureRegistry.Discover(typeof(Program).Assembly, sp));
+builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
+{
+    options.FeatureRegistration
+        .AddFeature<HomeEndpoints>("home")
+        .AddFeature<ItemsEndpoints>("items");
+});
 ```
 
-Multi-assembly discovery:
+Optional legacy fallback (assembly discovery):
 
 ```csharp
 builder.Services.AddSingleton(sp =>
@@ -59,16 +62,18 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 {
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("items", "Items", "/items")
+        new("items", "Items", "")
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/items", () =>
+        group.MapGet("", () =>
             Result.Page(_FeaturePage.Create()));
     }
 }
 ```
+
+In this model, the effective route comes from registration prefix + relative endpoint route (for example `"items" + ""` -> `/items`).
 
 ## See also
 

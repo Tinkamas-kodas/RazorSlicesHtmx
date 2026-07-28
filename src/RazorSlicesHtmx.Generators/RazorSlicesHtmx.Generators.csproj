@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Source generators target netstandard2.0 and cannot be trimmed or AOT-compiled; suppress global publish properties -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <IsPublishable>false</IsPublishable>
     <PackageId>RazorSlicesHtmx.Generators</PackageId>
     <Description>Source generator for strongly typed HTML Name/Id/Path constants used by RazorSlicesHtmx forms.</Description>
     <PackageTags>razorslices;source-generator;roslyn;html;aspnetcore</PackageTags>
@@ -13,6 +17,11 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
+
+  <!-- The SDK's _CheckForUnsupportedPublishTrimmedConfiguration raises NETSDK1124 when
+       PublishTrimmed=true on a netstandard2.0 project. Override it with a no-op so the check
+       is suppressed — this project is a Roslyn analyzer and is never published. -->
+  <Target Name="_CheckForUnsupportedPublishTrimmedConfiguration" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />

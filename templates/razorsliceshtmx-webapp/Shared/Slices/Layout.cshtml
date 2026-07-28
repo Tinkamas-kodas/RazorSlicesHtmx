@@ -52,7 +52,7 @@
     @*#endif*@
     @*#endif*@
     @*#if (useCdn)*@
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js" crossorigin="anonymous"></script>
     @*#else*@
     <script src="/lib/htmx/htmx.min.js"></script>
     @*#endif*@
@@ -63,7 +63,7 @@
                 return;
             }
 
-            document.body.addEventListener('htmx:configRequest', event => {
+            document.body.addEventListener('htmx:config:request', event => {
                 event.detail.headers['RequestVerificationToken'] = token;
             });
         })();
@@ -100,8 +100,8 @@
             };
 
             document.addEventListener("DOMContentLoaded", refresh);
-            document.body.addEventListener("htmx:afterSwap", refresh);
-            document.body.addEventListener("htmx:oobAfterSwap", refresh);
+            document.body.addEventListener("htmx:after:swap", refresh);
+            document.body.addEventListener("htmx:after:oob-swap", refresh);
         })();
     </script>
     @*#endif*@

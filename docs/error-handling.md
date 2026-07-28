@@ -22,7 +22,7 @@ features.MapEndpoints(app);
 
 The middleware resets the response status to 200 so htmx processes the body (htmx ignores non-2xx by default).
 
-The toast is fired via `HX-Trigger-After-Swap` so it appears after any DOM swap completes.
+The toast is fired via `HX-Trigger` so it appears after any DOM swap completes.
 
 ## Default messages
 

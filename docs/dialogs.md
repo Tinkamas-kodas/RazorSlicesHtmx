@@ -51,18 +51,19 @@ The dialog form should target its own container with `outerHTML` swap so the mod
 
 ```csharp
 return HtmxFragmentResult.Create(resultBuilder.CreateDialog(content))
-    .WithTriggerAfterSwap("show-dialog")
+    .WithTrigger("show-dialog")
     .Build();
 ```
 
 ## Trigger timing
 
+In htmx 4, `HX-Trigger` fires after all DOM swaps (primary + OOB) complete, so `show-dialog`
+reliably finds its HTML when Bootstrap's `.show()` is called.
+
 | Trigger | Fires |
 |---------|-------|
-| `show-dialog` | `HX-Trigger-After-Swap` — after OOB dialog HTML is in the DOM |
-| `dialog:clear` | `HX-Trigger` — before DOM swap (just clears the host) |
-
-Using `HX-Trigger-After-Swap` for `show-dialog` ensures the Bootstrap modal finds its HTML when `.show()` is called.
+| `show-dialog` | `HX-Trigger` — after OOB dialog HTML is in the DOM |
+| `dialog:clear` | `HX-Trigger` — after DOM swap (clears the host) |
 
 ## Configuration
 

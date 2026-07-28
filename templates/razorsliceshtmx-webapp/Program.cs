@@ -14,7 +14,12 @@ builder.Services.AddSingleton<IFeaturePageRenderer, AppFeaturePageRenderer>();
 //#if (fluentValidation)
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 //#endif
-builder.Services.AddSingleton(sp => FeatureRegistry.Discover(typeof(Program).Assembly, sp));
+builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
+{
+	options.FeatureRegistration
+		.AddFeature<HomeEndpoints>("home")
+		.AddFeature<ItemsEndpoints>("items");
+});
 
 var app = builder.Build();
 var features = app.Services.GetRequiredService<FeatureRegistry>();

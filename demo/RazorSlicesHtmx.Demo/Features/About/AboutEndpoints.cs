@@ -8,12 +8,12 @@ public sealed class AboutEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("about", "About", "/about", Order: 100)
+        new("about", "About", "", Order: 100)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/about", () =>
+        group.MapGet("", () =>
             Result.Page(_AboutDetail.Create(_content.CreateDetailModel())));
     }
 }

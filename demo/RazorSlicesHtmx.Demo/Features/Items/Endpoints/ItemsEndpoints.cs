@@ -15,12 +15,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
     private readonly ItemsContentService _content = new();
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("items", "Items", "/items/list", Order: 200)
+        new("items", "Items", "list", Order: 200)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/items/list", (HttpContext ctx, AppDbContext db, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
+        group.MapGet("list", (HttpContext ctx, AppDbContext db, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
             var model = _content.CreateListModel(db, search, query);
             if (ctx.IsHtmxTarget("items-list"))
@@ -39,12 +39,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 ;
         });
 
-        app.MapGet("/items/create", () => Result
+        group.MapGet("create", () => Result
             .Page(CreatePage.Create(_content.CreateCreateFormModel()))
             .WithWorkspace<ItemsWorkspaceFactory>()
             );
 
-        app.MapPost("/items/create", async (ItemUpsertRequest request, AppDbContext db,
+        group.MapPost("create", async (ItemUpsertRequest request, AppDbContext db,
                 IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 _content.TrimRequest(request);
@@ -68,7 +68,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             })
             .DisableAntiforgery();
 
-        app.MapGet("/items/edit/{id:int}", (int id, AppDbContext db) =>
+        group.MapGet("edit/{id:int}", (int id, AppDbContext db) =>
         {
             var entity = db.Items.Find(id);
             if (entity is null)
@@ -82,7 +82,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 ;
         });
 
-        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, AppDbContext db,
+        group.MapPost("edit/{id:int}", async (int id, ItemUpsertRequest request, AppDbContext db,
                 IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 var entity = await db.Items.FindAsync([id], ct);
@@ -112,7 +112,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             })
             .DisableAntiforgery();
 
-        app.MapGet("/items/delete/{id:int}", (int id, AppDbContext db) =>
+        group.MapGet("delete/{id:int}", (int id, AppDbContext db) =>
         {
             var entity = db.Items.Find(id);
             if (entity is null)
@@ -123,7 +123,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.ShowDialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(entity)));
         });
 
-        app.MapPost("/items/delete/{id:int}", async (int id, ItemDeleteDialogModel request,IValidator<ItemDeleteDialogModel> validator, AppDbContext db, CancellationToken ct) =>
+        group.MapPost("delete/{id:int}", async (int id, ItemDeleteDialogModel request,IValidator<ItemDeleteDialogModel> validator, AppDbContext db, CancellationToken ct) =>
             {
                 var validationResult = await validator.ValidateAsync(request, ct);
                 Console.WriteLine(validationResult.IsValid);

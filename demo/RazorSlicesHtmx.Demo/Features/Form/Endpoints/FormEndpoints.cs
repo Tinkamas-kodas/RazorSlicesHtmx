@@ -11,15 +11,15 @@ public sealed class FormEndpoints(FeatureResultBuilder resultBuilder) : BaseFeat
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("form", "Form", "/form", Order: 300)
+        new("form", "Form", "", Order: 300)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/form", () =>
+        group.MapGet("", () =>
             Result.Page(_FormDetail.Create(_content.CreateDetailModel())));
 
-        app.MapPost("/form/preview", ([FromForm] FormPreviewRequest request) =>
+        group.MapPost("preview", ([FromForm] FormPreviewRequest request) =>
                 _FormPreview.Create(_content.CreatePreviewModel(request)))
             .DisableAntiforgery();
     }

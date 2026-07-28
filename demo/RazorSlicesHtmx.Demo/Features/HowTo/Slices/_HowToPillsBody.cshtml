@@ -32,6 +32,7 @@
         <a class="@linkClass"
            aria-current="@(isActive ? "page" : null)"
            href="/howto"
+           hx-push-url="false"
            hx-get="@pill.FragmentRoute"
            hx-target="#howto-content"
            hx-swap="outerHTML"

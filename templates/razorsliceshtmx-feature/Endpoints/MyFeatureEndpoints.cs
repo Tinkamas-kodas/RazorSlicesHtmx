@@ -12,21 +12,21 @@ public sealed class MyFeatureEndpoints(FeatureResultBuilder resultBuilder) : Bas
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("myfeature", "MyFeature", "/my-feature-route", Order: 100)
+        new("myfeature", "MyFeature", "", Order: 100)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/my-feature-route", () =>
+        group.MapGet("", () =>
         {
             var model = _content.CreateListModel();
             return Result.Page(_FeaturePage.Create(model));
         });
 
-        app.MapGet("/my-feature-route/create", () =>
+        group.MapGet("create", () =>
             Result.Page(_CreatePage.Create(new MyEntityUpsertRequest())));
 
-        app.MapPost("/my-feature-route/create", (MyEntityUpsertRequest request) =>
+        group.MapPost("create", (MyEntityUpsertRequest request) =>
             {
                 // TODO: validate and save
                 return Result.Page(_Empty.Create())

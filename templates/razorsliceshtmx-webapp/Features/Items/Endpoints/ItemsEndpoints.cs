@@ -18,12 +18,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
-        new("items", "Items", "/items/list", Order: 10)
+        new("items", "Items", "list", Order: 10)
     ];
 
-    public override void MapEndpoints(WebApplication app)
+    public override void MapEndpoints(RouteGroupBuilder group)
     {
-        app.MapGet("/items/list", (HttpContext ctx, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
+        group.MapGet("list", (HttpContext ctx, [AsParameters] ItemSearchModel search, ItemListQuery query) =>
         {
             var model = _content.CreateListModel(search, query);
             if (ctx.IsHtmxTarget("items-list"))
@@ -40,13 +40,13 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 ;
         });
 
-        app.MapGet("/items/create", () =>
+        group.MapGet("create", () =>
             Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
                 .WithWorkspace<ItemsWorkspaceFactory>()
                 );
 
 //#if (fluentValidation)
-        app.MapPost("/items/create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
+        group.MapPost("create", async (ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 _content.TrimRequest(request);
                 var validationResult = await validator.ValidateAsync(request, ct);
@@ -67,7 +67,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             });
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/create", async (HttpContext http, CancellationToken ct) =>
+        group.MapPost("create", async (HttpContext http, CancellationToken ct) =>
             {
                 var request = await _content.ReadUpsertRequestAsync(http.Request);
                 _content.TrimRequest(request);
@@ -80,7 +80,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             });
 //#endif
 
-        app.MapGet("/items/edit/{id:int}", (int id) =>
+        group.MapGet("edit/{id:int}", (int id) =>
         {
             var row = _content.FindById(id);
             if (row is null)
@@ -92,7 +92,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         });
 
 //#if (fluentValidation)
-        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
+        group.MapPost("edit/{id:int}", async (int id, ItemUpsertRequest request, IValidator<ItemUpsertRequest> validator, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)
@@ -117,7 +117,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             });
 //#endif
 //#if (!fluentValidation)
-        app.MapPost("/items/edit/{id:int}", async (int id, ItemUpsertRequest request, CancellationToken ct) =>
+        group.MapPost("edit/{id:int}", async (int id, ItemUpsertRequest request, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)
@@ -133,7 +133,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             });
 //#endif
 
-        app.MapGet("/items/delete/{id:int}", (int id) =>
+        group.MapGet("delete/{id:int}", (int id) =>
         {
             var row = _content.FindById(id);
             if (row is null)
@@ -142,7 +142,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.ShowDialog(_ItemDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
-        app.MapPost("/items/delete/{id:int}", async (int id, CancellationToken ct) =>
+        group.MapPost("delete/{id:int}", async (int id, CancellationToken ct) =>
             {
                 var row = _content.FindById(id);
                 if (row is null)

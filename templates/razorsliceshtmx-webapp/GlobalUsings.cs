@@ -9,6 +9,7 @@ global using RazorSlicesHtmx.AspNetCore.Htmx;
 global using RazorSlicesHtmx.AspNetCore.Rendering;
 global using RazorSlicesHtmx.AspNetCore.Results;
 global using RazorSlicesHtmx.AspNetCore.HtmlNames;
+global using Microsoft.AspNetCore.Routing;
 //#if (bootstrap5)
 global using RazorSlicesHtmx.Bootstrap5.Extensions;
 global using RazorSlicesHtmx.Bootstrap5.Slices;

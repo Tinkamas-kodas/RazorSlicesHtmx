@@ -15,7 +15,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("MAIN", "time-tracking", "Time tracking", "list", Order: 15)
+        new("MAIN", "time-tracking", "Time tracking", "list", Order: 1)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)

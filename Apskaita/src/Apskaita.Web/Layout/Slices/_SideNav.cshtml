@@ -8,24 +8,18 @@
     string ResolveIconId(AdminNavItem item)
     {
         var key = item.Key.ToLowerInvariant();
-        var label = item.Label.ToLowerInvariant();
-
-        if (key.Contains("home") || label.Contains("home"))
+        return key switch
         {
-            return "nav-home";
-        }
-
-        if (key.Contains("client") || label.Contains("client"))
-        {
-            return "nav-clients";
-        }
-
-        if (key.Contains("admin") || label.Contains("admin"))
-        {
-            return "nav-admin";
-        }
-
-        return "nav-default";
+            "time-tracking" => "nav-time-tracking",
+            "clients" => "nav-clients",
+            "issuers" => "nav-issuers",
+            "units" => "nav-units",
+            "projects" => "nav-projects",
+            "invoice-templates" => "nav-invoice-templates",
+            "system-settings" => "nav-system-settings",
+            "users" => "nav-users",
+            _ => "nav-default"
+        };
     }
 
     var ordered = Model.Navigation.OrderBy(x => x.Order).ThenBy(x => x.Label).ToList();
@@ -37,10 +31,16 @@
 
 <aside id="side-nav" class="side-nav" hx-swap-oob="@Hx.Swap.OuterHtml">
     <div class="side-nav-header">
-        <a class="side-nav-brand" href="/home"><span class="side-nav-brand-text">Apskaita.Web</span></a>
-        <button type="button" id="side-nav-toggle" class="btn btn-sm btn-outline-secondary" aria-label="Toggle sidebar" aria-expanded="true">
-            <span class="side-nav-toggle-open">&laquo;</span>
-            <span class="side-nav-toggle-closed">&raquo;</span>
+        <a class="side-nav-brand" href="/" >
+            <svg class="side-nav-logo" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 26L16 7l10 19" />
+                <path d="M10.5 19h11" />
+            </svg>
+            
+        </a>
+        <button type="button" id="side-nav-toggle" class="side-nav-toggle" aria-label="Toggle sidebar" aria-expanded="true">
+            <span class="side-nav-toggle-open" aria-hidden="true">&laquo;</span>
+            <span class="side-nav-toggle-closed" aria-hidden="true">&raquo;</span>
         </button>
     </div>
 

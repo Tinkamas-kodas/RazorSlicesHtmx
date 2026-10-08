@@ -56,7 +56,7 @@ body {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 220px 1fr;
 }
 
 body.sidebar-collapsed .app-shell {
@@ -80,12 +80,62 @@ body.sidebar-collapsed .app-shell {
 }
 
 .side-nav-brand {
-  display: block;
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.05rem;
   font-weight: 700;
   text-decoration: none;
   color: var(--bs-emphasis-color);
   margin: 0;
+  padding: 0.15rem 0.25rem;
+  border-radius: 0.5rem;
+  line-height: 1;
+}
+
+.side-nav-logo {
+  flex: 0 0 auto;
+  color: var(--bs-primary);
+}
+
+body.sidebar-collapsed .side-nav-logo {
+  color: var(--bs-body-color);
+}
+
+body.sidebar-collapsed .side-nav-brand {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.side-nav-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--bs-secondary-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.side-nav-toggle:hover {
+  background: var(--bs-secondary-bg);
+  color: var(--bs-emphasis-color);
+}
+
+.side-nav-toggle:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .side-nav-header {

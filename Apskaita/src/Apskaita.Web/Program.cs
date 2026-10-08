@@ -1,5 +1,4 @@
 using Apskaita.Web.Layout.Rendering;
-using Apskaita.Web.Features.Home.Endpoints;
 using Apskaita.Web.Features.Admin.ClientsRegistry.Endpoints;
 using Apskaita.Web.Features.Admin.IssuerRegistry.Endpoints;
 using Apskaita.Web.Features.Admin.UnitRegistry.Endpoints;
@@ -22,7 +21,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFeatureUri, HttpFeatureUri>();
 builder.Services.AddRazorSlicesHtmxBootstrap5();
 builder.Services.AddSingleton<IFeaturePageRenderer, AppFeaturePageRenderer>();
-builder.Services.AddFeature<HomeEndpoints>("/home");
+builder.Services.AddFeature<TimeTrackingEndpoints>("/time-tracking");
 builder.Services.AddFeature<ClientsEndpoints>("/admin/clients");
 builder.Services.AddFeature<IssuersEndpoints>("/admin/issuers");
 builder.Services.AddFeature<UnitsEndpoints>("/admin/units");
@@ -30,7 +29,7 @@ builder.Services.AddFeature<ProjectsEndpoints>("/admin/projects");
 builder.Services.AddFeature<InvoiceTemplatesEndpoints>("/admin/invoice-templates");
 builder.Services.AddFeature<SystemSettingsEndpoints>("/admin/system-settings");
 builder.Services.AddFeature<UsersEndpoints>("/admin/users");
-builder.Services.AddFeature<TimeTrackingEndpoints>("/time-tracking");
+
 builder.Services.AddValidatorsFromAssemblyContaining<AdminFeatureType>();
 builder.Services.AddValidatorsFromAssemblyContaining<TimeTrackingModelValidator>();
 builder.Services.AddDataAccess(builder.Configuration.GetConnectionString("Default"));

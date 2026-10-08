@@ -1,0 +1,139 @@
+@inherits RazorSlice<ClientUpsertRequest>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(); }
+
+<input type="hidden" name="Id" value="@Model.Id">
+
+<div>
+    <div class="form-floating">
+        @f.Name.Input(placeholder: "", autoFocus: true)
+        @f.Name.Label("Name")
+    </div>
+    @f.Name.Validation()
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="form-floating">
+            @f.CompanyCode.Input(placeholder: "")
+            @f.CompanyCode.Label("Company code")
+        </div>
+        @f.CompanyCode.Validation()
+    </div>
+    <div class="col-md-6">
+        <div class="form-floating">
+            @f.VatCode.Input(placeholder: "")
+            @f.VatCode.Label("VAT code")
+        </div>
+        @f.VatCode.Validation()
+    </div>
+</div>
+
+<div>
+    <div class="form-floating">
+        @f.AddressLine1.Input(placeholder: "")
+        @f.AddressLine1.Label("Address line 1")
+    </div>
+    @f.AddressLine1.Validation()
+</div>
+
+<div>
+    <div class="form-floating">
+        @f.AddressLine2.Input(placeholder: "")
+        @f.AddressLine2.Label("Address line 2")
+    </div>
+    @f.AddressLine2.Validation()
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.City.Input(placeholder: "")
+            @f.City.Label("City")
+        </div>
+        @f.City.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.PostalCode.Input(placeholder: "")
+            @f.PostalCode.Label("Postal code")
+        </div>
+        @f.PostalCode.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.CountryCode.Input(placeholder: "")
+            @f.CountryCode.Label("Country code")
+        </div>
+        @f.CountryCode.Validation()
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.ContactName.Input(placeholder: "")
+            @f.ContactName.Label("Contact name")
+        </div>
+        @f.ContactName.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.ContactEmail.Input(type: "email", placeholder: "")
+            @f.ContactEmail.Label("Contact email")
+        </div>
+        @f.ContactEmail.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.ContactPhone.Input(placeholder: "")
+            @f.ContactPhone.Label("Contact phone")
+        </div>
+        @f.ContactPhone.Validation()
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.BankName.Input(placeholder: "")
+            @f.BankName.Label("Bank name")
+        </div>
+        @f.BankName.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.BankAccount.Input(placeholder: "")
+            @f.BankAccount.Label("Bank account")
+        </div>
+        @f.BankAccount.Validation()
+    </div>
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.BankSwift.Input(placeholder: "")
+            @f.BankSwift.Label("Bank SWIFT")
+        </div>
+        @f.BankSwift.Validation()
+    </div>
+</div>
+
+<div>
+    <div class="form-floating">
+        @f.VatPayerCode.Input(placeholder: "")
+        @f.VatPayerCode.Label("VAT payer code")
+    </div>
+    @f.VatPayerCode.Validation()
+</div>
+
+<div>
+    <label class="form-label d-block">Active</label>
+    <div class="btn-group" role="group" aria-label="Active">
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_true")" value="true" autocomplete="off" @(Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-success" for="@($"{f.IsActive.Id}_true")">True</label>
+
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_false")" value="false" autocomplete="off" @(!Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-secondary" for="@($"{f.IsActive.Id}_false")">False</label>
+    </div>
+    @f.IsActive.Validation()
+</div>

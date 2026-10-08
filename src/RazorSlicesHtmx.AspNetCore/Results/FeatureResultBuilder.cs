@@ -123,16 +123,28 @@ public sealed class FeatureResultBuilder(
         }
 
         /// <summary>
-        /// Wraps the detail slice in a workspace using <typeparamref name="TFactory"/>.
-        /// The factory determines which <c>HX-Target</c> values indicate the workspace is already
-        /// in the DOM — for those the inner slice is used as fragment; otherwise the full workspace.
+        /// Wraps the detail slice in a workspace factory and auto-selects inner vs full workspace
+        /// based on whether <c>HX-Target</c> matches the provided feature div id.
         /// </summary>
-        public Builder WithWorkspace<TFactory>() where TFactory : BaseWorkspaceFactory
+        public Builder WithWorkspace(Type workspaceFactoryType, string featureDivId)
         {
+            ArgumentNullException.ThrowIfNull(workspaceFactoryType);
+            if (!typeof(BaseWorkspaceFactory).IsAssignableFrom(workspaceFactoryType))
+            {
+                throw new ArgumentException(
+                    $"Type '{workspaceFactoryType.FullName}' must derive from {nameof(BaseWorkspaceFactory)}.",
+                    nameof(workspaceFactoryType));
+            }
+
+            if (string.IsNullOrWhiteSpace(featureDivId))
+            {
+                throw new ArgumentException("Feature div id is required.", nameof(featureDivId));
+            }
+
             var sp = owner.Request.HttpContext.RequestServices;
-            var factory = ActivatorUtilities.CreateInstance<TFactory>(sp);
+            var factory = (BaseWorkspaceFactory)ActivatorUtilities.CreateInstance(sp, workspaceFactoryType);
             var target = owner.Request.Headers[Hx.Target].ToString();
-            var (workspace, fragment) = factory.Resolve(detail, target);
+            var (workspace, fragment) = factory.Resolve(detail, target, featureDivId);
             _workspaceDetail = workspace;
             _htmxFragment = fragment;
             return this;

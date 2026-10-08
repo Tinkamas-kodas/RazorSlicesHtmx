@@ -1,0 +1,83 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
+@using System.Linq
+
+<div id="time-tracking-grid"
+     hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
+    hx-trigger="time-tracking-list-refresh from:document"
+     hx-target="#time-tracking-grid"
+     hx-swap="outerHTML">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0 tt-week-grid-wrap">
+            <div class="tt-week-grid">
+                <div class="tt-grid-time-header"></div>
+                @foreach (var day in Model.Days)
+                {
+                    <div class="tt-grid-day-header @(day.IsToday ? "is-today" : string.Empty)">@day.Label</div>
+                }
+
+                @for (var dayIndex = 0; dayIndex < Model.Days.Count; dayIndex++)
+                {
+                    var day = Model.Days[dayIndex];
+                    var dayEntries = Model.Entries
+                        .Where(entry => entry.StartDate == day.Date)
+                        .OrderBy(entry => entry.Start)
+                        .ToArray();
+
+                    <div class="tt-day-overlay"
+                         style="grid-column:@(dayIndex + 2);grid-row:2 / span @Model.Slots.Count;">
+                        @for (var i = 0; i < dayEntries.Length; i++)
+                        {
+                            var entry = dayEntries[i];
+                            var entryTop = entry.StartSlotIndex * 34d + entry.OffsetTopPx;
+                            var entryBottom = entryTop + entry.HeightPx;
+                            var overlappingEntries = dayEntries
+                                .Take(i)
+                                .Count(previousEntry =>
+                                {
+                                    var previousTop = previousEntry.StartSlotIndex * 34d + previousEntry.OffsetTopPx;
+                                    var previousBottom = previousTop + previousEntry.HeightPx;
+                                    return previousTop < entryBottom && previousBottom > entryTop;
+                                });
+                            var leftInset = 4 + (overlappingEntries % 10) * 25;
+
+                                <button type="button"
+                                    class="tt-entry-card"
+                                    style="top:@($"{entryTop:0.##}px");height:@($"{entry.HeightPx:0.##}px");left:@($"{leftInset}px");right:2px;border-left-color:@entry.AccentColorRgb;background-color:@entry.ProjectColorRgb;color:@entry.TextColorRgb;--tt-desc-lines:@entry.DescriptionLineClamp;"
+                                    hx-get="@FeatureUri.Uri($"edit/{entry.Id}")"
+                                    hx-target="#dialog-host"
+                                    aria-label="Edit time entry @entry.Start.ToString("HH:mm") to @entry.DisplayEnd.ToString("HH:mm"): @entry.Description">
+                                <span class="tt-entry-time">@entry.Start.ToString("HH:mm") - @entry.DisplayEnd.ToString("HH:mm")</span>
+                                <span class="tt-entry-description">@entry.Description</span>
+                                @if (entry.OverflowHours > 0)
+                                {
+                                    <span class="tt-entry-overflow">+@entry.OverflowHours.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+
+                @foreach (var slot in Model.Slots)
+                {
+                    var slotClass = slot.IsWorkHours ? "is-work-hours" : "is-off-hours";
+                    <div class="tt-grid-time-cell @slotClass"
+                         style="grid-column:1;grid-row:@(slot.Index + 2);"
+                         data-time="@slot.Start.ToString("HH:mm")">@slot.Start.ToString("HH:mm")</div>
+
+                    @for (var dayIndex = 0; dayIndex < Model.Days.Count; dayIndex++)
+                    {
+                        var day = Model.Days[dayIndex];
+
+                        <button type="button"
+                                class="tt-grid-slot-cell @slotClass"
+                                style="grid-column:@(dayIndex + 2);grid-row:@(slot.Index + 2);"
+                                hx-get="@FeatureUri.Uri($"create?date={day.Date:yyyy-MM-dd}&time={slot.Start:HH\\:mm}&weekStart={Model.WeekStart:yyyy-MM-dd}")"
+                                hx-target="#dialog-host"
+                                title="@day.Date.ToString("yyyy-MM-dd") @slot.Start.ToString("HH:mm") - @slot.End.ToString("HH:mm")">
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

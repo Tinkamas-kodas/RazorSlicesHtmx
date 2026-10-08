@@ -1,0 +1,134 @@
+@inherits RazorSlice<ProjectUpsertRequest>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+@using Apskaita.Web.Shared.ProjectColors
+
+@{ var f = Model.For(); }
+@{ var selectedColorLabel = string.IsNullOrWhiteSpace(Model.ColorLabel) ? ProjectColorCatalog.GetLookupText(Model.ColorRgb) : Model.ColorLabel; }
+@{
+    var initialPresentation = ProjectColorCatalog.CreatePresentation(Model.ColorRgb);
+    var initialPreviewModel = new ProjectColorPreviewModel(
+        initialPresentation.BackgroundColorRgb,
+        initialPresentation.AccentColorRgb,
+        initialPresentation.TextColorRgb,
+        selectedColorLabel,
+        ProjectColorCatalog.NormalizeOrDefault(Model.ColorRgb),
+        "10:00 - 11:30",
+        "Prepare monthly report\nReview invoice details");
+}
+
+<input type="hidden" name="Id" value="@Model.Id">
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label" for="ClientId">Client</label>
+        <select id="ClientId" name="ClientId" class="form-select">
+            <option value="">Select client</option>
+            @foreach (var client in Model.Clients)
+            {
+                if (Model.ClientId == client.Id)
+                {
+                    <option value="@client.Id" selected>@client.Label</option>
+                }
+                else
+                {
+                    <option value="@client.Id">@client.Label</option>
+                }
+            }
+        </select>
+        @f.ClientId.Validation()
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label" for="InvoiceTemplateId">Invoice template</label>
+        <select id="InvoiceTemplateId" name="InvoiceTemplateId" class="form-select">
+            <option value="">Select template</option>
+            @foreach (var template in Model.Templates)
+            {
+                if (Model.InvoiceTemplateId == template.Id)
+                {
+                    <option value="@template.Id" selected>@template.Label</option>
+                }
+                else
+                {
+                    <option value="@template.Id">@template.Label</option>
+                }
+            }
+        </select>
+        @f.InvoiceTemplateId.Validation()
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="form-floating">
+            @f.Name.Input(placeholder: "", autoFocus: true)
+            @f.Name.Label("Name")
+        </div>
+        @f.Name.Validation()
+    </div>
+    <div class="col-md-5">
+        <div class="form-floating">
+            @f.Code.Input(placeholder: "")
+            @f.Code.Label("Code")
+        </div>
+        @f.Code.Validation()
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="form-floating">
+            @f.HourlyRate.Input(type: "number", placeholder: "").WithAttribute("step", "1").WithAttribute("min", "0")
+            @f.HourlyRate.Label("Hourly rate")
+        </div>
+        @f.HourlyRate.Validation()
+    </div>
+    <div class="col-md-6">
+        <div class="form-floating">
+            @f.CurrencyCode.Input(placeholder: "")
+            @f.CurrencyCode.Label("Currency code")
+        </div>
+        @f.CurrencyCode.Validation()
+    </div>
+</div>
+
+<div>
+    <label class="form-label d-block">Active</label>
+    <div class="btn-group" role="group" aria-label="Active">
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_true")" value="true" autocomplete="off" @(Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-success" for="@($"{f.IsActive.Id}_true")">True</label>
+
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_false")" value="false" autocomplete="off" @(!Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-secondary" for="@($"{f.IsActive.Id}_false")">False</label>
+    </div>
+    @f.IsActive.Validation()
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-7"
+         hx-on:change="htmx.trigger('#project-color-preview', 'project-color-preview-refresh')"
+         hx-on:click="if (event.target.closest('.rsh-lookup-item, .rsh-lookup-clear, [aria-label=&quot;Clear selection&quot;]')) { setTimeout(() => htmx.trigger('#project-color-preview', 'project-color-preview-refresh'), 0); }">
+        <div class="position-relative">
+            @f.ColorRgb.Label("Project color")
+            @f.ColorRgb.LookupSelect(
+                path: FeatureUri.Uri("color-lookup"),
+                selectedValueTextFieldName: f.ColorLabel.Name,
+                selectedValueResolvePath: FeatureUri.Uri("color-lookup-selected"),
+                placeholder: "Select pastel color",
+                selectedText: selectedColorLabel,
+                pageSize: 20)
+        </div>
+        @f.ColorRgb.Validation()
+
+        <div id="project-color-preview"
+             class="mt-3"
+             hx-get="@FeatureUri.Uri("color-preview")"
+             hx-trigger="project-color-preview-refresh"
+             hx-include="closest form"
+             hx-target="this"
+             hx-swap="innerHTML">
+            @await RenderPartialAsync(_ColorPreview.Create(initialPreviewModel))
+        </div>
+    </div>
+</div>
+

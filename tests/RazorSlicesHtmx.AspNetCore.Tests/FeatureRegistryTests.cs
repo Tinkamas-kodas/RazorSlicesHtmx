@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using RazorSlicesHtmx.AspNetCore.Extensions;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Models;
 
@@ -9,10 +9,14 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 public class FeatureRegistryTests
 {
     [Fact]
-    public void Discover_orders_pages_and_builds_navigation_layout()
+    public void FromRegistrations_orders_pages_and_builds_navigation_layout()
     {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services);
+        var services = CreateServices()
+            .AddFeature<AlphaFeature>()
+            .AddFeature<BravoFeature>()
+            .AddFeature<CharlieFeature>()
+            .BuildServiceProvider();
+        var registry = FeatureRegistry.FromRegistrations(services);
 
         var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
 
@@ -29,8 +33,12 @@ public class FeatureRegistryTests
     [Fact]
     public void TryGetRouteItem_returns_default_for_unknown_key()
     {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services);
+        var services = CreateServices()
+            .AddFeature<AlphaFeature>()
+            .AddFeature<BravoFeature>()
+            .AddFeature<CharlieFeature>()
+            .BuildServiceProvider();
+        var registry = FeatureRegistry.FromRegistrations(services);
 
         var found = registry.TryGetRouteItem("missing", out var routeItem);
 
@@ -39,38 +47,38 @@ public class FeatureRegistryTests
     }
 
     [Fact]
-    public void Discover_multi_assembly_merges_features()
+    public void FromRegistrations_throws_when_no_features()
     {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var assemblies = new[] { typeof(FeatureRegistryTests).Assembly };
-
-        var registry = FeatureRegistry.Discover(assemblies, services);
-
-        var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
-        Assert.Equal(3, shellContext.Navigation.Count);
+        var services = CreateServices().BuildServiceProvider();
+        Assert.Throws<InvalidOperationException>(() => FeatureRegistry.FromRegistrations(services));
     }
 
     [Fact]
-    public void Discover_multi_assembly_deduplicates_same_assembly()
+    public void AddFeature_throws_when_feature_is_registered_twice()
     {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var assembly = typeof(FeatureRegistryTests).Assembly;
-        var assemblies = new[] { assembly, assembly };
+        var services = CreateServices()
+            .AddFeature<AlphaFeature>();
 
-        var registry = FeatureRegistry.Discover(assemblies, services);
+        services.AddFeature<AlphaFeature>();
+        var provider = services.BuildServiceProvider();
 
-        var shellContext = registry.CreateShellContext(registry.DefaultRouteItem, null!, null, null);
-        Assert.Equal(3, shellContext.Navigation.Count);
+        Assert.Throws<InvalidOperationException>(() => FeatureRegistry.FromRegistrations(provider));
     }
 
     [Fact]
-    public void Discover_multi_assembly_throws_when_no_features()
+    public void FromRegistrations_keeps_absolute_navigation_routes_unchanged()
     {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var assemblies = new[] { typeof(string).Assembly };
+        var services = CreateServices()
+            .AddFeature<AlphaFeature>("/catalog")
+            .BuildServiceProvider();
+        var registry = FeatureRegistry.FromRegistrations(services);
 
-        Assert.Throws<InvalidOperationException>(() =>
-            FeatureRegistry.Discover(assemblies, services));
+        Assert.Equal("/alpha", registry.DefaultRouteItem.Route);
+    }
+
+    private static IServiceCollection CreateServices()
+    {
+        return new ServiceCollection();
     }
 }
 

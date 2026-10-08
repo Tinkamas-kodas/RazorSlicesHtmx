@@ -79,6 +79,15 @@ Helpers `.Label()`, `.Input()`, `.TextArea()`, `.Select()`, and `.Hidden()` retu
 
 All helpers accept an optional `BootstrapFieldOptions` to override CSS classes per-call. Global defaults configured via `BootstrapFieldOptions.Current` (set through DI — see [Bootstrap5](bootstrap5.md)).
 
+### Lookup field usage
+
+Lookup can be rendered in two ways:
+
+- With helper: `@f.ClientId.LookupSelect(...)`
+- Without helper: manually render `rsh-lookup-select` custom element markup
+
+See complete examples and endpoint contracts in [Lookup](lookup.md).
+
 ### FieldContext&lt;T&gt;
 
 Combines `IPropertyAccessor` with the property value. Useful for generic form components:
@@ -139,5 +148,6 @@ The error dictionary key is the field name (case-insensitive). Used by `FieldCon
 
 - [Validation](validation.md)
 - [Bootstrap5](bootstrap5.md)
+- [Lookup](lookup.md)
 - [State](state.md)
 - [List Features](list-features.md)

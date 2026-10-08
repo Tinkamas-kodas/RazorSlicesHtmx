@@ -1,4 +1,5 @@
 using RshtmxApp.Shared.Rendering;
+using RshtmxApp.Shared.Routing;
 //#if (fluentValidation)
 using FluentValidation;
 //#endif
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorSlicesHtmx();
 builder.Services.AddAntiforgery();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IFeatureUri, HttpFeatureUri>();
 //#if (bootstrap5)
 builder.Services.AddRazorSlicesHtmxBootstrap5();
 //#endif

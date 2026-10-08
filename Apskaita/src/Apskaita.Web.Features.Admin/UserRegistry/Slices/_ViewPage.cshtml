@@ -1,0 +1,40 @@
+@inherits RazorSlice<UserViewModel>
+
+<article class="section-panel">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <h3 class="mb-0">User Details</h3>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" hx-get="@FeatureUri.Uri("list")" hx-target="#feature-details" hx-include="#@UserSearchModel.StateId, #@UserListQuery.StateId" hx-push-url="true" type="button">Back to list</button>
+            <button class="btn @(Model.IsActive ? "btn-outline-warning" : "btn-outline-success")" hx-post="@FeatureUri.Uri($"toggle/{Model.Id}")" hx-target="#feature-details" hx-params="none" type="button">
+                @(Model.IsActive ? "Deactivate" : "Activate")
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Display name</dt>
+                <dd class="col-sm-9">@Model.DisplayName</dd>
+
+                <dt class="col-sm-3">Entra Object ID</dt>
+                <dd class="col-sm-9 text-break">@Model.EntraObjectId</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</dd>
+
+                <dt class="col-sm-3">Created</dt>
+                <dd class="col-sm-9">@Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                <dt class="col-sm-3">Last login</dt>
+                <dd class="col-sm-9">@(Model.LastLoginAtUtc?.ToString("yyyy-MM-dd HH:mm") ?? "-")</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">@(Model.IsActive ? "Active" : "Inactive")</span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</article>
+

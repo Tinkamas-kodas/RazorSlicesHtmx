@@ -14,14 +14,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML"}'>
+    <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML","logAll":true}'>
     <title>@Model.Title</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <link rel="stylesheet" href="/css/site.css">
+    <link rel="stylesheet" href="/_content/RazorSlicesHtmx.Bootstrap5/css/rsh-lookup-select.css">
 </head>
 <body>
     @(await RenderPartialAsync(_TopNav.Create(Model)))
-    <div class="container">
+    <div class="container" hx-history-elt>
         <main class="pb-3">
             <section id="@detailTargetId" class="details-pane">
                 @await RenderBodyAsync()
@@ -34,6 +35,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js" crossorigin="anonymous"></script>
+    <script src="/_content/RazorSlicesHtmx.Bootstrap5/js/rsh-lookup-select.js"></script>
     <script>
         (() => {
             const clearModalArtifacts = () => {
@@ -43,7 +45,7 @@
             };
 
             // Show Bootstrap modal on server trigger
-            document.body.addEventListener("show-dialog", () => {
+            document.addEventListener("show-dialog", () => {
                 const host = document.getElementById("@dialogHostId");
                 const modal = host?.querySelector(".modal");
                 if (!modal) return;
@@ -56,14 +58,14 @@
             });
 
             // Clear dialog on server trigger
-            document.body.addEventListener("dialog:clear", () => {
+            document.addEventListener("dialog:clear", () => {
                 const host = document.getElementById("@dialogHostId");
                 if (host) host.innerHTML = "";
                 clearModalArtifacts();
             });
 
             // Show Bootstrap toast on server trigger
-            document.body.addEventListener("show-toast", event => {
+            document.addEventListener("show-toast", event => {
                 const { title = "", message = "", tone = "info" } = event.detail ?? {};
                 const host = document.getElementById("@toastHostId");
                 if (!host) return;

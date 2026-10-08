@@ -1,0 +1,44 @@
+@inherits RazorSlice<SystemSettingsUpsertRequest>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(); }
+
+<article class="section-panel">
+    <h2>System Settings</h2>
+    <p class="text-muted">Manage invoice numbering template and default VAT rate.</p>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form class="d-flex flex-column gap-3" hx-post="/admin/system-settings" hx-target="#feature-details" hx-push-url="false">
+                @if (Model.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger mb-0">Please fix the validation errors and submit again.</div>
+                }
+
+                <input type="hidden" name="Id" value="@Model.Id" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            @f.DefaultVatRatePercent.Input(type: "number", placeholder: "")
+                            @f.DefaultVatRatePercent.Label("Default VAT rate (%)")
+                        </div>
+                        @f.DefaultVatRatePercent.Validation()
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            @f.InvoiceNumberTemplate.Input(placeholder: "")
+                            @f.InvoiceNumberTemplate.Label("Invoice number template")
+                        </div>
+                        @f.InvoiceNumberTemplate.Validation()
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 pt-2">
+                    <button type="submit" class="btn btn-dark">Save settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</article>
+

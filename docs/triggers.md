@@ -6,9 +6,25 @@ HTMX triggers let the server fire client-side custom events as part of a respons
 
 In htmx 4, `HX-Trigger` fires **after the swap completes**.
 
+When `HX-Trigger` is represented as JSON (for example when combining a simple trigger and a JSON trigger payload), each event should have a non-null payload object.
+`RazorSlicesHtmx` serializes simple triggers as `{}` in that mode so htmx 4 event dispatch remains stable.
+
 | Header | Fires | Notes |
 |--------|-------|-------|
 | `HX-Trigger` | After all DOM swaps (primary + OOB) | Use for all events, including those that require swapped HTML |
+
+### HTMX 4 payload note
+
+Preferred mixed trigger header shape:
+
+```json
+{
+    "Items.ListRefresh": {},
+    "show-toast": { "title": "Saved", "message": "Item created", "tone": "success" }
+}
+```
+
+Avoid `null` payloads for simple events in mixed JSON trigger headers.
 
 ## FeatureResultBuilder
 
@@ -72,11 +88,11 @@ Hx.Swap.None          // "none"
 ## Listening in JavaScript
 
 ```javascript
-document.body.addEventListener("items:refresh", () => {
+document.addEventListener("items:refresh", () => {
     htmx.trigger("#items-list", "refresh");
 });
 
-document.body.addEventListener("show-toast", event => {
+document.addEventListener("show-toast", event => {
     const { title, message, tone } = event.detail ?? {};
     // create and show toast
 });

@@ -1,0 +1,51 @@
+@inherits RazorSlice<LookupPageModel>
+@inject IFeatureUri FeatureUri
+
+@{ var f = Model.Request.For(); }
+
+<article class="section-panel">
+    @await RenderPartialAsync(_SectionHero.Create(new(
+        "Lookup feature",
+        "Reusable searchable picker with infinite scroll",
+        "/lookup")))
+
+    <p class="section-summary">Contracts live in AspNetCore, while Bootstrap5 provides a helper and web component shell. This demo feature shows HTMX lookup paging with a sentinel that keeps loading next chunks.</p>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-7">
+            <form class="content-card card border-0 shadow-sm p-4 d-grid gap-3"
+                  hx-post="@FeatureUri.Uri("submit")"
+                  hx-target="#lookup-summary"
+                  hx-swap="innerHTML">
+                <p class="card-kicker">Lookup form</p>
+
+                <div>
+                    <label class="form-label" for="@f.Requester.Id">Requester</label>
+                    @f.Requester.Input(placeholder: "Type requester name")
+                </div>
+
+                <div>
+                    <label class="form-label" for="@(f.ClientId.Id + "_lookup_search")">Client</label>
+                    @f.ClientId.LookupSelect(
+                        path: FeatureUri.Uri("search"),
+                        selectedValueTextFieldName: f.ClientName.Name,
+                        selectedValueResolvePath: FeatureUri.Uri("search-selected"),
+                        placeholder: "Type code or client name",
+                        selectedText: Model.Request.ClientName,
+                        pageSize: 12)
+                    <div class="form-text">Start typing to search. Scroll to the bottom of results to auto-load more rows.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-dark">Submit selection</button>
+                    <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div id="lookup-summary" class="content-card card border-0 shadow-sm p-4">
+                @await RenderPartialAsync(_LookupSummary.Create(Model.Summary))
+            </div>
+        </div>
+    </div>
+</article>

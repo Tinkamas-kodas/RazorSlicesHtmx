@@ -1,10 +1,11 @@
 @inherits RazorSlice<ItemUpsertRequest>
+@inject IFeatureUri FeatureUri
 
 <article class="section-panel">
     @await RenderPartialAsync(_SectionHero.Create(new(
         "Item editor",
         "Create item",
-        "/items/create")))
+        FeatureUri.Uri("create"))))
 
     <p class="section-summary">Create a new item and return to the list with server-rendered feedback. Validation runs through FluentValidation before anything is saved.</p>
 
@@ -25,10 +26,7 @@
                     <button type="submit" class="btn btn-dark">Create</button>
                     <button type="button"
                             class="btn btn-outline-secondary"
-                            hx-get="/items/list"
-                            hx-target="#feature-details"
-                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-                            hx-push-url="true">
+                            onclick="@FeatureUri.Uri("list").HistoryBack()">
                         Cancel
                     </button>
                 </div>

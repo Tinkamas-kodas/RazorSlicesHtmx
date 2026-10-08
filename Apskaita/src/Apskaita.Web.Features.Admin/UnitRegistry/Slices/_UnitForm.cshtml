@@ -1,0 +1,36 @@
+@inherits RazorSlice<UnitUpsertRequest>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(); }
+
+<input type="hidden" name="Id" value="@Model.Id">
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="form-floating">
+            @f.Code.Input(placeholder: "", autoFocus: true)
+            @f.Code.Label("Code")
+        </div>
+        @f.Code.Validation()
+    </div>
+    <div class="col-md-8">
+        <div class="form-floating">
+            @f.Name.Input(placeholder: "")
+            @f.Name.Label("Name")
+        </div>
+        @f.Name.Validation()
+    </div>
+</div>
+
+<div>
+    <label class="form-label d-block">Active</label>
+    <div class="btn-group" role="group" aria-label="Active">
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_true")" value="true" autocomplete="off" @(Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-success" for="@($"{f.IsActive.Id}_true")">True</label>
+
+        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_false")" value="false" autocomplete="off" @(!Model.IsActive ? "checked" : null)>
+        <label class="btn btn-outline-secondary" for="@($"{f.IsActive.Id}_false")">False</label>
+    </div>
+    @f.IsActive.Validation()
+</div>
+

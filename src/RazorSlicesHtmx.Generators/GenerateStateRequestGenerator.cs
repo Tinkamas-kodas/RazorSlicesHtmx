@@ -140,13 +140,19 @@ public sealed class GenerateStateRequestGenerator : IIncrementalGenerator
 
     private static bool HasStateNotMapAttribute(IPropertySymbol property)
     {
-        foreach (var attr in property.GetAttributes())
+        IPropertySymbol? current = property;
+        while (current is not null)
         {
-            var fullName = attr.AttributeClass?.ToDisplayString();
-            if (string.Equals(fullName, StateNotMapAttributeMetadataName, StringComparison.Ordinal))
+            foreach (var attr in current.GetAttributes())
             {
-                return true;
+                var fullName = attr.AttributeClass?.ToDisplayString();
+                if (string.Equals(fullName, StateNotMapAttributeMetadataName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
             }
+
+            current = current.OverriddenProperty;
         }
 
         return false;

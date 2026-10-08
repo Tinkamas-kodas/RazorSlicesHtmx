@@ -56,6 +56,7 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 | [Page Title](docs/page-title.md) | Default from nav label, `WithPageTitle`, OOB update |
 | [State](docs/state.md) | `partial` models, `WithState`, `StateId`, `[StateNotMap]` |
 | [Forms](docs/forms.md) | `[GenerateHtmlNames]`, `[GenerateFormBinder]`, `FieldContext<T>` |
+| [Lookup](docs/lookup.md) | Searchable lookup contracts, helper usage, and manual web component usage |
 | [Validation](docs/validation.md) | `IHaveValidationResult`, FluentValidation extension |
 | [List Features](docs/list-features.md) | `ListRequest<T>`, paging, sorting, search, pager, sort headers |
 | [Error Handling](docs/error-handling.md) | `UseHtmxErrorHandling`, custom messages |
@@ -67,3 +68,13 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 ## Demo
 
 See `demo/RazorSlicesHtmx.Demo` for a reference implementation with full CRUD, paged lists, dialogs, toasts, FluentValidation, and state management.
+
+## Lookup binding note
+
+`LookupSelect` and `rsh-lookup-select` automatically toggle hidden field submission:
+
+- when selected value is empty, hidden value/text inputs are `disabled`
+- when user selects an item, hidden value/text inputs are enabled
+- when user clicks `Clear`, hidden value/text inputs are disabled again
+
+This prevents posting empty string values for typed IDs and helps ASP.NET Core form binding work predictably with nullable and value-type properties.

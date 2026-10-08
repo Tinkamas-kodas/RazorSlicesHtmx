@@ -1,0 +1,70 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(); }
+@{ var isHourlyRateOverride = Model.HourlyRate.HasValue; }
+
+<div class="modal-body d-grid gap-3">
+    @if (Model.Errors.Count > 0)
+    {
+        <div class="alert alert-danger mb-0">
+            @foreach (var (_, errorMessage) in Model.Errors.SelectMany(pair => pair.Value))
+            {
+                <div>@errorMessage</div>
+            }
+        </div>
+    }
+
+    <div>
+        @f.Date.Label("Date")
+        @f.Date.Input(type: "date").WithValue(Model.Date.ToString("yyyy-MM-dd"))
+        @f.Date.Validation()
+    </div>
+
+    <div>
+        @f.Start.Label("Start time")
+        @f.Start.Input(type: "time").WithValue(Model.Start.ToString("HH:mm"))
+        @f.Start.Validation()
+    </div>
+
+    <div>
+        @f.DurationMinutes.Label("Duration (minutes)")
+        @f.DurationMinutes.Input(type: "number").WithAttribute("min", "1").WithAttribute("max", "1440")
+        @f.DurationMinutes.Validation()
+    </div>
+
+    <div>
+        @f.HourlyRate.Label("Hourly rate override")
+        <div class="input-group flex-nowrap">
+            @(f.HourlyRate.Input(type: "number").WithAttribute("min", "1").WithBooleanAttribute("disabled", !isHourlyRateOverride).WithBooleanAttribute("required", isHourlyRateOverride))
+            <input type="checkbox"
+                   class="btn-check"
+                   id="tt-hourly-rate-override"
+                   autocomplete="off"
+                   aria-controls="@f.HourlyRate.Id"
+                   onchange="const i = this.form?.querySelector('[name=\'HourlyRate\']'); if (!i) return; i.disabled = !this.checked; i.required = this.checked; if (this.checked) { i.focus(); } else { i.value = ''; }"
+                   @(isHourlyRateOverride ? "checked" : null)>
+            <label class="btn btn-outline-secondary" for="tt-hourly-rate-override">Override</label>
+        </div>
+        @f.HourlyRate.Validation()
+        <div class="form-text">Leave empty to use selected project hourly rate.</div>
+    </div>
+
+    <div class="position-relative">
+        @f.ProjectId.Label("Project")
+        @f.ProjectId.LookupSelect(
+            path: FeatureUri.Uri("project-lookup"),
+            selectedValueTextFieldName: f.ProjectLabel.Name,
+            selectedValueResolvePath: FeatureUri.Uri("project-lookup-selected"),
+            placeholder: "Type project name or code",
+            selectedText: Model.ProjectLabel,
+            pageSize: 20)
+        @f.ProjectId.Validation()
+    </div>
+
+    <div>
+        @f.Description.Label("Description")
+        @f.Description.TextArea(placeholder: "What was done?", rows: 3)
+        @f.Description.Validation()
+    </div>
+</div>

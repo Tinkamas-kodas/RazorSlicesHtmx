@@ -1,0 +1,18 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+
+<div class="modal-content border-0 shadow-lg">
+    <form hx-post="@FeatureUri.Uri("create")" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Create time entry</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-dark">Create</button>
+        </div>
+    </form>
+</div>
+

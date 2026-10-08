@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using RazorSlicesHtmx.AspNetCore.Htmx;
 using RazorSlicesHtmx.AspNetCore.Results;
+using System.Text.Json;
 
 namespace RazorSlicesHtmx.AspNetCore.Tests;
 
@@ -47,6 +48,32 @@ public class HtmxFragmentResultTests
         var trigger = httpContext.Response.Headers["HX-Trigger"].ToString();
         Assert.Contains("item-saved", trigger);
         Assert.Contains("list-refresh", trigger);
+    }
+
+    [Fact]
+    public async Task Build_with_simple_and_json_triggers_uses_non_null_payload_for_simple_trigger()
+    {
+        var builder = HtmxFragmentResult.Create(new FakeSlice());
+        builder.WithTrigger("Items.ListRefresh");
+        builder.WithTrigger("show-toast", "{\"title\":\"Saved\"}");
+
+        var result = builder.Build();
+        var httpContext = new DefaultHttpContext
+        {
+            Response =
+            {
+                Body = new MemoryStream()
+            }
+        };
+
+        await result.ExecuteAsync(httpContext);
+
+        var triggerHeader = httpContext.Response.Headers["HX-Trigger"].ToString();
+        using var doc = JsonDocument.Parse(triggerHeader);
+        var root = doc.RootElement;
+
+        Assert.True(root.TryGetProperty("Items.ListRefresh", out var refreshPayload));
+        Assert.Equal(JsonValueKind.Object, refreshPayload.ValueKind);
     }
 
     [Fact]

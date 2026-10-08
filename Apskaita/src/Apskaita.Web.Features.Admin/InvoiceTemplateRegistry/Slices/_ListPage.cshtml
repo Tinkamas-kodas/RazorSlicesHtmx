@@ -1,0 +1,24 @@
+@inherits RazorSlice<InvoiceTemplateListModel>
+
+<article class="section-panel">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <h2 class="mb-0">Invoice Templates</h2>
+        <button class="btn btn-outline-dark" hx-get="@FeatureUri.Uri("create")" hx-target="#feature-details" hx-push-url="true" hx-params="none" type="button">Create new</button>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+        <form class="d-flex align-items-end gap-2 flex-grow-1">
+            <div class="flex-grow-1">
+                <div class="form-floating">
+                          <input type="text" id="invoice-templates-search" name="Search" value="@Model.Search.Search" class="form-control" placeholder=""
+                              hx-get="@FeatureUri.Uri("list")" hx-trigger="keyup changed delay:300ms" hx-include="#@InvoiceTemplateListQuery.StateId"
+                           hx-vals='{"Page":"1"}' hx-target="#invoice-templates-list" hx-push-url="true" />
+                    <label for="invoice-templates-search">Search by code, name or language</label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @await RenderPartialAsync(_InvoiceTemplatesList.Create(Model))
+</article>
+

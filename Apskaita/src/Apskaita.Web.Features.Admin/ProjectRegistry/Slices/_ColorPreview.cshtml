@@ -1,0 +1,13 @@
+@inherits RazorSlice<ProjectColorPreviewModel>
+
+<div class="project-color-preview-grid">
+    <div class="project-color-preview-caption">
+        Preview in timeline: @Model.ColorLabel (@Model.ColorRgb)
+    </div>
+
+    <div class="project-color-preview-card"
+         style="background-color:@Model.BackgroundColorRgb;color:@Model.TextColorRgb;border-left-color:@Model.AccentColorRgb;">
+        <span class="project-color-preview-card__time">@Model.SampleTime</span>
+        <span class="project-color-preview-card__description">@Model.SampleDescription</span>
+    </div>
+</div>

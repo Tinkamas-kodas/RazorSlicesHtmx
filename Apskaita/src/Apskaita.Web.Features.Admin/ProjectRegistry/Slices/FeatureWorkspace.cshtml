@@ -1,0 +1,17 @@
+@inherits RazorSlice<RazorSlices.RazorSlice>
+@inject HtmxStateContext StateContext
+
+<div id="projects-workspace" class="section-panel">
+    @(StateContext.Serialize<ProjectSearchModel>(ProjectSearchModel.StateId))
+    @(StateContext.Serialize<ProjectListQuery>(ProjectListQuery.StateId))
+
+    <div id="feature-details"
+         hx-get="@FeatureUri.Uri("list")"
+         hx-trigger="Projects.ListRefresh from:document"
+         hx-include="#@ProjectSearchModel.StateId, #@ProjectListQuery.StateId"
+         hx-push-url="true"
+         hx-target="#feature-details">
+        @await RenderPartialAsync(Model)
+    </div>
+</div>
+

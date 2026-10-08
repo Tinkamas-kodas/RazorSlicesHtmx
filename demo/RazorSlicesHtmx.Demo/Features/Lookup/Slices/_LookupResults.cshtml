@@ -1,0 +1,39 @@
+@inherits RazorSlice<LookupResponse>
+@using Microsoft.AspNetCore.WebUtilities
+
+@foreach (var item in Model.Items)
+{
+    <button type="button"
+            class="list-group-item list-group-item-action rsh-lookup-item"
+            role="option"
+            data-rsh-lookup-value="@item.Value"
+            data-rsh-lookup-text="@item.Text">
+        <span class="rsh-lookup-item-text">@item.Text</span>
+        <span class="rsh-lookup-item-value">@item.Value</span>
+    </button>
+}
+
+@if (Model.Page == 1 && Model.Items.Count == 0)
+{
+    <div class="rsh-lookup-empty">No matches found.</div>
+}
+
+@if (Model.HasMore)
+{
+    var nextUrl = QueryHelpers.AddQueryString(Model.Path, new Dictionary<string, string?>
+    {
+        ["query"] = Model.Query,
+        ["page"] = Model.NextPage.ToString(),
+        ["pageSize"] = Model.PageSize.ToString(),
+        ["path"] = Model.Path
+    });
+
+    <div class="rsh-lookup-more"
+         hx-get="@nextUrl"
+         hx-target="closest .rsh-lookup-results"
+         hx-swap="beforeend"
+         hx-trigger="revealed once"
+         hx-on::after-request="this.remove()">
+        Loading more...
+    </div>
+}

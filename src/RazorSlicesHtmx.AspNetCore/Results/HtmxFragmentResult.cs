@@ -167,7 +167,12 @@ public static class HtmxFragmentResult
                 {
                     writer.WriteStartObject();
                     foreach (var t in simpleTriggers)
-                        writer.WriteNull(t);
+                    {
+                        // htmx 4 trigger dispatcher expects a non-null detail payload.
+                        writer.WritePropertyName(t);
+                        writer.WriteStartObject();
+                        writer.WriteEndObject();
+                    }
                     foreach (var (name, json) in jsonTriggers)
                     {
                         writer.WritePropertyName(name);

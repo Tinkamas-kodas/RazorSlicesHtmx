@@ -1,0 +1,17 @@
+@inherits RazorSlice<RazorSlices.RazorSlice>
+@inject HtmxStateContext StateContext
+
+<div id="invoice-templates-workspace" class="section-panel">
+    @(StateContext.Serialize<InvoiceTemplateSearchModel>(InvoiceTemplateSearchModel.StateId))
+    @(StateContext.Serialize<InvoiceTemplateListQuery>(InvoiceTemplateListQuery.StateId))
+
+    <div id="feature-details"
+         hx-get="@FeatureUri.Uri("list")"
+         hx-trigger="InvoiceTemplates.ListRefresh from:document"
+         hx-include="#@InvoiceTemplateSearchModel.StateId, #@InvoiceTemplateListQuery.StateId"
+         hx-push-url="true"
+         hx-target="#feature-details">
+        @await RenderPartialAsync(Model)
+    </div>
+</div>
+

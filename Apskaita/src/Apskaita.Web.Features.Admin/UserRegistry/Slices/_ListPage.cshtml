@@ -1,0 +1,23 @@
+@inherits RazorSlice<UserListModel>
+
+<article class="section-panel">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <h2 class="mb-0">Users</h2>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+        <form class="d-flex align-items-end gap-2 flex-grow-1">
+            <div class="flex-grow-1">
+                <div class="form-floating">
+                          <input type="text" id="users-search" name="Search" value="@Model.Search.Search" class="form-control" placeholder=""
+                              hx-get="@FeatureUri.Uri("list")" hx-trigger="keyup changed delay:300ms" hx-include="#@UserListQuery.StateId"
+                           hx-vals='{"Page":"1"}' hx-target="#users-list" hx-push-url="true" />
+                    <label for="users-search">Search by display name, Entra ID or email</label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @await RenderPartialAsync(_UsersList.Create(Model))
+</article>
+

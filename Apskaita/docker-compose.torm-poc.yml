@@ -1,0 +1,19 @@
+services:
+  mysql-torm-poc:
+    image: mysql:8.4
+    container_name: apskaita-mysql-torm-poc
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: apskaita_poc
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - mysql_torm_poc_data:/var/lib/mysql
+
+volumes:
+  mysql_torm_poc_data:

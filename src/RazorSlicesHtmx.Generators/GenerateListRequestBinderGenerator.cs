@@ -350,6 +350,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         if (!hasSortMapOverride && rowType is not null)
         {
             var rowTypeName = rowType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            source.AppendLine("    [global::RazorSlicesHtmx.AspNetCore.Models.StateNotMap]");
             source.Append("    public override global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Linq.Expressions.Expression<global::System.Func<")
                 .Append(rowTypeName)
                 .AppendLine(", object?>>> SortMap { get; } =")
@@ -390,6 +391,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         if (!hasSortOperationsOverride && rowType is not null)
         {
             var rowTypeName = rowType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            source.AppendLine("    [global::RazorSlicesHtmx.AspNetCore.Models.StateNotMap]");
             source.Append("    public override global::System.Collections.Generic.IReadOnlyDictionary<string, global::System.Func<global::System.Collections.Generic.IEnumerable<")
                 .Append(rowTypeName)
                 .AppendLine(">, bool, global::System.Collections.Generic.IEnumerable<")

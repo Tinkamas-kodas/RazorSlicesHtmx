@@ -1,4 +1,5 @@
 @inherits RazorSlice<ItemUpsertRequest>
+@inject IFeatureUri FeatureUri
 
 <article class="section-panel">
     <h3>Create Item</h3>
@@ -21,10 +22,7 @@
                     <button type="submit" class="btn btn-dark">Create</button>
                     <button type="button"
                             class="btn btn-outline-secondary"
-                            hx-get="/items/list"
-                            hx-target="#feature-details"
-                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-                            hx-push-url="true">
+                           onclick="@FeatureUri.Uri("list").HistoryBack()">
                         Cancel
                     </button>
                 </div>

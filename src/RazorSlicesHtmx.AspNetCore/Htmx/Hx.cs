@@ -5,6 +5,7 @@ public static class Hx
 {
     // ── Request headers ──────────────────────────────────────────────────────
     public const string Request = "HX-Request";
+    public const string HistoryRestoreRequest = "HX-History-Restore-Request";
     /// <summary>
     /// New in htmx 4: <c>"partial"</c> for targeted swaps, <c>"full"</c> for body-level requests.
     /// </summary>

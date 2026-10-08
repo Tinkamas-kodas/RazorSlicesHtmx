@@ -1,12 +1,12 @@
-@using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 @inherits RazorSlice<ItemListModel>
+@inject IFeatureUri FeatureUri
 
 
 <article class="section-panel">
     @await RenderPartialAsync(_SectionHero.Create(new(
         "CRUD feature",
         "Items with search, sort, paging and modal editing",
-        "/items")))
+        FeatureUri.Base)))
 
     <p class="section-summary">This feature uses RazorSlices for server-rendered HTML, HTMX for partial updates, and FluentValidation for create and edit validation.</p>
 
@@ -15,7 +15,7 @@
         <div class="card-body p-4">
             <div class="items-toolbar">
                 <form class="items-search-form"
-                      hx-get="/items/list"
+                        hx-get="@FeatureUri.Uri("list")"
                       hx-include="#@ItemListQuery.StateId"
                       hx-vals='{"Page":"1"}'
                       hx-target="#items-list"
@@ -29,7 +29,7 @@
 
                         <button class="btn btn-outline-secondary"
                                 type="button"
-                                hx-get="/items/list"
+                            hx-get="@FeatureUri.Uri("list")"
                                 hx-include="#@ItemListQuery.StateId"
                                 hx-vals='{"Page":"1"}'
                                 hx-target="#items-list"
@@ -42,7 +42,7 @@
                 </form>
 
                 <button class="btn btn-outline-dark"
-                        hx-get="/items/create"
+                    hx-get="@FeatureUri.Uri("create")"
                         hx-target="#feature-details"
                         hx-push-url="true"
                         hx-params="none"

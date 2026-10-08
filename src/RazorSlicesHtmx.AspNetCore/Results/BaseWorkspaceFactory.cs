@@ -9,23 +9,35 @@ namespace RazorSlicesHtmx.AspNetCore.Results;
 /// </summary>
 public abstract class BaseWorkspaceFactory
 {
-    private readonly string[] _innerTargets;
-
-    /// <param name="innerTargets">
-    /// <c>HX-Target</c> values that indicate the workspace is already in the DOM
-    /// (e.g. <c>"feature-details"</c>). When the request targets one of these,
-    /// only the inner slice is used as the HTMX fragment.
-    /// </param>
-    protected BaseWorkspaceFactory(params string[] innerTargets)
-        => _innerTargets = innerTargets;
-
     /// <summary>Wraps <paramref name="inner"/> in the workspace slice.</summary>
     protected abstract RazorSlice Wrap(RazorSlice inner);
 
-    internal (RazorSlice Workspace, RazorSlice Fragment) Resolve(RazorSlice inner, string htmxTarget)
+    internal (RazorSlice Workspace, RazorSlice Fragment) Resolve(RazorSlice inner, string htmxTarget, string featureDivId)
     {
         var workspace = Wrap(inner);
-        var isInner = _innerTargets.Contains(htmxTarget, StringComparer.OrdinalIgnoreCase);
+        var isInner = TargetsMatch(htmxTarget, featureDivId);
         return (workspace, isInner ? inner : workspace);
+    }
+
+    private static bool TargetsMatch(string actual, string expected)
+    {
+        if (string.IsNullOrWhiteSpace(actual) || string.IsNullOrWhiteSpace(expected))
+        {
+            return false;
+        }
+
+        static string NormalizeTarget(string value)
+        {
+            var normalized = value.Trim();
+            var hashIndex = normalized.LastIndexOf('#');
+            if (hashIndex >= 0 && hashIndex < normalized.Length - 1)
+            {
+                normalized = normalized[(hashIndex + 1)..];
+            }
+
+            return normalized.TrimStart('#');
+        }
+
+        return string.Equals(NormalizeTarget(actual), NormalizeTarget(expected), StringComparison.OrdinalIgnoreCase);
     }
 }

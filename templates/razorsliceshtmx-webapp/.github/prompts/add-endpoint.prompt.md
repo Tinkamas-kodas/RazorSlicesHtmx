@@ -71,3 +71,5 @@ app.MapGet("{route}/details", (int id) =>
 - Use `.WithTrigger()` to trigger client-side HTMX events (e.g., refresh a list)
 - Use `.WithRetarget()` / `.WithReswap()` to override the default swap target
 - Create a corresponding `.cshtml` slice for the response
+
+For searchable lookup endpoints and UI wiring, prefer using `.github/prompts/add-lookup.prompt.md`.

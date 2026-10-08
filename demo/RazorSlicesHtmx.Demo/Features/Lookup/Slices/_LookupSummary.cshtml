@@ -1,0 +1,23 @@
+@inherits RazorSlice<LookupSummaryModel>
+
+<p class="card-kicker">Submitted state</p>
+
+<dl class="preview-grid mb-0">
+    <div>
+        <dt>Requester</dt>
+        <dd>@Model.Requester</dd>
+    </div>
+    <div>
+        <dt>Selected client</dt>
+        <dd>
+            @if (string.IsNullOrWhiteSpace(Model.ClientId))
+            {
+                <span class="text-body-secondary">No client selected.</span>
+            }
+            else
+            {
+                <span>@Model.ClientText (@Model.ClientId)</span>
+            }
+        </dd>
+    </div>
+</dl>

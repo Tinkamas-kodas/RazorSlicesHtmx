@@ -17,7 +17,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML"}'>
+    <meta name="htmx-config" content='{"defaultSwapStyle":"innerHTML","logAll":true}'>
     <meta name="request-verification-token" content="@antiforgeryToken">
     <title>@Model.Title</title>
     @*#if (bootstrap5)*@
@@ -31,9 +31,9 @@
 </head>
 <body>
     @(await RenderPartialAsync(_TopNav.Create(Model)))
-    <div class="container">
+     <div class="container" >
         <main class="pb-3">
-            <section id="@detailTargetId" class="details-pane">
+            <section id="@detailTargetId" class="details-pane"  hx-history-elt>
                 @await RenderBodyAsync()
             </section>
         </main>
@@ -77,7 +77,7 @@
                 document.querySelectorAll(".modal-backdrop").forEach(b => b.remove());
             };
 
-            const refreshDialogHost = () => {
+            const showDialogFromHost = () => {
                 const host = document.getElementById("@dialogHostId");
                 if (!host) return;
                 const modal = host.querySelector(".modal");
@@ -87,21 +87,69 @@
                 bootstrap.Modal.getOrCreateInstance(modal).show();
             };
 
-            const refreshToastHost = () => {
+            const showExistingToasts = () => {
                 const host = document.getElementById("@toastHostId");
                 if (!host) return;
                 host.querySelectorAll(".toast").forEach(t => bootstrap.Toast.getOrCreateInstance(t, { delay: @toastDelay }).show());
             };
 
+            const showToastFromTrigger = event => {
+                const { title = "", message = "", tone = "info" } = event.detail ?? {};
+                const host = document.getElementById("@toastHostId");
+                if (!host) return;
+
+                const bgClass = tone === "error" ? "danger" : tone;
+                const el = document.createElement("div");
+                el.setAttribute("role", "alert");
+                el.setAttribute("aria-live", "assertive");
+                el.setAttribute("aria-atomic", "true");
+                el.className = `toast align-items-center text-bg-${bgClass} border-0 shadow`;
+
+                const bodyDiv = document.createElement("div");
+                bodyDiv.className = "d-flex";
+
+                const textDiv = document.createElement("div");
+                textDiv.className = "toast-body";
+
+                const strong = document.createElement("strong");
+                strong.className = "me-2";
+                strong.textContent = title;
+
+                const span = document.createElement("span");
+                span.textContent = message;
+
+                textDiv.append(strong, span);
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "btn-close btn-close-white me-2 m-auto";
+                btn.setAttribute("data-bs-dismiss", "toast");
+                btn.setAttribute("aria-label", "Close");
+
+                bodyDiv.append(textDiv, btn);
+                el.appendChild(bodyDiv);
+                host.appendChild(el);
+
+                bootstrap.Toast.getOrCreateInstance(el, { delay: @toastDelay }).show();
+                el.addEventListener("hidden.bs.toast", () => el.remove(), { once: true });
+            };
+
             const refresh = e => {
                 const t = e?.detail?.target;
-                if (!t || t.id === "@dialogHostId") refreshDialogHost();
-                if (!t || t.id === "@toastHostId") refreshToastHost();
+                if (!t || t.id === "@dialogHostId") showDialogFromHost();
+                if (!t || t.id === "@toastHostId") showExistingToasts();
             };
 
             document.addEventListener("DOMContentLoaded", refresh);
             document.body.addEventListener("htmx:after:swap", refresh);
             document.body.addEventListener("htmx:after:oob-swap", refresh);
+            document.addEventListener("show-dialog", showDialogFromHost);
+            document.addEventListener("dialog:clear", () => {
+                const host = document.getElementById("@dialogHostId");
+                if (host) host.innerHTML = "";
+                clearModalArtifacts();
+            });
+            document.addEventListener("show-toast", showToastFromTrigger);
         })();
     </script>
     @*#endif*@

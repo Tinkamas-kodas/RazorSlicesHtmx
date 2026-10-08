@@ -1,0 +1,9 @@
+@inherits RazorSlice<Apskaita.Web.Layout.Models.AppPageShellModel>
+@using Apskaita.Web.Layout.Models
+@implements IUsesLayout<Apskaita.Web.Layout.Slices._Layout, Apskaita.Web.Layout.Models.AppLayoutModel>
+
+@(await RenderPartialAsync(Model.Detail))
+
+@functions {
+    public AppLayoutModel LayoutModel => Model.Layout;
+}

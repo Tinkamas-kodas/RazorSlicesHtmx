@@ -30,9 +30,9 @@ return Result.Page(_FeaturePage.Create(model))
 | `WithDialog(content)` | Render dialog into `DialogHostSelector` + fire `show-dialog` after swap |
 | `ClearDialog()` | Fire `dialog:clear` trigger to clear the dialog host |
 | `WithToast(message, title?, tone?)` | Queue a toast notification (default `tone`: `Success`) |
-| `WithTrigger(eventName)` | Add `HX-Trigger` event (fires before DOM swap) |
+| `WithTrigger(eventName)` | Add `HX-Trigger` event (fires after DOM swap in htmx 4) |
 | `WithState(model)` | Add OOB state update + register in `HtmxStateContext` |
-| `WithWorkspace<TFactory>()` | Wrap detail in workspace; auto-selects inner vs full based on `HX-Target` |
+| `WithWorkspace(type, featureDivId)` | Low-level API used by module facade; wraps detail in workspace and auto-selects inner vs full based on `HX-Target` |
 | `WithNavigation(url, replace?)` | Add `HX-Replace-Url` or `HX-Push-Url`; suppresses nav OOB by default |
 | `WithLocation(url, replace?)` | Add `HX-Location` for client-side navigation with optional toast |
 | `WithRetarget(selector)` | Add `HX-Retarget` |
@@ -45,6 +45,11 @@ return Result.Page(_FeaturePage.Create(model))
 ```csharp
 return Result.ShowDialog(_DeleteConfirm.Create(model));
 ```
+
+`BaseFeatureModule` facade also exposes:
+
+- `Result.Page(detail)` — feature-level response, auto-applies workspace only when module implements `IHaveWorkspace`.
+- `Result.Fragment(detail)` — explicit no-workspace response for inner HTMX targets (lists, rows, dialogs, etc.).
 
 ---
 

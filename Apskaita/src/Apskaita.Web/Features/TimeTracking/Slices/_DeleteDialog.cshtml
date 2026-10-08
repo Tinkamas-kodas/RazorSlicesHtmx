@@ -1,0 +1,33 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var httpContext = HttpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is required.");
+    var id = httpContext.Request.RouteValues["id"]?.ToString() ?? throw new InvalidOperationException("Time entry ID is required.");
+}
+
+<div id="time-tracking-dialog" class="modal-content border-0 shadow-lg">
+    <form hx-post="@FeatureUri.Uri($"delete/{id}")" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Delete time entry</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p class="mb-2">This will permanently delete the time entry:</p>
+            <p class="mb-0">
+                <strong>@Model.Date.ToString("yyyy-MM-dd") @Model.Start.ToString("HH:mm")</strong><br>
+                @Model.Description
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    hx-get="@FeatureUri.Uri($"edit/{id}")"
+                    hx-target="closest .modal-content"
+                    hx-swap="outerHTML">
+                Cancel
+            </button>
+            <button type="submit" class="btn btn-danger">Yes, delete</button>
+        </div>
+    </form>
+</div>

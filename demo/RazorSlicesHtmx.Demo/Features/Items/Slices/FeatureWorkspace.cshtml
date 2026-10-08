@@ -1,14 +1,15 @@
 @using RazorSlicesHtmx.Demo.Features.Items.Endpoints
 @inherits RazorSlice<RazorSlice>
 @inject HtmxStateContext StateContext
+@inject IFeatureUri FeatureUri
 
 <div id="items-workspace" class="section-panel">
     @(StateContext.Serialize<ItemSearchModel>(ItemSearchModel.StateId))
     @(StateContext.Serialize<ItemListQuery>(ItemListQuery.StateId))
 
     <div id="feature-details"
-         hx-get="/items/list"
-         hx-trigger="@Consts.RefreshListTrigger from:body"
+            hx-get="@FeatureUri.Uri("list")"
+         hx-trigger="@Consts.RefreshListTrigger from:document"
          hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
          hx-push-url="true"
          hx-target="#feature-details">

@@ -1,0 +1,47 @@
+.rsh-lookup-select {
+  position: relative;
+}
+
+.rsh-lookup-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 1100;
+  max-height: 18rem;
+  overflow: auto;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  background: var(--bs-body-bg);
+}
+
+.rsh-lookup-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0.55rem 0.75rem;
+}
+
+.rsh-lookup-item:hover,
+.rsh-lookup-item:focus {
+  background: var(--bs-tertiary-bg);
+}
+
+.rsh-lookup-empty,
+.rsh-lookup-more {
+  padding: 0.55rem 0.75rem;
+  color: var(--bs-secondary-color);
+}
+
+.rsh-lookup-item-text {
+  display: block;
+  font-weight: 500;
+}
+
+.rsh-lookup-item-value {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+}

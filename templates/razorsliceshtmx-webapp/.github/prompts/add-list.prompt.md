@@ -81,7 +81,7 @@ The **workspace slice** — injects `HtmxStateContext`, serializes state, wraps 
 
     <div id="feature-details"
          hx-get="/{route}/list"
-         hx-trigger="{FeatureName}.ListRefresh from:body"
+         hx-trigger="{FeatureName}.ListRefresh from:document"
          hx-include="#@{FeatureName}SearchModel.StateId, #@{FeatureName}ListQuery.StateId"
          hx-push-url="true"
          hx-target="#feature-details">
@@ -92,7 +92,7 @@ The **workspace slice** — injects `HtmxStateContext`, serializes state, wraps 
 
 ### `Features/{FeatureName}/{FeatureName}WorkspaceFactory.cs`
 ```csharp
-public sealed class {FeatureName}WorkspaceFactory() : BaseWorkspaceFactory("feature-details")
+public sealed class {FeatureName}WorkspaceFactory : BaseWorkspaceFactory
 {
     protected override RazorSlice Wrap(RazorSlice inner) => FeatureWorkspace.Create(inner);
 }
@@ -113,7 +113,7 @@ Toolbar (search form + "Create new" button) and renders the items list as a part
                       hx-get="/{route}/list"
                       hx-include="#@{FeatureName}ListQuery.StateId"
                       hx-vals='{"Page":"1"}'
-                      hx-target="#feature-details"
+                        hx-target="#{featurename}-list"
                       hx-push-url="true">
                     <div>
                         <label class="form-label" for="{featurename}-search">Search</label>
@@ -126,7 +126,7 @@ Toolbar (search form + "Create new" button) and renders the items list as a part
                                 hx-get="/{route}/list"
                                 hx-include="#@{FeatureName}ListQuery.StateId"
                                 hx-vals='{"Page":"1"}'
-                                hx-target="#feature-details"
+                            hx-target="#{featurename}-list"
                                 hx-push-url="true">Reset</button>
                     </div>
                 </form>
@@ -148,7 +148,7 @@ Toolbar (search form + "Create new" button) and renders the items list as a part
                     hx-get="/{route}/list"
                     hx-include="#@{FeatureName}ListQuery.StateId"
                     hx-vals='{"Page":"1"}'
-                    hx-target="#feature-details"
+                    hx-target="#{featurename}-list"
                     hx-push-url="true">Clear search</button>
         </div>
     }
@@ -167,7 +167,7 @@ Table with sort headers, rows, and pager — this is the **fragment** returned b
     var header = Model.SortHeader("/{route}/list");
 }
 
-<section class="section-panel">
+<section id="{featurename}-list" class="section-panel">
     <div class="mb-2">
         <p class="text-muted mb-0">
             @if (Model.Total == 0)
@@ -179,8 +179,8 @@ Table with sort headers, rows, and pager — this is the **fragment** returned b
 
     <form class="list-request-form"
           hx-get="/{route}/list"
-          hx-include="#@{FeatureName}SearchModel.StateId, #@{FeatureName}ListQuery.StateId"
-          hx-target="#feature-details"
+            hx-include:inherited="#@{FeatureName}SearchModel.StateId, #@{FeatureName}ListQuery.StateId"
+            hx-target:inherited="#{featurename}-list"
           hx-push-url="true">
         <div class="card border-0 shadow-sm overflow-hidden">
             <div class="table-responsive">
@@ -233,7 +233,7 @@ FeatureWorkspace.cshtml  ← workspace: state serialization + #feature-details t
 ```
 
 - **State** is serialized in `FeatureWorkspace` via `HtmxStateContext.Serialize<T>()`
-- **`#feature-details`** has `hx-trigger="{Name}.ListRefresh from:body"` — refreshes the full list
+- **`#feature-details`** has `hx-trigger="{Name}.ListRefresh from:document"` — refreshes the full list
 - **Toolbar** (search form) targets `#{featurename}-list` (only the table swaps, not toolbar)
 - When HTMX target is `{featurename}-list` (sort/page), only `_{Name}List` fragment is returned
 - When HTMX target is `feature-details` (navigation), `_ListPage` + workspace are returned
@@ -252,29 +252,31 @@ public {FeatureName}ListModel CreateListModel({FeatureName}SearchModel search, {
 
 ### Update `{FeatureName}Endpoints.cs`
 ```csharp
-app.MapGet("/{route}/list", (HttpContext ctx, [AsParameters] {FeatureName}SearchModel search, {FeatureName}ListQuery query) =>
+group.MapGet("list", (HttpContext ctx, [AsParameters] {FeatureName}SearchModel search, {FeatureName}ListQuery query) =>
 {
     var model = _content.CreateListModel(search, query);
     if (ctx.IsHtmxTarget("{featurename}-list"))
     {
-        return Result.Page(_{FeatureName}List.Create(model))
+        return Result.Fragment(_{FeatureName}List.Create(model))
             .WithState(search)
             .WithState(query);
     }
     return Result.Page(_ListPage.Create(model))
-        .WithWorkspace<{FeatureName}WorkspaceFactory>()
         .WithState(search)
         .WithState(query);
 });
 
-app.MapGet("/{route}/create", () =>
-    Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
-        .WithWorkspace<{FeatureName}WorkspaceFactory>());
+group.MapGet("create", () =>
+    Result.Page(_CreatePage.Create(_content.CreateCreateFormModel())));
 ```
 
 Note: `` — the fragment is the list page (toolbar + table), not just the table. The `_FeaturePage` wrapper with state serialization is only sent on full page loads.
 
 ## Key concepts:
+
+### Feature-relative URLs
+- Inject `IFeatureUri` into list/create/edit/workspace slices and use `FeatureUri.Uri("list")`, `FeatureUri.Uri("create")`, `FeatureUri.Uri($"edit/{id}")` instead of hardcoded `/items/...` paths.
+- Keep cancel actions as browser history back with fallback to `FeatureUri.Uri("list")`.
 
 ### Sort headers (`SortHeader`)
 - `Model.SortHeader("/{route}/list")` creates a sort context with Bootstrap defaults
@@ -295,5 +297,7 @@ Note: `` — the fragment is the list page (toolbar + table), not just the table
 - Use `[SortDisable]` on properties you don't want sortable (e.g., Id)
 - `.WithState(search).WithState(query)` sends OOB state updates on fragment responses
 - Use `.WithPageTitle(...)` on list GET when you want a list-specific title; otherwise default title is `NavigationItem.Label`
-- `hx-include` references state by `#@{Model}SearchModel.StateId, #@{Model}ListQuery.StateId`
+- In HTMX 4, prefer explicit inheritance on the list form: `hx-include:inherited="#@{FeatureName}SearchModel.StateId, #@{FeatureName}ListQuery.StateId"` and `hx-target:inherited="#{featurename}-list"`
+- Do not put both `hx-target` and `hx-target:inherited` on the same element
 - Cancel buttons on create/edit forms should `hx-include` state IDs to preserve list position
+- For workspace-enabled features, inherit `BaseFeatureModuleWithWorkspace<{FeatureName}WorkspaceFactory>` and set `FeatureDivId` (typically `"feature-details"`).

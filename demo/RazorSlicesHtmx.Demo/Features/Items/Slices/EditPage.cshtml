@@ -1,10 +1,11 @@
 @inherits RazorSlice<ItemUpsertRequest>
+@inject IFeatureUri FeatureUri
 
 <article class="section-panel">
     @await RenderPartialAsync(_SectionHero.Create(new(
         "Item editor",
         "Edit item",
-        $"/items/edit/{Model.Id}")))
+        FeatureUri.Uri($"edit/{Model.Id}"))))
 
     <p class="section-summary">Update the item and return to the list with server-rendered feedback. The current list query is preserved through the shared state host.</p>
 
@@ -25,10 +26,7 @@
                     <button type="submit" class="btn btn-dark">Save changes</button>
                     <button type="button"
                             class="btn btn-outline-secondary"
-                            hx-get="/items/list"
-                            hx-target="#feature-details"
-                            hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-                            hx-push-url="true">
+                            onclick="@FeatureUri.Uri("list").HistoryBack()">
                         Cancel
                     </button>
                 </div>

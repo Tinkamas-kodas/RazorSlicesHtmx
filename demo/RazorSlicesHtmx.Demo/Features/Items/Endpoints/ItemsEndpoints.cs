@@ -10,9 +10,10 @@ public static class Consts
 {
     public const string RefreshListTrigger = "Items.ListRefresh";
 }
-public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
+public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ItemsWorkspaceFactory>(resultBuilder)
 {
     private readonly ItemsContentService _content = new();
+    public override string FeatureDivId => "feature-details";
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
         new("items", "Items", "list", Order: 200)
@@ -26,14 +27,13 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             if (ctx.IsHtmxTarget("items-list"))
             {
                 //refresh only list without search bar
-                return Result.Page(_ItemsList.Create(model))
+                return Result.Fragment(_ItemsList.Create(model))
                     .WithState(search)
                     .WithState(query)
                     ;
             }
             
             return Result.Page(ListPage.Create(model))
-                .WithWorkspace<ItemsWorkspaceFactory>()
                 .WithState(search)
                 .WithState(query)
                 ;
@@ -41,7 +41,6 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
         group.MapGet("create", () => Result
             .Page(CreatePage.Create(_content.CreateCreateFormModel()))
-            .WithWorkspace<ItemsWorkspaceFactory>()
             );
 
         group.MapPost("create", async (ItemUpsertRequest request, AppDbContext db,
@@ -53,15 +52,14 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.Page(CreatePage.Create(request))
-                        ;
+                    return Result.Page(CreatePage.Create(request));
                 }
 
                 var entity = _content.CreateEntity(request);
                 db.Items.Add(entity);
                 await db.SaveChangesAsync(ct);
 
-                return Result.Empty()
+                return Result.Page(CreatePage.Create(_content.CreateCreateFormModel()))
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was created.")
                     ;
@@ -78,7 +76,6 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
             return Result
                 .Page(EditPage.Create(_content.CreateEditFormModel(entity)))
-                .WithWorkspace<ItemsWorkspaceFactory>()
                 ;
         });
 
@@ -105,7 +102,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 _content.Apply(entity, request);
                 await db.SaveChangesAsync(ct);
 
-                return Result.Empty()
+                return Result.Page(EditPage.Create(_content.CreateEditFormModel(entity)))
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was updated.")
                     ;
@@ -130,8 +127,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 if (!validationResult.IsValid)
                 {
                     request.Errors = validationResult.ToErrorDictionary();
-                    return Result.Page(_ItemDelete.Create(request))
-                        ;
+                    return Result.Fragment(_ItemDelete.Create(request));
                 }
 
                 var entity = await db.Items.FindAsync([id], ct);
@@ -143,11 +139,10 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 db.Items.Remove(entity);
                 await db.SaveChangesAsync(ct);
 
-                return Result.Page(_ItemDelete.Create(request))
+                return Result.Fragment(_ItemDelete.Create(request))
                     .WithTrigger(Consts.RefreshListTrigger)
                     .WithToast($"Item '{entity.Code}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
-                    .ClearDialog()
-                    ;
+                    .ClearDialog();
             })
             .DisableAntiforgery();
     }

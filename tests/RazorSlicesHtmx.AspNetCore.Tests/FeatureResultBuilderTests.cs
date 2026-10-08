@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlices;
+using RazorSlicesHtmx.AspNetCore.Extensions;
 using RazorSlicesHtmx.AspNetCore.Features;
 using RazorSlicesHtmx.AspNetCore.Models;
 using RazorSlicesHtmx.AspNetCore.Options;
@@ -352,7 +353,12 @@ public class FeatureResultBuilderTests
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(new RazorSlicesHtmxOptions()));
         services.AddScoped<HtmxStateContext>();
 
-        var registry = FeatureRegistry.Discover(typeof(FeatureRegistryTests).Assembly, services.BuildServiceProvider());
+        services
+            .AddFeature<AlphaFeature>()
+            .AddFeature<BravoFeature>()
+            .AddFeature<CharlieFeature>();
+
+        var registry = FeatureRegistry.FromRegistrations(services.BuildServiceProvider());
         services.AddSingleton(registry);
         services.AddSingleton<INavOobStrategy, HxCurrentUrlNavStrategy>();
 

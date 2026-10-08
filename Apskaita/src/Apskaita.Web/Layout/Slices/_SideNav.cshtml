@@ -1,0 +1,102 @@
+@using Apskaita.Web.Shared
+@inherits RazorSlice<Apskaita.Web.Layout.Models.AppLayoutModel>
+@inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
+
+@{
+    var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
+
+    string ResolveIconId(AdminNavItem item)
+    {
+        var key = item.Key.ToLowerInvariant();
+        var label = item.Label.ToLowerInvariant();
+
+        if (key.Contains("home") || label.Contains("home"))
+        {
+            return "nav-home";
+        }
+
+        if (key.Contains("client") || label.Contains("client"))
+        {
+            return "nav-clients";
+        }
+
+        if (key.Contains("admin") || label.Contains("admin"))
+        {
+            return "nav-admin";
+        }
+
+        return "nav-default";
+    }
+
+    var ordered = Model.Navigation.OrderBy(x => x.Order).ThenBy(x => x.Label).ToList();
+    var adminItems = ordered.Where(x => string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase)).ToList();
+    var mainItems = ordered
+        .Where(x => !string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+}
+
+<aside id="side-nav" class="side-nav" hx-swap-oob="@Hx.Swap.OuterHtml">
+    <div class="side-nav-header">
+        <a class="side-nav-brand" href="/home"><span class="side-nav-brand-text">Apskaita.Web</span></a>
+        <button type="button" id="side-nav-toggle" class="btn btn-sm btn-outline-secondary" aria-label="Toggle sidebar" aria-expanded="true">
+            <span class="side-nav-toggle-open">&laquo;</span>
+            <span class="side-nav-toggle-closed">&raquo;</span>
+        </button>
+    </div>
+
+    @if (mainItems.Count > 0)
+    {
+        <section class="side-nav-group side-nav-group-main">
+            <h6 class="side-nav-title">Main</h6>
+            <ul class="side-nav-list">
+                @foreach (var item in mainItems)
+                {
+                    var isActive = string.Equals(Model.ActiveKey, item.Key, StringComparison.OrdinalIgnoreCase);
+                    <li>
+                        <a href="@item.Route"
+                           hx-get="@item.Route"
+                           hx-target="@detailTargetSelector"
+                           hx-swap="@Hx.Swap.InnerHtml"
+                           hx-push-url="true"
+                           class="side-nav-link @(isActive ? "active" : "")"
+                           title="@item.Label"
+                           aria-label="@item.Label">
+                            <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
+                                <use href="/icons/sprite.svg#@ResolveIconId(item)" />
+                            </svg>
+                            <span class="side-nav-link-label">@item.Label</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    @if (adminItems.Count > 0)
+    {
+        <section class="side-nav-group side-nav-group-admin">
+            <h6 class="side-nav-title">Admin</h6>
+            <ul class="side-nav-list">
+                @foreach (var item in adminItems)
+                {
+                    var isActive = string.Equals(Model.ActiveKey, item.Key, StringComparison.OrdinalIgnoreCase);
+                    <li>
+                        <a href="@item.Route"
+                           hx-get="@item.Route"
+                           hx-target="@detailTargetSelector"
+                           hx-swap="@Hx.Swap.InnerHtml"
+                           hx-push-url="true"
+                           class="side-nav-link @(isActive ? "active" : "")"
+                           title="@item.Label"
+                           aria-label="@item.Label">
+                            <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
+                                <use href="/icons/sprite.svg#@ResolveIconId(item)" />
+                            </svg>
+                            <span class="side-nav-link-label">@item.Label</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+</aside>

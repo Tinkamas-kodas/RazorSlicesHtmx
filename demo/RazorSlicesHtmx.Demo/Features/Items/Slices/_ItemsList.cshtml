@@ -1,9 +1,9 @@
 @inherits RazorSlice<ItemListModel>
-@using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 @using For = RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models.ItemUpsertRequestHtml
+@inject IFeatureUri FeatureUri
 
 @{
-    var header = Model.SortHeader("/items/list", BootstrapHeaderOptions.Default with
+    var header = Model.SortHeader(FeatureUri.Uri("list"), BootstrapHeaderOptions.Default with
     {
         SortButtonClass = "items-sort-link btn btn-link p-0 text-decoration-none",
     });
@@ -25,11 +25,11 @@
 
     </div>
 
-    <form class="list-request-form"
-          hx-get="/items/list"
-          hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
-            hx-target="#items-list"
-          hx-push-url="true">
+        <form class="list-request-form"
+            hx-get="@FeatureUri.Uri("list")"
+            hx-include:inherited="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+            hx-target:inherited="#items-list"
+            hx-push-url="true">
         <div class="content-card card border-0 shadow-sm overflow-hidden">
             @if (Model.Items.Count == 0)
             {
@@ -66,7 +66,7 @@
                                 <td>
                                     <div class="items-actions">
                                         <button class="btn btn-sm btn-outline-secondary"
-                                                hx-get="/items/edit/@row.Id"
+                                            hx-get="@FeatureUri.Uri($"edit/{row.Id}")"
                                                 hx-target="#feature-details"
                                                 hx-push-url="true"
                                                 hx-params="none"
@@ -74,7 +74,7 @@
                                             Edit
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger"
-                                                hx-get="/items/delete/@row.Id"
+                                            hx-get="@FeatureUri.Uri($"delete/{row.Id}")"
                                                 hx-push-url="false"
                                                 hx-target="#dialog-host"
                                                 type="button">
@@ -91,12 +91,12 @@
         </div>
 
         @* Renderer approach — programmatic, CSS customisable via BootstrapPagerOptions:
-            @Model.PagerContext("/items/list", BootstrapPagerOptions.Default with { PagerContainerClass = "items-pager" }).Render()
+            @Model.PagerContext(FeatureUri.Uri("list"), BootstrapPagerOptions.Default with { PagerContainerClass = "items-pager" }).Render()
            Custom renderer:
-            @Model.PagerContext("/items/list", new MyPagerRenderer()).Render() *@
+            @Model.PagerContext(FeatureUri.Uri("list"), new MyPagerRenderer()).Render() *@
 
         <div class="items-pager">
-            @await RenderPartialAsync(_Pager.Create(Model.ToPagerModel("/items/list")))
+            @await RenderPartialAsync(_Pager.Create(Model.ToPagerModel(FeatureUri.Uri("list"))))
         </div>
     </form>
 </section>

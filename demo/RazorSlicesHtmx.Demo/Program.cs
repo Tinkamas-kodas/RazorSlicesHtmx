@@ -3,19 +3,24 @@ using Microsoft.EntityFrameworkCore;
 using RazorSlicesHtmx.Demo.Data;
 using RazorSlicesHtmx.Demo.Features.About;
 using RazorSlicesHtmx.Demo.Features.HowTo.Endpoints;
+using RazorSlicesHtmx.Demo.Features.Lookup.Endpoints;
 using RazorSlicesHtmx.Demo.Features.Form.Endpoints;
 using RazorSlicesHtmx.Demo.Features.Items.Endpoints;
 using RazorSlicesHtmx.Demo.Shared.Rendering;
+using RazorSlicesHtmx.Demo.Shared.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorSlicesHtmx();
 builder.Services.AddRazorSlicesHtmxBootstrap5();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IFeatureUri, HttpFeatureUri>();
 builder.Services.AddSingleton<IFeaturePageRenderer, DemoFeaturePageRenderer>();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("items-db"));
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddFeature<AboutEndpoints>("/about");
 builder.Services.AddFeature<FormEndpoints>("/form");
+builder.Services.AddFeature<LookupEndpoints>("/lookup");
 builder.Services.AddFeature<ItemsEndpoints>("/items");
 builder.Services.AddFeature<HowToEndpoints>("/howto");
 var app = builder.Build();

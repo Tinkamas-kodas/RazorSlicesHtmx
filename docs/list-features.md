@@ -76,6 +76,23 @@ app.MapGet("/items/list", ([AsParameters] ItemSearchModel search, ItemListQuery 
 
 `[AsParameters]` unwraps the record. HTMX GET requests append `hx-include` values as query params, so this works for both URL navigation and HTMX interactions.
 
+## Feature-relative URLs in slices
+
+Avoid hardcoding feature prefixes such as `/items/...` inside Razor slices. Inject a feature URI helper and build relative paths:
+
+```cshtml
+@inject IFeatureUri FeatureUri
+
+<button hx-get="@FeatureUri.Uri("create")" hx-target="#feature-details" hx-push-url="true">Create</button>
+<button hx-get="@FeatureUri.Uri("edit/123")" hx-target="#feature-details" hx-push-url="true">Edit</button>
+```
+
+For Cancel buttons, use history back with a feature-relative fallback:
+
+```html
+onclick="@FeatureUri.Uri("list").HistoryBack()"
+```
+
 ## Sort headers
 
 Obtain a `ListSortHeaderContext` from `ListResponse` via `SortHeader(url, options?)`:
@@ -97,7 +114,17 @@ Obtain a `ListSortHeaderContext` from `ListResponse` via `SortHeader(url, option
 <th>@header.Render("name", "Name")</th>
 ```
 
-Each sort header renders a `<button>` with `hx-get`, `hx-push-url="true"`, and `hx-vals` for toggled `SortBy`/`SortDirection`. `hx-include` is intentionally omitted — it is inherited from an enclosing `<form hx-include="...">`.
+Each sort header renders a `<button>` with `hx-get`, `hx-push-url="true"`, and `hx-vals` for toggled `SortBy`/`SortDirection`. `hx-include` is intentionally omitted — it is inherited from an enclosing form.
+
+HTMX 4 note: inheritance is explicit by default. Prefer marking the form attributes as inherited instead of enabling global `implicitInheritance`:
+
+```cshtml
+<form class="list-request-form"
+    hx-get="/items/list"
+    hx-include:inherited="#item-search-model, #item-list-query"
+    hx-target:inherited="#items-list"
+    hx-push-url="true">
+```
 
 Custom renderer:
 

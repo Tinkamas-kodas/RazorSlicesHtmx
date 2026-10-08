@@ -12,9 +12,10 @@ using RazorSlicesHtmx.FluentValidation.Extensions;
 
 namespace RshtmxApp.Features.Items.Endpoints;
 
-public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
+public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ItemsWorkspaceFactory>(resultBuilder)
 {
     private readonly ItemsContentService _content = new();
+    public override string FeatureDivId => "feature-details";
 
     public override IReadOnlyList<NavigationItem> NavigationItems =>
     [
@@ -28,13 +29,12 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var model = _content.CreateListModel(search, query);
             if (ctx.IsHtmxTarget("items-list"))
             {
-                return Result.Page(_ItemsList.Create(model))
+                return Result.Fragment(_ItemsList.Create(model))
                     .WithState(search)
                     .WithState(query)
                     ;
             }
             return Result.Page(_ListPage.Create(model))
-                .WithWorkspace<ItemsWorkspaceFactory>()
                 .WithState(search)
                 .WithState(query)
                 ;
@@ -42,7 +42,6 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
         group.MapGet("create", () =>
             Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
-                .WithWorkspace<ItemsWorkspaceFactory>()
                 );
 
 //#if (fluentValidation)
@@ -87,7 +86,6 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 return Results.NotFound();
 
             return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)))
-                .WithWorkspace<ItemsWorkspaceFactory>()
                 ;
         });
 
@@ -150,7 +148,7 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
                 _content.Delete(id);
 
-                return Result.Page(_Empty.Create())
+                return Result.Fragment(_Empty.Create())
                     .WithTrigger("Items.ListRefresh")
                     .WithToast($"Item '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                     .ClearDialog()

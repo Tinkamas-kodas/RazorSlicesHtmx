@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+  <Folder Name="/Apskaita/">
+    <Project Path="Apskaita/src/Apskaita.Data.Migration/Apskaita.Data.Migration.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Entities/Apskaita.Entities.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Web/Apskaita.Web.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Web.Features.Admin/Apskaita.Web.Features.Admin.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Web.Shared/Apskaita.Web.Shared.csproj" />
+  </Folder>
+  <Folder Name="/RazorSlicesHtmx/">
+    <Project Path="src/RazorSlicesHtmx.AspNetCore/RazorSlicesHtmx.AspNetCore.csproj" />
+    <Project Path="src/RazorSlicesHtmx.Bootstrap5/RazorSlicesHtmx.Bootstrap5.csproj" />
+    <Project Path="src/RazorSlicesHtmx.FluentValidation/RazorSlicesHtmx.FluentValidation.csproj" />
+    <Project Path="src/RazorSlicesHtmx.Generators/RazorSlicesHtmx.Generators.csproj" />
+  </Folder>
+</Solution>

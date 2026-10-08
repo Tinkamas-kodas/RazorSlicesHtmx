@@ -43,6 +43,18 @@ With this setup, feature endpoints stay relative (`"list"`, `"create"`, `"edit/{
 
 `BaseFeatureModule` provides the `Result` convenience facade backed by `FeatureResultBuilder`. Implement `IFeatureModule` directly only when you don't use `FeatureResultBuilder`.
 
+For features that use a workspace wrapper, inherit `BaseFeatureModuleWithWorkspace<TWorkspaceFactory>` and define `FeatureDivId`:
+
+```csharp
+public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder)
+    : BaseFeatureModuleWithWorkspace<ItemsWorkspaceFactory>(resultBuilder)
+{
+    public override string FeatureDivId => "feature-details";
+}
+```
+
+In workspace features, use `Result.Page(...)` for feature-level screens and `Result.Fragment(...)` for inner targets (such as list/table refreshes).
+
 ## Navigation tree
 
 `NavigationItems` returns a list of `NavigationItem` nodes. Two concrete types exist:
@@ -78,7 +90,7 @@ builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
 });
 ```
 
-Optional legacy fallback:
+Optional fallback:
 
 `FeatureRegistry.Discover` scans assemblies for `IFeatureModule` implementations and registers them:
 

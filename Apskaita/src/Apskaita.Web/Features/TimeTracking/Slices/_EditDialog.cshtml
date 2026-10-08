@@ -1,0 +1,41 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var httpContext = HttpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is required.");
+    var editPath = httpContext.Request.Path.Value ?? throw new InvalidOperationException("Edit path is required.");
+    var id = httpContext.Request.RouteValues["id"]?.ToString() ?? throw new InvalidOperationException("Time entry ID is required.");
+}
+
+<div id="time-tracking-dialog" class="modal-content border-0 shadow-lg">
+    <form hx-post="@editPath" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit time entry</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
+
+        <div class="modal-footer justify-content-between">
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    hx-get="@FeatureUri.Uri($"delete/{id}")"
+                    hx-target="closest .modal-content"
+                    hx-swap="outerHTML">
+                Delete
+            </button>
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        hx-post="@FeatureUri.Uri("create")"
+                        hx-include="closest form"
+                        hx-target="closest .modal-content"
+                        hx-swap="outerHTML">
+                    Copy
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-dark">Save</button>
+            </div>
+        </div>
+    </form>
+</div>

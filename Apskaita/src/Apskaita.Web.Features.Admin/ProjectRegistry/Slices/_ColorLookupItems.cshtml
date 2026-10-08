@@ -1,0 +1,31 @@
+@inherits RazorSlice<System.Collections.Generic.IReadOnlyList<Apskaita.Web.Shared.ProjectColors.ProjectColorOption>>
+@using Apskaita.Web.Shared.ProjectColors
+
+@if (Model.Count == 0)
+{
+    <button type="button"
+            class="list-group-item list-group-item-action rsh-lookup-item text-muted"
+            disabled>
+        No colors found
+    </button>
+}
+else
+{
+    foreach (var item in Model)
+    {
+        var presentation = ProjectColorCatalog.CreatePresentation(item.Value);
+
+        <button type="button"
+                class="list-group-item list-group-item-action rsh-lookup-item project-color-lookup-item"
+                role="option"
+                data-rsh-lookup-value="@item.Value"
+                data-rsh-lookup-text="@item.Name">
+            <span class="project-color-lookup-item__swatch"
+                  style="background-color:@presentation.BackgroundColorRgb;border-color:@presentation.AccentColorRgb;"></span>
+            <span class="project-color-lookup-item__text">
+                <span class="project-color-lookup-item__name">@item.Name</span>
+                <span class="project-color-lookup-item__value">@item.Value</span>
+            </span>
+        </button>
+    }
+}

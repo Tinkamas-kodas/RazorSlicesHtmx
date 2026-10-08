@@ -1,10 +1,10 @@
-@using RazorSlicesHtmx.Demo.HtmlNames.RazorSlicesHtmx.Demo.Features.Items.Models
 @inherits RazorSlice<ItemDeleteDialogModel>
+@inject IFeatureUri FeatureUri
 @{
     var f = Model.For();
 }
 <div id="delete-dialog" class="modal-content border-0 shadow-lg">
-    <form hx-post="@($"/items/delete/{Model.Id}")" hx-target="#delete-dialog" hx-swap="outerHTML">
+    <form hx-post="@FeatureUri.Uri($"delete/{Model.Id}")" hx-target="#delete-dialog" hx-swap="outerHTML">
         @f.Code.Hidden()
         @f.Name.Hidden()
         @f.Id.Hidden()

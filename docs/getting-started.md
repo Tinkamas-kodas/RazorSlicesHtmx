@@ -31,7 +31,7 @@ builder.Services.Configure<RazorSlicesHtmxOptions>(options =>
 });
 ```
 
-Optional legacy fallback (assembly discovery):
+Optional fallback (assembly discovery):
 
 ```csharp
 builder.Services.AddSingleton(sp =>

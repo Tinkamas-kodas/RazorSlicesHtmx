@@ -132,9 +132,8 @@ app.MapGet("/items/list", (HttpContext ctx, [AsParameters] ItemSearchModel searc
 {
     var model = service.CreateListModel(search, query);
     if (ctx.IsHtmxTarget("items-list"))
-        return Result.Page(_ItemsList.Create(model)).WithState(search).WithState(query);
+        return Result.Fragment(_ItemsList.Create(model)).WithState(search).WithState(query);
     return Result.Page(_ListPage.Create(model))
-        .WithWorkspace<ItemsWorkspaceFactory>()
         .WithState(search)
         .WithState(query);
 });
@@ -154,16 +153,75 @@ app.MapGet("/items/list", (HttpContext ctx, [AsParameters] ItemSearchModel searc
 
 ### Workspace factory
 ```csharp
-public sealed class ItemsWorkspaceFactory() : BaseWorkspaceFactory("feature-details")
+public sealed class ItemsWorkspaceFactory : BaseWorkspaceFactory
 {
     protected override RazorSlice Wrap(RazorSlice inner) => FeatureWorkspace.Create(inner);
 }
 ```
 
-### HTMX include — reference by StateId
+For workspace-enabled modules, inherit `BaseFeatureModuleWithWorkspace<TWorkspaceFactory>` and set `FeatureDivId`.
+
+### HTMX include/target for list forms (HTMX 4)
 ```cshtml
-hx-include="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+<form class="list-request-form"
+    hx-get="/items/list"
+    hx-include:inherited="#@ItemSearchModel.StateId, #@ItemListQuery.StateId"
+    hx-target:inherited="#items-list"
+    hx-push-url="true">
 ```
+
+HTMX 4 uses explicit inheritance by default. Avoid enabling global `implicitInheritance` unless you need legacy behavior.
+Do not mix `hx-target` and `hx-target:inherited` on the same element.
+
+### Feature-relative URI helper
+
+Use the injected `IFeatureUri` helper for slice links instead of hardcoding `/items/...` paths:
+
+```cshtml
+@inject IFeatureUri FeatureUri
+<button hx-get="@FeatureUri.Uri("create")" hx-target="#feature-details" hx-push-url="true">Create</button>
+```
+
+For cancel fallback:
+
+```html
+onclick="@FeatureUri.Uri("list").HistoryBack()"
+```
+
+## Lookup pattern (helper and no-helper)
+
+For searchable pickers, use core contracts from `RazorSlicesHtmx.AspNetCore.Models`:
+
+- `LookupRequest`
+- `LookupResponse`
+- `LookupItem`
+
+### Preferred mode: helper
+
+Use Bootstrap helper:
+
+```cshtml
+@f.ClientId.LookupSelect(
+    path: FeatureUri.Uri("search"),
+    placeholder: "Type code or name",
+    pageSize: 12)
+```
+
+### Alternate mode: no helper
+
+Render `rsh-lookup-select` manually when custom markup control is needed. Keep `data-*` IDs aligned with inner elements (`hidden`, `search`, `results`, `clear`).
+Hidden value/text inputs should be disabled while selection is empty, enabled on selection, and disabled again on clear.
+
+Default HTMX trigger for lookup input:
+
+`hx-trigger="focus, input changed delay:250ms, search"`
+
+### Endpoint conventions
+
+- Accept `[AsParameters] LookupRequest request`
+- Normalize request and return `request.ToResponse(items, hasMore)`
+- Render fragment items with `data-rsh-lookup-value` and `data-rsh-lookup-text`
+- For paging, append a sentinel using `hx-trigger="revealed once"`
 
 ### Exclude properties
 ```csharp
@@ -288,7 +346,7 @@ Programmatic:
 7. In the host slice, render `@search.Serialize()` and `@query.Serialize()`.
 8. Use `Model.SortHeader(url, BootstrapHeaderOptions.Default)` and `header.Render(column, label)` per column.
 9. Render pager via `_Pager.Create(Model.ToPagerModel(url))`.
-10. In HTMX, use `hx-include="#@SearchModel.StateId, #@ListQuery.StateId"`.
+10. In HTMX 4 list forms, use explicit inheritance on the form: `hx-include:inherited="#@SearchModel.StateId, #@ListQuery.StateId"` and `hx-target:inherited="#items-list"`.
 
 ## Source Generators
 

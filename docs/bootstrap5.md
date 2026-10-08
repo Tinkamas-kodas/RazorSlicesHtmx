@@ -95,6 +95,42 @@ See [FluentTagBuilder](#fluenttagbuilder) for full method reference.
 
 All helpers accept an optional `BootstrapFieldOptions` to override CSS classes per-call.
 
+## Lookup helper and web component
+
+`RazorSlicesHtmx.Bootstrap5` includes a lookup helper (`LookupSelect`) and a browser custom element (`rsh-lookup-select`).
+
+Helper usage:
+
+```cshtml
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.Request.For(); }
+
+@f.ClientId.LookupSelect(
+    path: FeatureUri.Uri("search"),
+    selectedValueTextFieldName: f.ClientName.Name,
+    selectedValueResolvePath: FeatureUri.Uri("search-selected"),
+    placeholder: "Type code or client name",
+    selectedText: Model.Request.ClientName,
+    pageSize: 12)
+```
+
+Without helper:
+
+- Render `rsh-lookup-select` markup manually
+- Keep `data-*` ID mapping consistent
+- Render option items with `data-rsh-lookup-value` and `data-rsh-lookup-text`
+- Hidden value/text inputs are disabled while selection is empty and automatically enabled on selection
+
+Load component assets in layout:
+
+```cshtml
+<link rel="stylesheet" href="/_content/RazorSlicesHtmx.Bootstrap5/css/rsh-lookup-select.css">
+<script src="/_content/RazorSlicesHtmx.Bootstrap5/js/rsh-lookup-select.js"></script>
+```
+
+Full usage examples (with helper and without helper) are in [Lookup](lookup.md).
+
 ## FluentTagBuilder
 
 `FluentTagBuilder` is a fluent HTML element builder in `RazorSlicesHtmx.AspNetCore.Html`. It wraps ASP.NET Core's `TagBuilder` and implements `IHtmlContent`, so it can be rendered directly with `@` in Razor.
@@ -183,5 +219,6 @@ var ctx = Model.PagerContext("/items/list", BootstrapPagerOptions.Default with
 - [Dialogs](dialogs.md)
 - [Toasts](toasts.md)
 - [List Features](list-features.md)
+- [Lookup](lookup.md)
 - [Configuration](configuration.md)
 - [Page Shell](page-shell.md)

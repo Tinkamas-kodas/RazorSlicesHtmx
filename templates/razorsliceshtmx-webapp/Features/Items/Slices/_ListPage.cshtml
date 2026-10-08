@@ -1,5 +1,6 @@
 @inherits RazorSlice<ItemListModel>
 @using For = RshtmxApp.HtmlNames.RshtmxApp.Features.Items.Models.ItemUpsertRequestHtml
+@inject IFeatureUri FeatureUri
 
 <article class="section-panel">
     <h2>Items</h2>
@@ -10,7 +11,7 @@
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
                 <form class="d-flex align-items-end gap-2"
-                      hx-get="/items/list"
+                        hx-get="@FeatureUri.Uri("list")"
                       hx-include="#@ItemListQuery.StateId"
                       hx-vals='{"Page":"1"}'
                       hx-target="#items-list"
@@ -23,7 +24,7 @@
                         <button class="btn btn-dark" type="submit">Apply</button>
                         <button class="btn btn-outline-secondary"
                                 type="button"
-                                hx-get="/items/list"
+                            hx-get="@FeatureUri.Uri("list")"
                                 hx-include="#@ItemListQuery.StateId"
                                 hx-vals='{"Page":"1"}'
                                 hx-target="#items-list"
@@ -34,7 +35,7 @@
                 </form>
 
                 <button class="btn btn-outline-dark"
-                        hx-get="/items/create"
+                    hx-get="@FeatureUri.Uri("create")"
                         hx-target="#feature-details"
                         hx-push-url="true"
                         hx-params="none"

@@ -42,6 +42,18 @@ The generated project includes:
 - `.github/prompts/add-list.prompt.md` — add a list page
 - `.github/prompts/add-form.prompt.md` — add a form
 - `.github/prompts/add-endpoint.prompt.md` — add an HTMX endpoint
+- `.github/prompts/add-lookup.prompt.md` — add a searchable lookup (with helper or manual web component)
+
+### Generated URL helper
+
+The webapp template registers a scoped `IFeatureUri` helper (`HttpFeatureUri`) and uses it in item slices so HTMX links are feature-relative instead of hardcoded (`/items/...`).
+
+Example usage in slices:
+
+```cshtml
+@inject IFeatureUri FeatureUri
+<button hx-get="@FeatureUri.Uri("create")" hx-target="#feature-details" hx-push-url="true">Create</button>
+```
 
 ---
 

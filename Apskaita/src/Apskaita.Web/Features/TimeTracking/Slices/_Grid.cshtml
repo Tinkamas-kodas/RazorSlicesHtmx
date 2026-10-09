@@ -1,7 +1,9 @@
 @inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
 @using System.Linq
+@* Drag-to-move: long-press an entry to pick it up; left-click drops, right-click cancels. *@
 
 <div id="time-tracking-grid"
+     data-move-url="@FeatureUri.Uri("move")"
      hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
     hx-trigger="time-tracking-list-refresh from:document"
      hx-target="#time-tracking-grid"
@@ -42,6 +44,7 @@
 
                                 <button type="button"
                                     class="tt-entry-card"
+                                    data-entry-id="@entry.Id"
                                     style="top:@($"{entryTop:0.##}px");height:@($"{entry.HeightPx:0.##}px");left:@($"{leftInset}px");right:2px;border-left-color:@entry.AccentColorRgb;background-color:@entry.ProjectColorRgb;color:@entry.TextColorRgb;--tt-desc-lines:@entry.DescriptionLineClamp;"
                                     hx-get="@FeatureUri.Uri($"edit/{entry.Id}")"
                                     hx-target="#dialog-host"
@@ -71,6 +74,8 @@
                         <button type="button"
                                 class="tt-grid-slot-cell @slotClass"
                                 style="grid-column:@(dayIndex + 2);grid-row:@(slot.Index + 2);"
+                                data-date="@day.Date.ToString("yyyy-MM-dd")"
+                                data-time="@slot.Start.ToString("HH:mm")"
                                 hx-get="@FeatureUri.Uri($"create?date={day.Date:yyyy-MM-dd}&time={slot.Start:HH\\:mm}&weekStart={Model.WeekStart:yyyy-MM-dd}")"
                                 hx-target="#dialog-host"
                                 title="@day.Date.ToString("yyyy-MM-dd") @slot.Start.ToString("HH:mm") - @slot.End.ToString("HH:mm")">

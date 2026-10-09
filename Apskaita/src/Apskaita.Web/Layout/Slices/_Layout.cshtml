@@ -23,7 +23,7 @@
     <title>@Model.Title</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/pulse/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/_content/RazorSlicesHtmx.Bootstrap5/css/rsh-lookup-select.css">
-    <link rel="stylesheet" href="/css/site.css?v=20261009-sidebar14">
+    <link rel="stylesheet" href="/css/site.css?v=20261009-sidebar17">
 </head>
 <body data-detail-target-id="@detailTargetId"
     data-dialog-host-id="@dialogHostId"
@@ -40,6 +40,7 @@
 
     <div id="@toastHostId" class="toast-host" aria-live="polite" aria-atomic="true"></div>
     <div id="@dialogHostId"></div>
+    <div id="tt-drag-sink"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js" crossorigin="anonymous"></script>
@@ -50,6 +51,7 @@
     }
     <script src="/js/htmx-antiforgery.js?v=20260803-1"></script>
     <script src="/js/time-tracking-scroll.js?v=20260803-1"></script>
+    <script src="/js/time-tracking-drag.js?v=20261009-3"></script>
     <script src="/js/app-shell-ui.js?v=20260803-1"></script>
 </body>
 </html>

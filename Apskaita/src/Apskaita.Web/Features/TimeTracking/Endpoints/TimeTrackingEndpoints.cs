@@ -195,6 +195,34 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .WithToast("Time entry was deleted.", title: "Time entry", tone: ToastTone.Warning);
         }).DisableAntiforgery();
 
+        group.MapPost("move/{id:guid}", async (
+            Guid id,
+            string date,
+            string time,
+            ApskaitaDbContext db,
+            CancellationToken ct) =>
+        {
+            var row = await db.TimeTrackings.FindAsync([id], ct);
+            if (row is null)
+            {
+                return Results.NotFound();
+            }
+
+            if (!DateOnly.TryParse(date, out var newDate) || !TimeOnly.TryParse(time, out var newTime))
+            {
+                return Results.BadRequest();
+            }
+
+            row.StartedAtLocal = newDate.ToDateTime(newTime);
+            row.UpdatedAtUtc = DateTime.UtcNow;
+            row.UpdatedByUserId = Guid.Empty;
+            await db.SaveChangesAsync(ct);
+
+            return Result.Fragment(_Empty.Create())
+                .WithTrigger("time-tracking-list-refresh")
+                .WithToast("Moved time entry.", title: "Time entry", tone: ToastTone.Success);
+        }).DisableAntiforgery();
+
         group.MapGet("project-lookup", async (
             string? query,
             ApskaitaDbContext db,

@@ -464,7 +464,7 @@ body.sidebar-collapsed .side-nav-toggle-closed {
 
 .tt-entry-overflow {
   position: absolute;
-  top: 2px;
+  bottom: 2px;
   right: 2px;
   font-size: 0.64rem;
   font-weight: 700;
@@ -474,6 +474,54 @@ body.sidebar-collapsed .side-nav-toggle-closed {
   color: inherit;
   background: rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(1px);
+}
+
+.tt-entry-card.is-dragging-source {
+  opacity: 0.35;
+}
+
+.tt-grid-slot-cell.tt-slot-drop-target {
+  background: color-mix(in srgb, var(--bs-primary) 38%, var(--bs-body-bg)) !important;
+  outline: 2px dashed var(--bs-primary);
+  outline-offset: -2px;
+}
+
+body.tt-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+body.tt-dragging .tt-grid-slot-cell {
+  cursor: grabbing;
+}
+
+.tt-entry-ghost {
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  display: none;
+  align-items: flex-start;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.3rem;
+  border-left: 4px solid var(--bs-primary);
+  background: color-mix(in srgb, var(--bs-primary) 32%, var(--bs-body-bg));
+  color: var(--bs-emphasis-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  opacity: 0.92;
+}
+
+.tt-entry-ghost.is-invalid {
+  border-left-color: var(--bs-danger);
+  background: color-mix(in srgb, var(--bs-danger) 30%, var(--bs-body-bg));
+}
+
+.tt-entry-ghost-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-color-lookup-item__swatch {

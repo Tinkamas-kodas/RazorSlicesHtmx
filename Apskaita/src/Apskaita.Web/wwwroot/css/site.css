@@ -76,7 +76,7 @@ body.sidebar-collapsed .app-shell {
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .side-nav-brand {
@@ -96,6 +96,19 @@ body.sidebar-collapsed .app-shell {
 .side-nav-logo {
   flex: 0 0 auto;
   color: var(--bs-primary);
+  display: none;
+}
+
+.side-nav-logo-expanded {
+  display: block;
+}
+
+body.sidebar-collapsed .side-nav-logo-expanded {
+  display: none;
+}
+
+body.sidebar-collapsed .side-nav-logo-collapsed {
+  display: block;
 }
 
 body.sidebar-collapsed .side-nav-logo {
@@ -106,6 +119,14 @@ body.sidebar-collapsed .side-nav-brand {
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
+}
+
+body.sidebar-collapsed .side-nav-header {
+  justify-content: center;
+}
+
+body.sidebar-collapsed .side-nav {
+  overflow: visible;
 }
 
 .side-nav-toggle {
@@ -147,7 +168,26 @@ body.sidebar-collapsed .side-nav-brand {
 }
 
 #side-nav-toggle {
+  position: absolute;
+  top: 2rem;
+  right: -13px;
+  transform: translateY(-50%);
+  z-index: 20;
   flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 50%;
+  background: var(--bs-body-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+#side-nav-toggle:hover {
+  background: var(--bs-body-bg);
+  color: var(--bs-emphasis-color);
 }
 
 .side-nav-toggle-closed {

@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.UserRegistry.Models;
 using Microsoft.EntityFrameworkCore;
 

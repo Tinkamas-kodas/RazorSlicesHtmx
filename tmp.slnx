@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+
 <Solution>
   <Folder Name="/Apskaita/">
     <Project Path="Apskaita/src/Apskaita.Data.Migration/Apskaita.Data.Migration.csproj" />
@@ -6,11 +6,14 @@
     <Project Path="Apskaita/src/Apskaita.Web/Apskaita.Web.csproj" />
     <Project Path="Apskaita/src/Apskaita.Web.Features.Admin/Apskaita.Web.Features.Admin.csproj" />
     <Project Path="Apskaita/src/Apskaita.Web.Shared/Apskaita.Web.Shared.csproj" />
+    <Project Path="Apskaita/tests/Apskaita.Tests/Apskaita.Tests.csproj" />
   </Folder>
   <Folder Name="/RazorSlicesHtmx/">
     <Project Path="src/RazorSlicesHtmx.AspNetCore/RazorSlicesHtmx.AspNetCore.csproj" />
     <Project Path="src/RazorSlicesHtmx.Bootstrap5/RazorSlicesHtmx.Bootstrap5.csproj" />
     <Project Path="src/RazorSlicesHtmx.FluentValidation/RazorSlicesHtmx.FluentValidation.csproj" />
     <Project Path="src/RazorSlicesHtmx.Generators/RazorSlicesHtmx.Generators.csproj" />
+    <Project Path="tests/RazorSlicesHtmx.AspNetCore.Tests/RazorSlicesHtmx.AspNetCore.Tests.csproj" />
+    <Project Path="tests/RazorSlicesHtmx.FluentValidation.Tests/RazorSlicesHtmx.FluentValidation.Tests.csproj" />
   </Folder>
 </Solution>

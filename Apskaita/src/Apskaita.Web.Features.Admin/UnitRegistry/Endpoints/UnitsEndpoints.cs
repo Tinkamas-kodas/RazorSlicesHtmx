@@ -101,7 +101,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
                 .WithOob("#unit-status-badge", _StatusBadge.Create(model))
-                .WithToast($"Unit '{row.Name}' was {(row.IsActive ? "activated" : "suspended")}.",
+                .WithToast($"Unit '{row.Name}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 

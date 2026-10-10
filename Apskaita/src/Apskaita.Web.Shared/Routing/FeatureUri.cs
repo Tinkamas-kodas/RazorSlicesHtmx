@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using RazorSlicesHtmx.AspNetCore.Features;
 
 namespace Apskaita.Web.Shared.Routing;
 
@@ -8,9 +9,13 @@ public interface IFeatureUri
     string Uri(string segment);
 }
 
-public sealed class HttpFeatureUri(IHttpContextAccessor httpContextAccessor) : IFeatureUri
+public sealed class HttpFeatureUri(IHttpContextAccessor httpContextAccessor, FeatureRegistry featureRegistry) : IFeatureUri
 {
-    public string Base => GetFeatureBase(httpContextAccessor.HttpContext?.Request.Path.Value);
+    // Prefer the registered feature route groups (longest-prefix match) so the base is correct for
+    // any action segment, including future ones. Fall back to the path heuristic for non-feature routes.
+    public string Base =>
+        featureRegistry.FindActiveRouteGroup(httpContextAccessor.HttpContext?.Request.Path.Value)
+        ?? GetFeatureBase(httpContextAccessor.HttpContext?.Request.Path.Value);
 
     public string Uri(string segment)
     {

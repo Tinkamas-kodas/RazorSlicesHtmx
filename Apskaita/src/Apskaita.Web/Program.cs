@@ -53,3 +53,9 @@ features.MapEndpoints(app);
 app.MapFeaturePages(features);
 
 app.Run();
+
+/// <summary>
+/// Exposes the top-level-statement entry point type so <c>WebApplicationFactory&lt;Program&gt;</c>
+/// can boot the app in integration tests.
+/// </summary>
+public partial class Program;

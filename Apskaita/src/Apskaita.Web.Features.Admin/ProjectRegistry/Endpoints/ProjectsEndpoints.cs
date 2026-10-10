@@ -125,7 +125,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
                 .WithOob("#project-status-badge", _StatusBadge.Create(model))
-                .WithToast($"Project '{row.Name}' was {(row.IsActive ? "activated" : "suspended")}.",
+                .WithToast($"Project '{row.Name}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 

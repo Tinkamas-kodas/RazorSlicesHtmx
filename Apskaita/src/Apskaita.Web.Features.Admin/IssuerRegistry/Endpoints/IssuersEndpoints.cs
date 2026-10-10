@@ -119,7 +119,7 @@ public sealed class IssuersEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
                 .WithOob("#issuer-status-badge", _StatusBadge.Create(model))
-                .WithToast($"Issuer '{row.Info.Name}' was {(row.IsActive ? "activated" : "suspended")}.",
+                .WithToast($"Issuer '{row.Info.Name}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 

@@ -206,7 +206,21 @@ public sealed class FeatureRegistry
     /// Resolves the feature index for the feature whose route prefix matches <paramref name="currentUrl"/>.
     /// Returns -1 when <paramref name="currentUrl"/> is null/empty or no match is found.
     /// </summary>
-    public int FindActiveFeatureIndex(string? currentUrl)
+    public int FindActiveFeatureIndex(string? currentUrl) => FindBestMatchIndex(currentUrl);
+
+    /// <summary>
+    /// Returns the route-group prefix (feature base path) of the feature whose prefix best matches
+    /// <paramref name="currentUrl"/> via longest-prefix matching, or <c>null</c> when there is no match.
+    /// This is the robust way to recover a feature's base path from a request URL, independent of
+    /// individual action-segment names (list/create/edit/lookup/...).
+    /// </summary>
+    public string? FindActiveRouteGroup(string? currentUrl)
+    {
+        var index = FindBestMatchIndex(currentUrl);
+        return index >= 0 ? _featureRouteGroups[index] : null;
+    }
+
+    private int FindBestMatchIndex(string? currentUrl)
     {
         var path = ExtractPath(currentUrl);
         if (string.IsNullOrEmpty(path)) return -1;

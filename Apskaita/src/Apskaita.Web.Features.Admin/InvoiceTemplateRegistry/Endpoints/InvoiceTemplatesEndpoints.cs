@@ -102,7 +102,7 @@ public sealed class InvoiceTemplatesEndpoints(FeatureResultBuilder resultBuilder
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
                 .WithOob("#invoice-template-status-badge", _StatusBadge.Create(model))
-                .WithToast($"Invoice template '{row.Name}' was {(row.IsActive ? "activated" : "suspended")}.",
+                .WithToast($"Invoice template '{row.Name}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 

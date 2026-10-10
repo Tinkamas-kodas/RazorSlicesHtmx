@@ -6,4 +6,7 @@
     <Project Path="src/Apskaita.Web.Shared/Apskaita.Web.Shared.csproj" />
     <Project Path="src/Apskaita.Web/Apskaita.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Apskaita.Tests/Apskaita.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -9,11 +9,11 @@ namespace Apskaita.Web.Features.TimeTracking.Services;
 
 public sealed class TimeTrackingContentService
 {
-    private const int DefaultDurationMinutes = 30;
-    private const int MinimumDurationMinutes = 1;
+    private const int DefaultDurationMinutes = TimeTrackingLimits.DefaultDurationMinutes;
+    private const int MinimumDurationMinutes = TimeTrackingLimits.MinDurationMinutes;
     private const int SlotMinutes = 30;
     private const double SlotHeightPx = 34d;
-    private const int MaxOccurrences = 104;
+    private const int MaxOccurrences = TimeTrackingLimits.MaxOccurrences;
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
     private static readonly TimeOnly WorkDayStart = new(8, 0);
@@ -231,12 +231,12 @@ public sealed class TimeTrackingContentService
     public IReadOnlyList<DateTime> CreateOccurrences(TimeTrackingModel request)
     {
         var baseStarted = ResolveStartedAtLocal(request);
-        if (!request.Repeat)
+        if (!request.Repeat || !request.RepeatUntil.HasValue)
         {
             return [baseStarted];
         }
 
-        var stepDays = Math.Max(1, request.RepeatEveryWeeks ?? 1) * 7;
+        var stepDays = Math.Max(TimeTrackingLimits.MinRepeatWeeks, request.RepeatEveryWeeks ?? TimeTrackingLimits.MinRepeatWeeks) * TimeTrackingLimits.DaysPerWeek;
         var baseTime = TimeOnly.FromDateTime(baseStarted);
         var baseDate = DateOnly.FromDateTime(baseStarted);
         var results = new List<DateTime> { baseStarted };
@@ -283,7 +283,7 @@ public sealed class TimeTrackingContentService
     private static TimeTrackingEntryViewModel CreateEntryViewModel(TimeTrackingEntryRow row)
     {
         var startedAtLocal = row.StartedAtLocal;
-        var durationMinutes = Math.Clamp(row.DurationInMinutes, MinimumDurationMinutes, 1440);
+        var durationMinutes = Math.Clamp(row.DurationInMinutes, MinimumDurationMinutes, TimeTrackingLimits.MaxDurationMinutes);
         var entryEnd = startedAtLocal.AddMinutes(durationMinutes);
         var dayEnd = startedAtLocal.Date.AddDays(1);
         var visibleEnd = entryEnd <= dayEnd ? entryEnd : dayEnd;

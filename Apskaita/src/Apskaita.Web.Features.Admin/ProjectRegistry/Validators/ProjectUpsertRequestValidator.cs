@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 using FluentValidation;
 

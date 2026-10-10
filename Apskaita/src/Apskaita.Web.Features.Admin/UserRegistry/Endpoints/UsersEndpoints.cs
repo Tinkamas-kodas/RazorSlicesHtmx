@@ -54,7 +54,7 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
                 .WithOob("#user-status-badge", _StatusBadge.Create(model))
-                .WithToast($"User '{row.DisplayName}' was {(row.IsActive ? "activated" : "suspended")}.",
+                .WithToast($"User '{row.DisplayName}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
     }

@@ -2,7 +2,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
 @inject IWebHostEnvironment HostEnvironment
-
+@* ReSharper disable once Html.PathError *@
 @{
     var httpContext = HttpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is required to render antiforgery tokens.");
     var antiforgeryToken = httpContext.Items["RequestVerificationToken"] as string ?? string.Empty;
@@ -22,6 +22,7 @@
     <meta name="request-verification-token" content="@antiforgeryToken">
     <title>@Model.Title</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/pulse/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    
     <link rel="stylesheet" href="/_content/RazorSlicesHtmx.Bootstrap5/css/rsh-lookup-select.css">
     <link rel="stylesheet" href="/css/site.css?v=20261009-sidebar17">
 </head>

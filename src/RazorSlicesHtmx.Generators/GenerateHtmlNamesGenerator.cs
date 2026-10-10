@@ -20,7 +20,7 @@ public sealed class GenerateHtmlNamesGenerator : IIncrementalGenerator
 namespace RazorSlicesHtmx.HtmlNames;
 
 [global::System.AttributeUsage(global::System.AttributeTargets.Class | global::System.AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
-public sealed class GenerateHtmlNamesAttribute : global::System.Attribute
+internal sealed class GenerateHtmlNamesAttribute : global::System.Attribute
 {
     public GenerateHtmlNamesAttribute(int maxDepth = 0)
     {

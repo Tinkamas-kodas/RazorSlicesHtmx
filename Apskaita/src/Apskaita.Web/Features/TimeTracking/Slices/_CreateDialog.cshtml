@@ -1,4 +1,7 @@
 @inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@using RazorSlicesHtmx.Bootstrap5.Extensions
+
+@{ var f = Model.For(); }
 
 <div class="modal-content border-0 shadow-lg">
     <form hx-post="@FeatureUri.Uri("create")" hx-target="closest .modal-content" hx-swap="outerHTML">
@@ -8,6 +11,29 @@
         </div>
 
         @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
+
+        <div class="px-3 pb-3">
+            <div class="border-top pt-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="tt-repeat-toggle" name="Repeat" value="true" autocomplete="off" onchange="const c = document.getElementById('tt-recurrence-fields'); if (c) { c.classList.toggle('d-none', !this.checked); } const w = this.form?.querySelector('[name=\'RepeatEveryWeeks\']'); const u = this.form?.querySelector('[name=\'RepeatUntil\']'); if (w) { w.disabled = !this.checked; } if (u) { u.disabled = !this.checked; }" @(Model.Repeat ? "checked" : null)>
+                    <label class="form-check-label" for="tt-repeat-toggle">Enable recurrence</label>
+                </div>
+
+                <div class="@(Model.Repeat ? null : "d-none") mt-2" id="tt-recurrence-fields">
+                    <div class="d-flex flex-wrap gap-3 align-items-end">
+                        <div class="flex-fill">
+                            @f.RepeatEveryWeeks.Label("Repeat every (weeks)")
+                            @f.RepeatEveryWeeks.Input(type: "number").WithAttribute("min", "1").WithAttribute("max", "104").WithBooleanAttribute("disabled", !Model.Repeat).WithValue((Model.RepeatEveryWeeks > 0 ? Model.RepeatEveryWeeks.Value : 1).ToString())
+                        </div>
+                        <div class="flex-fill">
+                            @f.RepeatUntil.Label("Repeat until")
+                            @f.RepeatUntil.Input(type: "date").WithBooleanAttribute("disabled", !Model.Repeat).WithValue(Model.RepeatUntil?.ToString("yyyy-MM-dd") ?? string.Empty)
+                        </div>
+                    </div>
+                    <div class="form-text">Creates one entry per interval, from the start date up to this date.</div>
+                </div>
+            </div>
+        </div>
 
         <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

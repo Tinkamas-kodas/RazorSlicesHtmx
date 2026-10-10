@@ -69,7 +69,7 @@ public sealed class InvoiceTemplatesContentService
             LanguageCode = request.LanguageCode ?? "LTU",
             Content = request.Content ?? string.Empty,
             IsDefault = request.IsDefault,
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
             CreatedByUserId = Guid.Empty,
@@ -92,7 +92,6 @@ public sealed class InvoiceTemplatesContentService
         row.LanguageCode = request.LanguageCode ?? "LTU";
         row.Content = request.Content ?? string.Empty;
         row.IsDefault = request.IsDefault;
-        row.IsActive = request.IsActive;
         row.UpdatedAtUtc = DateTime.UtcNow;
         row.UpdatedByUserId = Guid.Empty;
 

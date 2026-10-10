@@ -101,7 +101,7 @@ public sealed class IssuersContentService
         {
             Id = Guid.NewGuid(),
             Info = ToCompanyInfo(request),
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
             CreatedByUserId = Guid.Empty,
@@ -115,7 +115,6 @@ public sealed class IssuersContentService
     public async Task ApplyAsync(ApskaitaDbContext db, Issuer issuer, IssuerUpsertRequest request, CancellationToken ct)
     {
         issuer.Info = ToCompanyInfo(request);
-        issuer.IsActive = request.IsActive;
         issuer.UpdatedAtUtc = DateTime.UtcNow;
         issuer.UpdatedByUserId = Guid.Empty;
 

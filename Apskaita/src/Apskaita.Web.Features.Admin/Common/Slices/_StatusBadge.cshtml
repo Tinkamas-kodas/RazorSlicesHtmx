@@ -1,0 +1,3 @@
+@inherits RazorSlice<Apskaita.Web.Features.Admin.Common.Models.StatusToggleModel>
+
+<span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">@(Model.IsActive ? "Active" : "Suspended")</span>

@@ -76,27 +76,30 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             }
 
             var now = DateTime.UtcNow;
-            var row = new Apskaita.Entities.TimeTracking
-            {
-                Id = Guid.NewGuid(),
-                ProjectId = request.ProjectId!.Value,
-                StartedAtLocal = _content.ResolveStartedAtLocal(request),
-                DurationInMinutes = request.DurationMinutes,
-                HourlyRate = request.HourlyRate,
-                Description = request.Description!.Trim(),
-                CreatedAtUtc = now,
-                UpdatedAtUtc = now,
-                CreatedByUserId = Guid.Empty,
-                UpdatedByUserId = Guid.Empty
-            };
+            var occurrences = _content.CreateOccurrences(request);
+            var rows = occurrences
+                .Select(startedAtLocal => new Apskaita.Entities.TimeTracking
+                {
+                    Id = Guid.NewGuid(),
+                    ProjectId = request.ProjectId!.Value,
+                    StartedAtLocal = startedAtLocal,
+                    DurationInMinutes = request.DurationMinutes,
+                    HourlyRate = request.HourlyRate,
+                    Description = request.Description!.Trim(),
+                    CreatedAtUtc = now,
+                    UpdatedAtUtc = now,
+                    CreatedByUserId = Guid.Empty,
+                    UpdatedByUserId = Guid.Empty
+                })
+                .ToArray();
 
-            db.TimeTrackings.Add(row);
+            db.TimeTrackings.AddRange(rows);
             await db.SaveChangesAsync(ct);
 
             return Result.Fragment(_Empty.Create())
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
-                .WithToast(_content.CreateSavedMessage(request, projectData.Label), title: "Time entry", tone: ToastTone.Success);
+                .WithToast(_content.CreateSavedMessage(request, projectData.Label, rows.Length), title: "Time entry", tone: ToastTone.Success);
         }).DisableAntiforgery();
 
         group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>

@@ -1,6 +1,8 @@
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
+using Apskaita.Web.Features.Admin.Common.Models;
+using Apskaita.Web.Features.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.ProjectColors;
 using FluentValidation;
@@ -102,12 +104,29 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (!validationResult.IsValid)
             {
                 request.Errors = validationResult.ToErrorDictionary();
+                request.IsActive = row.IsActive;
                 await _content.PopulateOptionsAsync(db, request, ct);
                 return Result.Page(_EditPage.Create(request));
             }
 
             await _content.ApplyAsync(db, row, request, ct);
             return Result.Page(_EditPage.Create(await _content.CreateEditFormModelAsync(db, row, ct))).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
+        });
+
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
+        {
+            var row = await _content.FindByIdAsync(db, id, ct);
+            if (row is null) return Results.NotFound();
+
+            row.IsActive = !row.IsActive;
+            row.UpdatedAtUtc = DateTime.UtcNow;
+            await db.SaveChangesAsync(ct);
+
+            var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
+            return Result.Fragment(_StatusAction.Create(model))
+                .WithOob("#project-status-badge", _StatusBadge.Create(model))
+                .WithToast($"Project '{row.Name}' was {(row.IsActive ? "activated" : "suspended")}.",
+                    title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 
         group.MapGet("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>

@@ -132,7 +132,7 @@ public sealed class ProjectsContentService
             ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb),
             CurrencyCode = request.CurrencyCode ?? "EUR",
             InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty,
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
             CreatedByUserId = Guid.Empty,
@@ -152,7 +152,6 @@ public sealed class ProjectsContentService
         row.ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb);
         row.CurrencyCode = request.CurrencyCode ?? "EUR";
         row.InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty;
-        row.IsActive = request.IsActive;
         row.UpdatedAtUtc = DateTime.UtcNow;
         row.UpdatedByUserId = Guid.Empty;
 

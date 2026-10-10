@@ -101,7 +101,7 @@ public sealed class ClientsContentService
         {
             Id = Guid.NewGuid(),
             Info = ToCompanyInfo(request),
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
             CreatedByUserId = Guid.Empty,
@@ -115,7 +115,6 @@ public sealed class ClientsContentService
     public async Task ApplyAsync(ApskaitaDbContext db, Client client, ClientUpsertRequest request, CancellationToken ct)
     {
         client.Info = ToCompanyInfo(request);
-        client.IsActive = request.IsActive;
         client.UpdatedAtUtc = DateTime.UtcNow;
         client.UpdatedByUserId = Guid.Empty;
 

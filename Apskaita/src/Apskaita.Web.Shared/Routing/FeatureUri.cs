@@ -57,7 +57,9 @@ public sealed class HttpFeatureUri(IHttpContextAccessor httpContextAccessor) : I
         {
             var parent = segments[^2];
             if (parent.Equals("edit", StringComparison.OrdinalIgnoreCase) ||
-                parent.Equals("delete", StringComparison.OrdinalIgnoreCase))
+                parent.Equals("delete", StringComparison.OrdinalIgnoreCase) ||
+                parent.Equals("view", StringComparison.OrdinalIgnoreCase) ||
+                parent.Equals("toggle", StringComparison.OrdinalIgnoreCase))
             {
                 return "/" + string.Join('/', segments[..^2]);
             }

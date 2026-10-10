@@ -23,5 +23,30 @@ public sealed class TimeTrackingModelValidator : AbstractValidator<TimeTrackingM
         RuleFor(x => x.Description)
             .NotEmpty()
             .WithMessage("Description is required.");
+
+        RuleFor(x => x.RepeatEveryWeeks)
+            .NotNull()
+            .When(x => x.Repeat)
+            .WithMessage("Repeat interval is required.");
+
+        RuleFor(x => x.RepeatEveryWeeks)
+            .InclusiveBetween(1, 104)
+            .When(x => x.Repeat && x.RepeatEveryWeeks.HasValue)
+            .WithMessage("Repeat interval must be between 1 and 104 weeks.");
+
+        RuleFor(x => x.RepeatUntil)
+            .NotNull()
+            .When(x => x.Repeat)
+            .WithMessage("Repeat until date is required.");
+
+        RuleFor(x => x.RepeatUntil)
+            .Must((model, until) => model.Date == default || until > model.Date)
+            .When(x => x.Repeat && x.RepeatUntil.HasValue)
+            .WithMessage("Repeat until date must be after the entry date.");
+
+        RuleFor(x => x.RepeatUntil)
+            .Must((model, until) => model.Date == default || (until!.Value.DayNumber - model.Date.DayNumber) <= 730)
+            .When(x => x.Repeat && x.RepeatUntil.HasValue)
+            .WithMessage("Repeat until date must be within two years of the entry date.");
     }
 }

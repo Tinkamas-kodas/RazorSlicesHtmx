@@ -61,7 +61,7 @@ public sealed class UnitsContentService
             Id = Guid.NewGuid(),
             Code = request.Code ?? string.Empty,
             Name = request.Name ?? string.Empty,
-            IsActive = request.IsActive,
+            IsActive = true,
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
             CreatedByUserId = Guid.Empty,
@@ -76,7 +76,6 @@ public sealed class UnitsContentService
     {
         unit.Code = request.Code ?? string.Empty;
         unit.Name = request.Name ?? string.Empty;
-        unit.IsActive = request.IsActive;
         unit.UpdatedAtUtc = DateTime.UtcNow;
         unit.UpdatedByUserId = Guid.Empty;
         await db.SaveChangesAsync(ct);

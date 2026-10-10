@@ -48,9 +48,6 @@
                                 <td>
                                     <div class="d-flex justify-content-end gap-1">
                                         <button class="btn btn-sm btn-outline-secondary" hx-get="@FeatureUri.Uri($"view/{row.Id}")" hx-target="#feature-details" hx-push-url="true" hx-params="none" type="button">View</button>
-                                        <button class="btn btn-sm @(row.IsActive ? "btn-outline-warning" : "btn-outline-success")" hx-post="@FeatureUri.Uri($"toggle/{row.Id}")" hx-target="#feature-details" hx-params="none" type="button">
-                                            @(row.IsActive ? "Deactivate" : "Activate")
-                                        </button>
                                     </div>
                                 </td>
                             </tr>

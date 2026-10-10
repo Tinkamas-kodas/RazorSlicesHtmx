@@ -22,15 +22,4 @@
     </div>
 </div>
 
-<div>
-    <label class="form-label d-block">Active</label>
-    <div class="btn-group" role="group" aria-label="Active">
-        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_true")" value="true" autocomplete="off" @(Model.IsActive ? "checked" : null)>
-        <label class="btn btn-outline-success" for="@($"{f.IsActive.Id}_true")">True</label>
-
-        <input type="radio" class="btn-check" name="@f.IsActive.Name" id="@($"{f.IsActive.Id}_false")" value="false" autocomplete="off" @(!Model.IsActive ? "checked" : null)>
-        <label class="btn btn-outline-secondary" for="@($"{f.IsActive.Id}_false")">False</label>
-    </div>
-    @f.IsActive.Validation()
-</div>
 

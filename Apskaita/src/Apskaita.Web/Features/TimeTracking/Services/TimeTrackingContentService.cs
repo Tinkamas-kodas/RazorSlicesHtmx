@@ -13,6 +13,7 @@ public sealed class TimeTrackingContentService
     private const int MinimumDurationMinutes = 1;
     private const int SlotMinutes = 30;
     private const double SlotHeightPx = 34d;
+    private const int MaxOccurrences = 104;
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
     private static readonly TimeOnly WorkDayStart = new(8, 0);
@@ -126,6 +127,9 @@ public sealed class TimeTrackingContentService
             ProjectId = request.ProjectId,
             ProjectLabel = string.IsNullOrWhiteSpace(request.ProjectLabel) ? null : request.ProjectLabel.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+            Repeat = request.Repeat,
+            RepeatEveryWeeks = request.RepeatEveryWeeks,
+            RepeatUntil = request.RepeatUntil,
             Errors = errors
         };
     }
@@ -208,6 +212,47 @@ public sealed class TimeTrackingContentService
             : request.Description.Trim();
 
         return $"Logged {duration} min for '{projectLabel}' ({description}).";
+    }
+
+    public string CreateSavedMessage(TimeTrackingModel request, string projectLabel, int count)
+    {
+        if (count <= 1)
+        {
+            return CreateSavedMessage(request, projectLabel);
+        }
+
+        var description = string.IsNullOrWhiteSpace(request.Description)
+            ? "no description"
+            : request.Description.Trim();
+
+        return $"Created {count} recurring entries for '{projectLabel}' ({description}).";
+    }
+
+    public IReadOnlyList<DateTime> CreateOccurrences(TimeTrackingModel request)
+    {
+        var baseStarted = ResolveStartedAtLocal(request);
+        if (!request.Repeat)
+        {
+            return [baseStarted];
+        }
+
+        var stepDays = Math.Max(1, request.RepeatEveryWeeks ?? 1) * 7;
+        var baseTime = TimeOnly.FromDateTime(baseStarted);
+        var baseDate = DateOnly.FromDateTime(baseStarted);
+        var results = new List<DateTime> { baseStarted };
+
+        for (var i = 1; i < MaxOccurrences; i++)
+        {
+            var nextDate = baseDate.AddDays(i * stepDays);
+            if (request.RepeatUntil.HasValue && nextDate > request.RepeatUntil.Value)
+            {
+                break;
+            }
+
+            results.Add(nextDate.ToDateTime(baseTime));
+        }
+
+        return results;
     }
 
     public DateTime ResolveStartedAtLocal(TimeTrackingModel request)

@@ -17,6 +17,12 @@ public sealed partial class TimeTrackingModel : IHaveValidationResult
 
     public string? Description { get; set; }
 
+    public bool Repeat { get; set; }
+
+    public int? RepeatEveryWeeks { get; set; }
+
+    public DateOnly? RepeatUntil { get; set; }
+
     public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 }

@@ -1,6 +1,8 @@
 using Apskaita.Web.Features.Admin.UserRegistry.Models;
 using Apskaita.Web.Features.Admin.UserRegistry.Services;
 using Apskaita.Web.Features.Admin.UserRegistry.Slices;
+using Apskaita.Web.Features.Admin.Common.Models;
+using Apskaita.Web.Features.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 
 namespace Apskaita.Web.Features.Admin.UserRegistry.Endpoints;
@@ -42,17 +44,18 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.Page(_ViewPage.Create(row));
         });
 
-        group.MapPost("toggle/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
 
             await _content.ToggleActiveAsync(db, row, ct);
 
-            var action = row.IsActive ? "activated" : "deactivated";
-            return Result.Page(_Empty.Create())
-                .WithTrigger("Users.ListRefresh")
-                .WithToast($"User '{row.DisplayName}' was {action}.");
+            var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
+            return Result.Fragment(_StatusAction.Create(model))
+                .WithOob("#user-status-badge", _StatusBadge.Create(model))
+                .WithToast($"User '{row.DisplayName}' was {(row.IsActive ? "activated" : "suspended")}.",
+                    title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
     }
 }

@@ -115,6 +115,36 @@ public static class BootstrapFieldContextExtensions
             .WithSuffix(hidden);
     }
 
+    /// <summary>
+    /// Renders a Bootstrap 5 switch (<c>role="switch"</c>) checkbox for a boolean field.
+    /// Like <see cref="Checkbox"/>, emits a hidden sibling input so the value is always posted
+    /// (form mapping never sees a missing field). Wrap in <c>&lt;div class="form-check form-switch"&gt;</c>
+    /// for Bootstrap switch styling. Chain <c>.WithAttribute("hx-post", ...)</c> for immediate-save switches.
+    /// </summary>
+    public static FluentTagBuilder Switch(this FieldContext<bool> field,
+        bool disabled = false,
+        BootstrapFieldOptions? options = null)
+    {
+        var o = options ?? BootstrapFieldOptions.Current;
+
+        var hidden = new FluentTagBuilder("input")
+            .WithAttribute("type", "hidden")
+            .WithId($"{field.Id}_hidden")
+            .WithName(field.Name)
+            .WithValue(field.Value ? "true" : "false");
+
+        return new FluentTagBuilder("input")
+            .WithAttribute("type", "checkbox")
+            .WithAttribute("role", "switch")
+            .WithId(field.Id)
+            .WithClass(o.CheckboxClass)
+            .WithValue("true")
+            .WithAttribute("hx-on:change", "this.nextElementSibling.value = this.checked ? 'true' : 'false'")
+            .WithBooleanAttribute("checked", field.Value)
+            .WithBooleanAttribute("disabled", disabled)
+            .WithSuffix(hidden);
+    }
+
     public static FluentTagBuilder Select<TValue>(this FieldContext<TValue> field,
         IEnumerable<(string Value, string Text)> options,
         string? emptyOption = null,

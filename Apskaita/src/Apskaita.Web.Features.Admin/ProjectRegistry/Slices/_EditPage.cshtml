@@ -1,7 +1,15 @@
 @inherits RazorSlice<ProjectUpsertRequest>
 
 <article class="section-panel">
-    <h3>Edit Project</h3>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h3 class="mb-0">Edit Project</h3>
+        @if (Model.Id.HasValue)
+        {
+            <div id="project-status-badge">
+                @await RenderPartialAsync(_StatusBadge.Create(new StatusToggleModel(Model.Id.Value, Model.IsActive, string.Empty)))
+            </div>
+        }
+    </div>
     <p class="text-muted">Update project and return to the list.</p>
 
     <div class="card border-0 shadow-sm">
@@ -14,9 +22,15 @@
 
                 @await RenderPartialAsync(_ProjectForm.Create(Model))
 
-                <div class="d-flex flex-wrap gap-2 pt-2">
+                <div class="d-flex flex-wrap gap-2 pt-2 align-items-center">
                     <button type="submit" class="btn btn-dark">Save changes</button>
                     <button type="button" class="btn btn-outline-secondary" onclick="@FeatureUri.Uri("list").HistoryBack()">Cancel</button>
+                    @if (Model.Id.HasValue)
+                    {
+                        <div class="ms-auto">
+                            @await RenderPartialAsync(_StatusAction.Create(new StatusToggleModel(Model.Id.Value, Model.IsActive, FeatureUri.Uri($"toggle/{Model.Id.Value}"))))
+                        </div>
+                    }
                 </div>
             </form>
         </div>

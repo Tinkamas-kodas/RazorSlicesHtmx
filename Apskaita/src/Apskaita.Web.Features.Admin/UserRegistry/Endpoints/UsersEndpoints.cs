@@ -4,6 +4,7 @@ using Apskaita.Web.Features.Admin.UserRegistry.Slices;
 using Apskaita.Web.Features.Admin.Common.Models;
 using Apskaita.Web.Features.Admin.Common.Slices;
 using Apskaita.Web.Shared;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Apskaita.Web.Features.Admin.UserRegistry.Endpoints;
 
@@ -14,11 +15,13 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "users", "Users", "list", Order: 70)
+        new("ADMIN", "users", "Users", "list", Order: 70, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] UserSearchModel search,
@@ -56,6 +59,31 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                 .WithOob("#user-status-badge", _StatusBadge.Create(model))
                 .WithToast($"User '{row.DisplayName}' was {(row.IsActive ? "activated" : "deactivated")}.",
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
+        });
+
+        group.MapGet("set-role/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        {
+            var row = await _content.FindViewByIdAsync(db, id, ct);
+            if (row is null) return Results.NotFound();
+            return Result.ShowDialog(_SetRoleDialog.Create(new SetRoleDialogModel(row.Id, row.DisplayName, row.Email, row.Role)));
+        });
+
+        group.MapPost("set-role/{id:guid}", async (Guid id, [FromForm] string Role, ApskaitaDbContext db, CancellationToken ct) =>
+        {
+            if (!Enum.TryParse<UserRole>(Role, ignoreCase: true, out var role) || !Enum.IsDefined(role))
+            {
+                return Results.BadRequest();
+            }
+
+            var row = await _content.FindByIdAsync(db, id, ct);
+            if (row is null) return Results.NotFound();
+
+            await _content.SetRoleAsync(db, row, role, ct);
+
+            return Result.Fragment(_Empty.Create())
+                .ClearDialog()
+                .WithOob($"#user-role-{id}", _RoleBadge.Create(new RoleBadgeModel(id, role)))
+                .WithToast($"Role for '{row.DisplayName}' set to '{role}'.", title: "Role", tone: ToastTone.Success);
         });
     }
 }

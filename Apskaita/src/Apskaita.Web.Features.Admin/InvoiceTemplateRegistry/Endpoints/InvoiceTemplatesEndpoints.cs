@@ -16,11 +16,13 @@ public sealed class InvoiceTemplatesEndpoints(FeatureResultBuilder resultBuilder
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "invoice-templates", "Invoice Templates", "list", Order: 50)
+        new("ADMIN", "invoice-templates", "Invoice Templates", "list", Order: 50, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] InvoiceTemplateSearchModel search,

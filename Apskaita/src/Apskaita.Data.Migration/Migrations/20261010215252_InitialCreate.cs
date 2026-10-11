@@ -51,7 +51,7 @@ namespace Apskaita.Data.Migrations.Migrations
                     info_vat_payer_code = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     is_active = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
-                    company_type = table.Column<string>(type: "varchar(8)", maxLength: 8, nullable: false)
+                    discriminator = table.Column<string>(type: "varchar(8)", maxLength: 8, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -60,7 +60,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_companies", x => x.id);
+                    table.PrimaryKey("pk_companies", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -71,7 +71,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     invoice_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     line_no = table.Column<int>(type: "int", nullable: false),
-                    source_type = table.Column<int>(type: "int", nullable: false),
+                    source_type = table.Column<string>(type: "enum('WorkAct', 'Manual')", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     work_act_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -90,7 +91,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoice_lines", x => x.id);
+                    table.PrimaryKey("pk_invoice_lines", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -103,7 +104,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     current_value = table.Column<int>(type: "int", nullable: false),
                     prefix_context = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    reset_rule = table.Column<int>(type: "int", nullable: false),
+                    reset_rule = table.Column<string>(type: "enum('None', 'Yearly', 'Monthly')", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     updated_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -111,7 +113,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoice_sequence_states", x => x.id);
+                    table.PrimaryKey("pk_invoice_sequence_states", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -137,7 +139,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoice_templates", x => x.id);
+                    table.PrimaryKey("pk_invoice_templates", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -224,7 +226,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     total_amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     total_amount_in_text = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    status = table.Column<int>(type: "int", nullable: false),
+                    status = table.Column<string>(type: "enum('Draft', 'Issued', 'Cancelled')", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     notes = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -234,7 +237,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_invoices", x => x.id);
+                    table.PrimaryKey("pk_invoices", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -248,7 +251,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     code = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    hourly_rate = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    hourly_rate = table.Column<int>(type: "int", nullable: false),
+                    color_rgb = table.Column<string>(type: "varchar(7)", maxLength: 7, nullable: false, defaultValue: "#FF0000")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     currency_code = table.Column<string>(type: "varchar(3)", maxLength: 3, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     invoice_template_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -260,7 +265,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_projects", x => x.id);
+                    table.PrimaryKey("pk_projects", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -280,7 +285,29 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_system_settings", x => x.id);
+                    table.PrimaryKey("pk_system_settings", x => x.id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "time_trackings",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    project_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    started_at_local = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    duration_in_minutes = table.Column<int>(type: "int", nullable: false),
+                    hourly_rate = table.Column<int>(type: "int", nullable: true),
+                    description = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    created_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    updated_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    updated_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_time_trackings", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -301,7 +328,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_units", x => x.id);
+                    table.PrimaryKey("pk_units", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -310,11 +337,15 @@ namespace Apskaita.Data.Migrations.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    entra_object_id = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                    subject_id = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    provider = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    email = table.Column<string>(type: "varchar(254)", maxLength: 254, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    role = table.Column<string>(type: "enum('User', 'Admin')", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     display_name = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    email = table.Column<string>(type: "varchar(254)", maxLength: 254, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     is_active = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -322,7 +353,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_users", x => x.id);
+                    table.PrimaryKey("pk_users", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -334,14 +365,15 @@ namespace Apskaita.Data.Migrations.Migrations
                     work_act_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     external_id = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    source = table.Column<int>(type: "int", nullable: false),
+                    source = table.Column<string>(type: "enum('Clockify', 'Manual')", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     work_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    duration_in_hours = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    duration_in_minutes = table.Column<int>(type: "int", nullable: false),
                     notes = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    hourly_rate = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    hourly_rate = table.Column<int>(type: "int", nullable: false),
                     amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -350,7 +382,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_work_act_lines", x => x.id);
+                    table.PrimaryKey("pk_work_act_lines", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -367,7 +399,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     total_hours = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     total_amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    status = table.Column<int>(type: "int", nullable: false),
+                    status = table.Column<string>(type: "enum('Draft', 'Final', 'Invoiced')", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     invoiced_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     created_at_utc = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
@@ -376,7 +409,7 @@ namespace Apskaita.Data.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_work_acts", x => x.id);
+                    table.PrimaryKey("pk_work_acts", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -386,19 +419,19 @@ namespace Apskaita.Data.Migrations.Migrations
                 column: "is_active");
 
             migrationBuilder.CreateIndex(
-                name: "ux_invoice_lines_invoice_id_line_no",
+                name: "ix_invoice_lines_invoice_id_line_no",
                 table: "invoice_lines",
                 columns: new[] { "invoice_id", "line_no" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ux_invoice_lines_work_act_id",
+                name: "ix_invoice_lines_work_act_id",
                 table: "invoice_lines",
                 column: "work_act_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ux_invoice_templates_code",
+                name: "ix_invoice_templates_code",
                 table: "invoice_templates",
                 column: "code",
                 unique: true);
@@ -414,13 +447,13 @@ namespace Apskaita.Data.Migrations.Migrations
                 columns: new[] { "issuer_id", "issue_date" });
 
             migrationBuilder.CreateIndex(
-                name: "ux_invoices_number",
+                name: "ix_invoices_number",
                 table: "invoices",
                 column: "number",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ux_invoices_sequence_number",
+                name: "ix_invoices_sequence_number",
                 table: "invoices",
                 column: "sequence_number",
                 unique: true);
@@ -431,15 +464,20 @@ namespace Apskaita.Data.Migrations.Migrations
                 columns: new[] { "client_id", "is_active" });
 
             migrationBuilder.CreateIndex(
-                name: "ux_units_code",
+                name: "ix_time_trackings_project_id_started_at_local",
+                table: "time_trackings",
+                columns: new[] { "project_id", "started_at_local" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_units_code",
                 table: "units",
                 column: "code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ux_users_entra_object_id",
+                name: "ix_users_email",
                 table: "users",
-                column: "entra_object_id",
+                column: "email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -448,15 +486,15 @@ namespace Apskaita.Data.Migrations.Migrations
                 columns: new[] { "work_act_id", "work_date" });
 
             migrationBuilder.CreateIndex(
-                name: "ix_work_acts_project_id_status",
-                table: "work_acts",
-                columns: new[] { "project_id", "status" });
-
-            migrationBuilder.CreateIndex(
-                name: "ux_work_acts_number",
+                name: "ix_work_acts_number",
                 table: "work_acts",
                 column: "number",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_work_acts_project_id_status",
+                table: "work_acts",
+                columns: new[] { "project_id", "status" });
         }
 
         /// <inheritdoc />
@@ -482,6 +520,9 @@ namespace Apskaita.Data.Migrations.Migrations
 
             migrationBuilder.DropTable(
                 name: "system_settings");
+
+            migrationBuilder.DropTable(
+                name: "time_trackings");
 
             migrationBuilder.DropTable(
                 name: "units");

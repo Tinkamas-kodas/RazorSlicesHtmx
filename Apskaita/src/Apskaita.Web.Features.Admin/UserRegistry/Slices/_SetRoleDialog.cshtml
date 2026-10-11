@@ -1,0 +1,33 @@
+@inherits RazorSlice<Apskaita.Web.Features.Admin.UserRegistry.Models.SetRoleDialogModel>
+
+@{
+    var currentRole = Model.CurrentRole?.ToString().ToLowerInvariant();
+}
+
+<div class="modal-content border-0 shadow-lg">
+    <form hx-post="@FeatureUri.Uri($"set-role/{Model.Id}")" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Assign role</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            <p class="mb-2"><strong>@Model.DisplayName</strong> <span class="text-muted">(@Model.Email)</span></p>
+            <div class="mb-3">
+                <label for="set-role-select" class="form-label">Role</label>
+                <select id="set-role-select" name="Role" class="form-select" autocomplete="off">
+                    <option value="user" @(currentRole == "user" ? "selected" : null)>User</option>
+                    <option value="admin" @(currentRole == "admin" ? "selected" : null)>Admin</option>
+                </select>
+                <div class="form-text">
+                    <em>user</em> can work with operational features; <em>admin</em> additionally manages registries and roles.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-dark">Save</button>
+        </div>
+    </form>
+</div>

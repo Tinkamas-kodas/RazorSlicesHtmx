@@ -1,0 +1,40 @@
+@inherits RazorSlice
+
+@{
+    var antiforgeryToken = HttpContext?.Items["RequestVerificationToken"] as string ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="request-verification-token" content="@antiforgeryToken">
+    <title>Sign in · Accounting</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/pulse/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bs-body-bg); }
+        .login-card { width: min(420px, 92vw); }
+        .login-provider-btn svg { margin-right: .5rem; }
+    </style>
+</head>
+<body>
+    <main class="login-card card border-0 shadow-sm">
+        <div class="card-body p-4 text-center">
+            <h1 class="h4 mb-1">Accounting</h1>
+            <p class="text-muted mb-4">Sign in to continue.</p>
+
+            <div class="d-grid gap-2">
+                <a class="btn btn-dark login-provider-btn" href="/account/challenge/entra?returnUrl=/">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 0h7.2v7.2H0zM8.8 0H16v7.2H8.8zM0 8.8h7.2V16H0zM8.8 8.8H16V16H8.8z"/></svg>
+                    Sign in with Microsoft
+                </a>
+                <a class="btn btn-outline-secondary login-provider-btn" href="/account/challenge/google?returnUrl=/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm6.3 5.7c.87.87 1.55 2.25 1.7 3.65H12.5v-2.9h5.8zm-4.6-.5h-3.4v2.9h3.4zm-4.9 0H5.45C4.6 5.9 3.9 6.6 3.4 7.45L6.2 9.65l1.2-4.45zM2.4 12.5c0-1.05.15-2.05.4-2.95l3.9 1.4-.4 1.55H2.4zm9.6 6.1c-1.5 0-2.85-.4-3.9-1.1l3.65-4.2 3.9 1.3c-.3 2.1-2.1 4-3.65 4zm4.9-3.9L13.9 11.9l-3.65 4.2c1.05.7 2.4 1.1 3.9 1.1 1.55 0 3.35-1.9 3.65-4z"/></svg>
+                    Sign in with Google
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

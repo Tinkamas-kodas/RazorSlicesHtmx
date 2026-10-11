@@ -1,0 +1,12 @@
+@inherits RazorSlice<Apskaita.Web.Features.Admin.UserRegistry.Models.RoleBadgeModel>
+
+@{
+    var (css, text) = Model.Role switch
+    {
+        UserRole.Admin => ("bg-primary", "admin"),
+        UserRole.User => ("bg-info", "user"),
+        _ => ("bg-warning text-dark", "none")
+    };
+}
+
+<span id="user-role-@Model.Id" class="badge @css">@text</span>

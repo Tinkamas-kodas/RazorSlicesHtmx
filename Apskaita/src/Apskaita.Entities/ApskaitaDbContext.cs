@@ -15,6 +15,7 @@ public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> option
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
     public DbSet<Unit> Units => Set<Unit>();
+    public DbSet<User> Users => Set<User>();
     public DbSet<WorkAct> WorkActs => Set<WorkAct>();
     public DbSet<WorkActLine> WorkActLines => Set<WorkActLine>();
     public DbSet<TimeTracking> TimeTrackings => Set<TimeTracking>();

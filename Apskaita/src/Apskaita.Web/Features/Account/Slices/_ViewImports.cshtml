@@ -1,0 +1,10 @@
+@inherits RazorSlice
+@using RazorSlices
+@using Apskaita.Web.Features.Account.Models
+@using Apskaita.Web.Features.Account.Slices
+
+@* RazorSlices does not support Tag Helpers; disable the MVC ones (RenderTagHelpers target <head>/<body>,
+   InputTagHelper targets <input type="hidden">, FormTagHelper targets <form method="post">).
+   Same pattern as Layout/Slices/_ViewImports.cshtml. *@
+@tagHelperPrefix __disable_tagHelpers__:
+@removeTagHelper *, Microsoft.AspNetCore.Mvc.Razor

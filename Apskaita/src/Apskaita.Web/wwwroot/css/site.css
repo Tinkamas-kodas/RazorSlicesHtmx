@@ -289,6 +289,46 @@ body.sidebar-collapsed .side-nav-toggle-closed {
   display: inline;
 }
 
+.side-nav-user {
+  margin-top: auto;
+  border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.side-nav-user-name {
+  align-self: stretch;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bs-emphasis-color);
+}
+
+button.side-nav-link {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+body.sidebar-collapsed .side-nav-user {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+body.sidebar-collapsed .side-nav-user-name {
+  display: none;
+}
+
+body.sidebar-collapsed button.side-nav-link {
+  text-align: center;
+}
+
 @media (max-width: 991px) {
   .app-shell {
     grid-template-columns: 1fr;

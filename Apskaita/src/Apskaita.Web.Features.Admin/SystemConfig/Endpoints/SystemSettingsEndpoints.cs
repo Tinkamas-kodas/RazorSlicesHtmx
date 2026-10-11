@@ -13,11 +13,13 @@ public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) 
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "system-settings", "System Settings", "", Order: 60)
+        new("ADMIN", "system-settings", "System Settings", "", Order: 60, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("", async (ApskaitaDbContext db, CancellationToken ct) =>
         {
             var model = await _content.CreateModelAsync(db, ct);

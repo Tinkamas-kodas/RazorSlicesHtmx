@@ -15,11 +15,13 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "units", "Units", "list", Order: 30)
+        new("ADMIN", "units", "Units", "list", Order: 30, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] UnitSearchModel search,

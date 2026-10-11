@@ -23,9 +23,10 @@ public static class FieldLengths
 
     public static class User
     {
-        public const int EntraObjectId = 100;
-        public const int DisplayName = 200;
+        public const int SubjectId = 100;
+        public const int Provider = 20;
         public const int Email = 254;
+        public const int DisplayName = 200;
     }
 
     public static class InvoiceTemplate

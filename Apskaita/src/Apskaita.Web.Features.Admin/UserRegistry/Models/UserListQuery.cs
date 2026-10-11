@@ -8,8 +8,9 @@ public sealed partial class UserListQuery : ListRequest<UserRowModel>
         new Dictionary<string, Expression<Func<UserRowModel, object?>>>(StringComparer.OrdinalIgnoreCase)
         {
             [nameof(UserRowModel.DisplayName)] = x => x.DisplayName,
-            [nameof(UserRowModel.EntraObjectId)] = x => x.EntraObjectId,
-            [nameof(UserRowModel.Email)] = x => x.Email!,
+            [nameof(UserRowModel.Email)] = x => x.Email,
+            [nameof(UserRowModel.Provider)] = x => x.Provider,
+            [nameof(UserRowModel.Role)] = x => x.Role!,
             [nameof(UserRowModel.CreatedAtUtc)] = x => x.CreatedAtUtc,
             [nameof(UserRowModel.LastLoginAtUtc)] = x => x.LastLoginAtUtc!,
             [nameof(UserRowModel.IsActive)] = x => x.IsActive

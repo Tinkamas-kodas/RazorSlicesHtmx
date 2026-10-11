@@ -16,11 +16,13 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "projects", "Projects", "list", Order: 40)
+        new("ADMIN", "projects", "Projects", "list", Order: 40, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] ProjectSearchModel search,

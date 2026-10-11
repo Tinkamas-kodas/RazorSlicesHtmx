@@ -15,11 +15,13 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("MAIN", "time-tracking", "Time tracking", "list", Order: 1)
+        new("MAIN", "time-tracking", "Time tracking", "list", Order: 1, AuthorizationPolicy: AuthPolicies.Operational)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Operational);
+
         group.MapGet("", () => Results.Redirect("list"));
 
         group.MapGet("list", async (HttpContext ctx, string? weekStart, ApskaitaDbContext db, CancellationToken ct) =>

@@ -17,7 +17,7 @@ namespace Apskaita.Data.Migrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -37,6 +37,12 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("created_by_user_id");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)")
+                        .HasColumnName("discriminator");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
@@ -51,19 +57,15 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.Property<string>("company_type")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("varchar(8)");
-
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_companies");
 
                     b.HasIndex("IsActive")
                         .HasDatabaseName("ix_companies_is_active");
 
                     b.ToTable("companies", (string)null);
 
-                    b.HasDiscriminator<string>("company_type").HasValue("Company");
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Company");
 
                     b.UseTphMappingStrategy();
                 });
@@ -134,8 +136,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("int")
                         .HasColumnName("sequence_number");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("enum('Draft', 'Issued', 'Cancelled')")
                         .HasColumnName("status");
 
                     b.Property<decimal>("SubtotalAmount")
@@ -167,15 +170,16 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("vat_amount");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_invoices");
 
                     b.HasIndex("Number")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoices_number");
+                        .HasDatabaseName("ix_invoices_number");
 
                     b.HasIndex("SequenceNumber")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoices_sequence_number");
+                        .HasDatabaseName("ix_invoices_sequence_number");
 
                     b.HasIndex("ClientId", "IssueDate")
                         .HasDatabaseName("ix_invoices_client_id_issue_date");
@@ -225,8 +229,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("quantity");
 
-                    b.Property<int>("SourceType")
-                        .HasColumnType("int")
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasColumnType("enum('WorkAct', 'Manual')")
                         .HasColumnName("source_type");
 
                     b.Property<decimal>("TotalAmount")
@@ -269,15 +274,16 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("work_act_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_lines");
 
                     b.HasIndex("WorkActId")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoice_lines_work_act_id");
+                        .HasDatabaseName("ix_invoice_lines_work_act_id");
 
                     b.HasIndex("InvoiceId", "LineNo")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoice_lines_invoice_id_line_no");
+                        .HasDatabaseName("ix_invoice_lines_invoice_id_line_no");
 
                     b.ToTable("invoice_lines", (string)null);
                 });
@@ -308,8 +314,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("prefix_context");
 
-                    b.Property<int>("ResetRule")
-                        .HasColumnType("int")
+                    b.Property<string>("ResetRule")
+                        .IsRequired()
+                        .HasColumnType("enum('None', 'Yearly', 'Monthly')")
                         .HasColumnName("reset_rule");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -320,7 +327,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_sequence_states");
 
                     b.ToTable("invoice_sequence_states", (string)null);
                 });
@@ -380,11 +388,12 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_templates");
 
                     b.HasIndex("Code")
                         .IsUnique()
-                        .HasDatabaseName("ux_invoice_templates_code");
+                        .HasDatabaseName("ix_invoice_templates_code");
 
                     b.ToTable("invoice_templates", (string)null);
                 });
@@ -453,7 +462,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_projects");
 
                     b.HasIndex("ClientId", "IsActive")
                         .HasDatabaseName("ix_projects_client_id_is_active");
@@ -497,7 +507,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_system_settings");
 
                     b.ToTable("system_settings", (string)null);
                 });
@@ -547,7 +558,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_time_trackings");
 
                     b.HasIndex("ProjectId", "StartedAtLocal")
                         .HasDatabaseName("ix_time_trackings_project_id_started_at_local");
@@ -596,11 +608,12 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_units");
 
                     b.HasIndex("Code")
                         .IsUnique()
-                        .HasDatabaseName("ux_units_code");
+                        .HasDatabaseName("ix_units_code");
 
                     b.ToTable("units", (string)null);
                 });
@@ -623,15 +636,10 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnName("display_name");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("varchar(254)")
                         .HasColumnName("email");
-
-                    b.Property<string>("EntraObjectId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("entra_object_id");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
@@ -641,11 +649,28 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("last_login_at_utc");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("provider");
 
-                    b.HasIndex("EntraObjectId")
+                    b.Property<string>("Role")
+                        .HasColumnType("enum('User', 'Admin')")
+                        .HasColumnName("role");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("subject_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ux_users_entra_object_id");
+                        .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
                 });
@@ -689,8 +714,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("project_id");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("enum('Draft', 'Final', 'Invoiced')")
                         .HasColumnName("status");
 
                     b.Property<decimal>("TotalAmount")
@@ -711,11 +737,12 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_work_acts");
 
                     b.HasIndex("Number")
                         .IsUnique()
-                        .HasDatabaseName("ux_work_acts_number");
+                        .HasDatabaseName("ix_work_acts_number");
 
                     b.HasIndex("ProjectId", "Status")
                         .HasDatabaseName("ix_work_acts_project_id_status");
@@ -766,8 +793,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("notes");
 
-                    b.Property<int>("Source")
-                        .HasColumnType("int")
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("enum('Clockify', 'Manual')")
                         .HasColumnName("source");
 
                     b.Property<DateTime>("UpdatedAtUtc")
@@ -786,7 +814,8 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("date")
                         .HasColumnName("work_date");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_work_act_lines");
 
                     b.HasIndex("WorkActId", "WorkDate")
                         .HasDatabaseName("ix_work_act_lines_work_act_id_work_date");
@@ -813,7 +842,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.OwnsOne("Apskaita.Entities.CompanyInfo", "Info", b1 =>
                         {
                             b1.Property<Guid>("CompanyId")
-                                .HasColumnType("char(36)");
+                                .HasColumnType("char(36)")
+                                .HasColumnName("id");
 
                             b1.Property<string>("AddressLine1")
                                 .HasMaxLength(200)
@@ -896,7 +926,8 @@ namespace Apskaita.Data.Migrations.Migrations
                             b1.ToTable("companies");
 
                             b1.WithOwner()
-                                .HasForeignKey("CompanyId");
+                                .HasForeignKey("CompanyId")
+                                .HasConstraintName("fk_companies_companies_id");
                         });
 
                     b.Navigation("Info")
@@ -908,7 +939,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.OwnsOne("Apskaita.Entities.CompanyInfo", "ClientInfo", b1 =>
                         {
                             b1.Property<Guid>("InvoiceId")
-                                .HasColumnType("char(36)");
+                                .HasColumnType("char(36)")
+                                .HasColumnName("id");
 
                             b1.Property<string>("AddressLine1")
                                 .HasMaxLength(200)
@@ -991,13 +1023,15 @@ namespace Apskaita.Data.Migrations.Migrations
                             b1.ToTable("invoices");
 
                             b1.WithOwner()
-                                .HasForeignKey("InvoiceId");
+                                .HasForeignKey("InvoiceId")
+                                .HasConstraintName("fk_invoices_invoices_id");
                         });
 
                     b.OwnsOne("Apskaita.Entities.CompanyInfo", "IssuerInfo", b1 =>
                         {
                             b1.Property<Guid>("InvoiceId")
-                                .HasColumnType("char(36)");
+                                .HasColumnType("char(36)")
+                                .HasColumnName("id");
 
                             b1.Property<string>("AddressLine1")
                                 .HasMaxLength(200)
@@ -1080,7 +1114,8 @@ namespace Apskaita.Data.Migrations.Migrations
                             b1.ToTable("invoices");
 
                             b1.WithOwner()
-                                .HasForeignKey("InvoiceId");
+                                .HasForeignKey("InvoiceId")
+                                .HasConstraintName("fk_invoices_invoices_id");
                         });
 
                     b.Navigation("ClientInfo")

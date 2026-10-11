@@ -29,8 +29,9 @@
                         <thead>
                         <tr>
                             <th>@header.Render("DisplayName", "Name")</th>
-                            <th>@header.Render("EntraObjectId", "Entra ID")</th>
                             <th>@header.Render("Email", "Email")</th>
+                            <th>@header.Render("Provider", "Provider")</th>
+                            <th>@header.Render("Role", "Role")</th>
                             <th>@header.Render("LastLoginAtUtc", "Last login")</th>
                             <th>@header.Render("IsActive", "Status")</th>
                             <th class="text-end">Actions</th>
@@ -41,13 +42,15 @@
                         {
                             <tr>
                                 <td><strong>@row.DisplayName</strong></td>
-                                <td class="text-break">@row.EntraObjectId</td>
-                                <td>@(string.IsNullOrWhiteSpace(row.Email) ? "-" : row.Email)</td>
+                                <td class="text-break">@row.Email</td>
+                                <td>@row.Provider</td>
+                                <td>@await RenderPartialAsync(_RoleBadge.Create(new RoleBadgeModel(row.Id, row.Role)))</td>
                                 <td>@(row.LastLoginAtUtc?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                                 <td><span class="badge @(row.IsActive ? "bg-success" : "bg-secondary")">@(row.IsActive ? "Active" : "Inactive")</span></td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-1">
                                         <button class="btn btn-sm btn-outline-secondary" hx-get="@FeatureUri.Uri($"view/{row.Id}")" hx-target="#feature-details" hx-push-url="true" hx-params="none" type="button">View</button>
+                                        <button class="btn btn-sm btn-outline-primary" hx-get="@FeatureUri.Uri($"set-role/{row.Id}")" hx-target="#dialog-host" hx-swap="innerHTML" hx-params="none" type="button">Set role</button>
                                     </div>
                                 </td>
                             </tr>

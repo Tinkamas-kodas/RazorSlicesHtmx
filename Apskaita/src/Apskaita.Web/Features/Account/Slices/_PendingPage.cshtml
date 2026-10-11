@@ -1,0 +1,37 @@
+@inherits RazorSlice<Apskaita.Web.Features.Account.Models.PendingPageModel>
+
+@{
+    var antiforgeryToken = HttpContext?.Items["RequestVerificationToken"] as string ?? string.Empty;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pending access · Accounting</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/pulse/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bs-body-bg); }
+        .pending-card { width: min(480px, 92vw); }
+    </style>
+</head>
+<body>
+    <main class="pending-card card border-0 shadow-sm">
+        <div class="card-body p-4 text-center">
+            <h1 class="h4 mb-2">Access pending</h1>
+            <p class="text-muted">
+                Signed in as <strong>@Model.DisplayName</strong> (@Model.Email).<br>
+                Your account has been created, but a role has not been assigned yet.
+                Ask an administrator to assign you the <em>user</em> or <em>admin</em> role on the Users page,
+                then sign in again.
+            </p>
+
+            <form method="post" action="/account/logout" class="d-grid mt-2">
+                <input type="hidden" name="__RequestVerificationToken" value="@antiforgeryToken">
+                <button type="submit" class="btn btn-outline-secondary">Sign out</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

@@ -98,7 +98,7 @@ public sealed class RegistryContentServiceTests
     {
         await using var db = TestDb.New();
         var service = new UsersContentService();
-        var user = new User { Id = Guid.NewGuid(), DisplayName = "Test", EntraObjectId = "oid", IsActive = true };
+        var user = new User { Id = Guid.NewGuid(), DisplayName = "Test", Email = "test@example.com", Provider = "entra", SubjectId = "oid", IsActive = true };
         db.Set<User>().Add(user);
         await db.SaveChangesAsync(Ct);
 

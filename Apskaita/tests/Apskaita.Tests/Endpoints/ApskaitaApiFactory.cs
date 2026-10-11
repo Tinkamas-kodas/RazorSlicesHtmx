@@ -1,4 +1,6 @@
 using Apskaita.Entities;
+using Apskaita.Web.Features.Account;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -8,12 +10,16 @@ namespace Apskaita.Tests.Endpoints;
 
 /// <summary>
 /// Boots the real Apskaita application in-process for integration tests, replacing the MySQL-backed
-/// <see cref="ApskaitaDbContext"/> with a shared EF In-Memory store so endpoints and test seeding
-/// operate on the same data.
+/// <see cref="ApskaitaDbContext"/> with a shared EF In-Memory store and the real authentication stack with
+/// a stub handler (<see cref="TestStubHandler"/>) that authenticates a configurable principal
+/// (default: admin).
 /// </summary>
 public sealed class ApskaitaApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"e2e-{Guid.NewGuid():N}";
+
+    /// <summary>The principal the stub handler authenticates. Defaults to an admin user.</summary>
+    public TestPrincipalProvider Principals { get; } = new() { Principal = TestPrincipal.Build("admin@example.com", UserRole.Admin) };
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
@@ -38,8 +44,26 @@ public sealed class ApskaitaApiFactory : WebApplicationFactory<Program>
             }
 
             services.AddDbContext<ApskaitaDbContext>(options => options.UseInMemoryDatabase(_databaseName));
+
+            // Replace authentication: the stub scheme authenticates the configurable principal while the
+            // cookie scheme stays as the challenge target, so unauthenticated requests still redirect to
+            // /account/login (and emit HX-Redirect for HTMX calls) exactly as in production.
+            services.AddSingleton(Principals);
+            services.AddAuthentication(auth =>
+            {
+                auth.DefaultScheme = TestStubHandler.SchemeName;
+                auth.DefaultAuthenticateScheme = TestStubHandler.SchemeName;
+                auth.DefaultChallengeScheme = AuthConstants.CookieScheme;
+            })
+            .AddScheme<AuthenticationSchemeOptions, TestStubHandler>(TestStubHandler.SchemeName, null);
         });
     }
+
+    /// <summary>Authenticates subsequent requests as the given email/role (null role = roleless user).</summary>
+    public void SetPrincipal(string email, UserRole? role) => Principals.Principal = TestPrincipal.Build(email, role);
+
+    /// <summary>Makes subsequent requests unauthenticated.</summary>
+    public void SetAnonymous() => Principals.Principal = null;
 
     /// <summary>
     /// A context bound to the same in-memory store the application uses, for seeding and assertions.

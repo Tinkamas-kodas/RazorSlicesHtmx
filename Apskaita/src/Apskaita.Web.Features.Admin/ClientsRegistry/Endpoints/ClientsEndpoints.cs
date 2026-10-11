@@ -15,11 +15,13 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("ADMIN", "clients", "Clients", "list", Order: 10)
+        new("ADMIN", "clients", "Clients", "list", Order: 10, AuthorizationPolicy: AuthPolicies.Admin)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
+        group.RequireAuthorization(AuthPolicies.Admin);
+
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] ClientSearchModel search,

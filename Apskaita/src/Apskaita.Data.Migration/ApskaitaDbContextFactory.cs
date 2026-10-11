@@ -12,7 +12,9 @@ public sealed class ApskaitaDbContextFactory : IDesignTimeDbContextFactory<Apska
     public static ApskaitaDbContext Create(string connectionString)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApskaitaDbContext>();
-        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Data.Migration"));
+        optionsBuilder
+            .UseSnakeCaseNamingConvention()
+            .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Data.Migration"));
         return new ApskaitaDbContext(optionsBuilder.Options);
     }
 

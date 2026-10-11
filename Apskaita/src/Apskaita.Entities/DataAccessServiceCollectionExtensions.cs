@@ -9,7 +9,9 @@ public static class DataAccessServiceCollectionExtensions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-        services.AddDbContext<ApskaitaDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Data.Migration")));
+        services.AddDbContext<ApskaitaDbContext>(options => options
+            .UseSnakeCaseNamingConvention()
+            .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Data.Migration")));
         return services;
     }
 }

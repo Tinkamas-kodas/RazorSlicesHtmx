@@ -13,18 +13,26 @@ Sistema turi:
 - eksportuoti SF į PDF.
 
 ## 3. Vartotojai ir prieiga
-Sistemą naudoja vienas autentifikuotas naudotojas.
+Sistemą naudoja keli autentifikuoti naudotojai, prisijungiantys per Microsoft Entra ID arba Google.
 
 Prieigos taisyklės:
-- prisijungęs naudotojas gali atlikti visus sistemos veiksmus;
-- papildomi vaidmenys ir teisių skirstymas pagal vaidmenis nėra reikalingi.
+- identitetas – tiekėjo patvirtintas el. paštas (normalizuotas, unikalūs duomenų bazėje);
+- rolės: `admin` (visos funkcijos, registrų ir roles valdymas) ir `user` (operacinės funkcijos: laiko apskaita, SF);
+- naujas naudotojas sukūriamas automatiškai pirmo prisijungimo metu be rolės (laukia priskyrimo); rolę priskiria administratorius;
+- `/admin/*` funkcijos reikalauja `admin` rolės; operacinės funkcijos – `user` arba `admin`;
+- konfigūracijoje `Auth:AdminEmails` nurodytas el. paštas pirmą kartą prisijungus automatiškai gauna `admin` rolę.
 
 ## 4. Aukšto lygio funkciniai reikalavimai
 
-### FR-1. Autentifikacija per Azure AD
-1. Sistema privalo autentifikuoti naudotojus per Azure Active Directory (Microsoft Entra ID).
-2. Neautentifikuoti naudotojai negali pasiekti sistemos funkcijų.
-3. Prisijungus turi būti išlaikoma naudotojo sesija ir saugiai tvarkomi prisijungimo duomenys.
+### FR-1. Autentifikacija per išorinius tiekėjus (Entra ID ir Google)
+1. Sistema privalo autentifikuoti naudotojus per du OpenID Connect tiekėjus: Microsoft Entra ID ir Google. Prisijungimo puslapyje pasirenkamas tiekėjas.
+2. Naudotojo identitetas yra tiekėjo patvirtintas el. paštas (normalizuotas; unikalumas DB).
+3. Pirmą kartą prisijungus su nežinotu el. paštu naudotojas sukūriamas automatiškai be rolės (aktyvus, laukia rolės priskyrimo).
+4. Rolės (`admin` / `user`) priskiriamos tik administratoriaus Vartotojų registre.
+5. Konfigūracijoje (`Auth:AdminEmails`) nurodytas el. paštas pirmą kartą prisijungus automatiškai gauna `admin` rolę.
+6. Neautentifikuoti naudotojai negali pasiekti sistemos funkcijų (nukreipiami į prisijungimo puslapį; HTMX užklausoms – `HX-Redirect`).
+7. Deaktyvuotas naudotojas negali prisijungti.
+8. Prisijungus turi būti išlaikoma naudotojo sesija (slapukas) ir saugiai tvarkomi prisijungimo duomenys (konfigūracija / user-secrets, ne kodo saugykloje).
 
 ### FR-2. Klientų registras
 1. Sistema privalo leisti kurti, peržiūrėti, redaguoti ir deaktyvuoti klientų įrašus.
@@ -102,7 +110,7 @@ Prieigos taisyklės:
 3. PDF turi būti aiškiai atvaizduoti SF rekvizitai, eilutės, sumos ir mokėjimo informacija.
 
 ## 5. Pagrindiniai duomenų objektai
-- **Naudotojas** (autentifikuotas per Azure AD)
+- **Naudotojas** (autentifikuotas per Microsoft Entra ID arba Google; identitetas – el. paštas; rolė `admin`/`user`)
 - **Klientas**
 - **Projektas** (susietas su klientu, turi valandinį įkainį)
 - **Projektas** (susietas su klientu, turi valandinį įkainį, valiutą, SF kalbos nustatymą ir SF šabloną)
@@ -114,7 +122,7 @@ Prieigos taisyklės:
 
 ## 6. Nefunkciniai reikalavimai
 1. **Saugumas**:
-   - autentifikacija tik per Azure AD;
+   - autentifikacija per Microsoft Entra ID arba Google (OpenID Connect); rolės `admin`/`user`;
    - veiksmų audito žurnalas (kas ir kada sukūrė/pakeitė aktą ar SF).
 2. **Duomenų kokybė**:
    - validuojami privalomi laukai;

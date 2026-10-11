@@ -12,8 +12,9 @@ public sealed class UsersContentService
             {
                 Id = x.Id,
                 DisplayName = x.DisplayName,
-                EntraObjectId = x.EntraObjectId,
                 Email = x.Email,
+                Provider = x.Provider,
+                Role = x.Role,
                 CreatedAtUtc = x.CreatedAtUtc,
                 LastLoginAtUtc = x.LastLoginAtUtc,
                 IsActive = x.IsActive
@@ -24,8 +25,8 @@ public sealed class UsersContentService
             var term = search.Search.Trim();
             items = items.Where(x =>
                 x.DisplayName.Contains(term) ||
-                x.EntraObjectId.Contains(term) ||
-                (x.Email != null && x.Email.Contains(term)));
+                x.Email.Contains(term) ||
+                x.Provider.Contains(term));
         }
 
         var paged = await items.ToPagedListAsync(query, ct);
@@ -36,7 +37,7 @@ public sealed class UsersContentService
     {
         return await db.Set<User>().AsNoTracking()
             .Where(x => x.Id == id)
-            .Select(x => new UserViewModel(x.Id, x.DisplayName, x.EntraObjectId, x.Email, x.CreatedAtUtc, x.LastLoginAtUtc, x.IsActive))
+            .Select(x => new UserViewModel(x.Id, x.DisplayName, x.Email, x.Provider, x.Role, x.CreatedAtUtc, x.LastLoginAtUtc, x.IsActive))
             .FirstOrDefaultAsync(ct);
     }
 
@@ -46,6 +47,12 @@ public sealed class UsersContentService
     public async Task ToggleActiveAsync(ApskaitaDbContext db, User user, CancellationToken ct)
     {
         user.IsActive = !user.IsActive;
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task SetRoleAsync(ApskaitaDbContext db, User user, UserRole? role, CancellationToken ct)
+    {
+        user.Role = role;
         await db.SaveChangesAsync(ct);
     }
 }

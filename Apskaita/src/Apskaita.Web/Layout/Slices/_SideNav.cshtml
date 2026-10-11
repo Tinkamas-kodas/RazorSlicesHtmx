@@ -1,14 +1,15 @@
-@using Apskaita.Web.Shared
+@using Apskaita.Web.Layout
 @inherits RazorSlice<Apskaita.Web.Layout.Models.AppLayoutModel>
 @inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
 
 @{
     var detailTargetSelector = HtmxOptionsAccessor.Value.DetailTargetSelector;
 
-    string ResolveIconId(AdminNavItem item)
-    {
-        var key = item.Key.ToLowerInvariant();
-        return key switch
+    // Full sprite symbol reference ("/icons/sprite.svg?v=<tag>#nav-<icon>"). Returns the whole
+    // URL so the attribute holds a single expression - "sprite.svg@ref" concatenation inside an
+    // attribute value is fragile in Razor.
+    string ResolveIconUrl(string key) =>
+        $"/icons/sprite.svg?v={Assets.Version}#" + (key.ToLowerInvariant() switch
         {
             "time-tracking" => "nav-time-tracking",
             "clients" => "nav-clients",
@@ -18,9 +19,11 @@
             "invoice-templates" => "nav-invoice-templates",
             "system-settings" => "nav-system-settings",
             "users" => "nav-users",
+            "signout" => "nav-signout",
             _ => "nav-default"
-        };
-    }
+        });
+
+    var signoutUrl = ResolveIconUrl("signout");
 
     var ordered = Model.Navigation.OrderBy(x => x.Order).ThenBy(x => x.Label).ToList();
     var adminItems = ordered.Where(x => string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -70,7 +73,7 @@
                            title="@item.Label"
                            aria-label="@item.Label">
                             <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
-                                <use href="/icons/sprite.svg#@ResolveIconId(item)" />
+                                <use href="@ResolveIconUrl(item.Key)" />
                             </svg>
                             <span class="side-nav-link-label">@item.Label</span>
                         </a>
@@ -98,7 +101,7 @@
                            title="@item.Label"
                            aria-label="@item.Label">
                             <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
-                                <use href="/icons/sprite.svg#@ResolveIconId(item)" />
+                                <use href="@ResolveIconUrl(item.Key)" />
                             </svg>
                             <span class="side-nav-link-label">@item.Label</span>
                         </a>
@@ -106,5 +109,21 @@
                 }
             </ul>
         </section>
+    }
+
+    @if (HttpContext?.User?.Identity?.IsAuthenticated == true)
+    {
+        var displayName = HttpContext.User.FindFirst(Apskaita.Web.Features.Account.AuthConstants.DisplayNameClaim)?.Value;
+        var email = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        var userName = string.IsNullOrWhiteSpace(displayName) ? email : displayName;
+        <div class="side-nav-user">
+            <div class="side-nav-user-name text-truncate" title="@($"{userName} — {email}")">@userName</div>
+            <button type="button" class="side-nav-link side-nav-signout active" hx-post="/account/logout" hx-swap="none" title="Log out" aria-label="Log out">
+                <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
+                    <use href="@signoutUrl" />
+                </svg>
+                <span class="side-nav-link-label">Log out</span>
+            </button>
+        </div>
     }
 </aside>

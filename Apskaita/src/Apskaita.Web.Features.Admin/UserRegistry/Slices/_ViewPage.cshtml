@@ -17,11 +17,14 @@
                 <dt class="col-sm-3">Display name</dt>
                 <dd class="col-sm-9">@Model.DisplayName</dd>
 
-                <dt class="col-sm-3">Entra Object ID</dt>
-                <dd class="col-sm-9 text-break">@Model.EntraObjectId</dd>
-
                 <dt class="col-sm-3">Email</dt>
-                <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</dd>
+                <dd class="col-sm-9 text-break">@Model.Email</dd>
+
+                <dt class="col-sm-3">Provider</dt>
+                <dd class="col-sm-9">@Model.Provider</dd>
+
+                <dt class="col-sm-3">Role</dt>
+                <dd class="col-sm-9">@(Model.Role?.ToString() ?? "— (awaiting assignment)")</dd>
 
                 <dt class="col-sm-3">Created</dt>
                 <dd class="col-sm-9">@Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</dd>

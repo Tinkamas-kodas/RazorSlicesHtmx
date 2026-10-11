@@ -62,4 +62,11 @@
   <symbol id="nav-default" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
     <rect x="4" y="4" width="12" height="12" rx="1.5" />
   </symbol>
+
+  <!-- Sign out: door edge with arrow leaving to the right -->
+  <symbol id="nav-signout" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 4H5.2A1.2 1.2 0 0 0 4 5.2v9.6A1.2 1.2 0 0 0 5.2 16H7.5" />
+    <path d="M11 7l3 3-3 3" />
+    <path d="M14 10H7.5" />
+  </symbol>
 </svg>

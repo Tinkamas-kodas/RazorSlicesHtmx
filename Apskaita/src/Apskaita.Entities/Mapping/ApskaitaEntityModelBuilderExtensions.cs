@@ -121,7 +121,7 @@ public static class ApskaitaEntityModelBuilderExtensions
         {
             entity.Property(x => x.HourlyRate).IsRequired(false);
             entity.Property(x => x.Description).HasMaxLength(FieldLengths.TimeTracking.Description).IsRequired();
-            entity.HasIndex(x => new { x.ProjectId, x.StartedAtLocal });
+            entity.HasIndex(x => new { x.ProjectId, x.StartedAtUtc });
         });
     }
 

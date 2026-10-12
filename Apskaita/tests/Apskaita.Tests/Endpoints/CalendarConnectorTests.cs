@@ -213,14 +213,15 @@ public sealed class CalendarConnectorTests
         Assert.True(response.StatusCode == HttpStatusCode.Redirect, $"Expected 302, got {(int)response.StatusCode}.");
         var location = response.Headers.Location!.ToString();
         Assert.Contains("login.microsoftonline.com", location);
-        Assert.Contains("Calendars.Read", System.Net.WebUtility.UrlDecode(location));
-        Assert.Contains("offline_access", System.Net.WebUtility.UrlDecode(location));
-        Assert.Contains("signin-connect-entra", System.Net.WebUtility.UrlDecode(location));
+        Assert.Contains("Calendars.Read", WebUtility.UrlDecode(location));
+        Assert.Contains("offline_access", WebUtility.UrlDecode(location));
+        Assert.Contains("signin-connect-entra", WebUtility.UrlDecode(location));
         Assert.Contains("prompt=select_account", location);
+        Assert.DoesNotContain("response_mode=form_post", location);
     }
 
     [Fact]
-    public async Task Disconnect_RemovesConnector_AndUpdatesCard()
+    public async Task Disconnect_RemovesConnector_AndUpdatesTable()
     {
         await using var factory = new ApskaitaApiFactory();
         factory.SetPrincipal(UserEmail, UserRole.User);
@@ -249,7 +250,7 @@ public sealed class CalendarConnectorTests
         Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
 
         var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("connector-card-outlook365", content);
+        Assert.Contains("connectors-table", content);
         Assert.Contains("No accounts connected yet.", content);
 
         await using (var db = factory.NewDbContext())

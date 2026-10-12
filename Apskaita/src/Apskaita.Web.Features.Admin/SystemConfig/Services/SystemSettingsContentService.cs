@@ -43,7 +43,7 @@ public sealed class SystemSettingsContentService
 
         if (row is null)
         {
-            row = new Entities.SystemSettings
+            row = new SystemSettings
             {
                 Id = request.Id <= 0 ? 1 : request.Id,
                 DefaultVatRatePercent = request.DefaultVatRatePercent,

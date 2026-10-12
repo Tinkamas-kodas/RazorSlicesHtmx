@@ -1,7 +1,8 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Apskaita.Entities;
-using Microsoft.Extensions.Options;
 
 namespace Apskaita.Web.Shared.Calendar;
 
@@ -16,12 +17,12 @@ public sealed class Outlook365Connector(
     ConnectorTokenProtector protector,
     IHttpClientFactory httpClientFactory,
     IOptions<ConnectorAuthOptions> authOptions,
-    ILogger logger) : ICalendarEventReader
+    ILogger logger,
+    IHttpContextAccessor? httpContextAccessor = null) : ICalendarEventReader
 {
     public const string ProviderKey = "outlook365";
 
     /// <summary>Delegated scopes requested on the connect consent (REQ-002).</summary>
-    public const string ConnectScopes = "openid profile email https://graph.microsoft.com/Calendars.Read offline_access";
 
     private const int RefreshSkewSeconds = 300;
 
@@ -59,14 +60,17 @@ public sealed class Outlook365Connector(
             catch (Exception ex)
             {
                 failures++;
-                var message = Shorten(ex is HttpRequestException http
-                    ? $"Calendar unavailable: {(http.StatusCode.HasValue ? (int)http.StatusCode.Value : 0)}"
-                    : "Calendar unavailable: " + ex.GetType().Name);
+                var message = Shorten(ex switch
+                {
+                    HttpRequestException { StatusCode: not null } http => $"Calendar unavailable: {(int)http.StatusCode.Value} — {http.Message}",
+                    HttpRequestException => "Calendar unavailable: network error",
+                    _ => "Calendar unavailable: " + ex.GetType().Name,
+                });
 
                 store.ApplySyncResult(connector, message);
                 await SafeSaveAsync(ct);
 
-                logger.LogWarning("calendar sync failed for provider {Provider} account={Account}: {Message}", ProviderKey, connector.AccountEmail, message);
+                logger.LogWarning(ex, "calendar sync failed for provider {Provider} account={Account}: {Message}", ProviderKey, connector.AccountEmail, message);
                 notice ??= message;
             }
         }
@@ -170,11 +174,23 @@ public sealed class Outlook365Connector(
         var startUtc = fromLocal.ToDateTime(TimeOnly.MinValue).AddDays(-1).ToUniversalTime();
         var endUtc = toLocal.ToDateTime(TimeOnly.MaxValue).AddDays(1).ToUniversalTime();
 
+        // Graph wants ISO-8601 UTC (…T00:00:00Z). The Z must be an escaped literal ('Z'); a bare Z in the
+        // format plus a trailing Z produced a malformed …00:00:00ZZ that Graph rejects. Invariant culture
+        // keeps the ':' separators from being localized.
+        var startParam = startUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture);
+        var endParam = endUtc.ToString("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture);
+
+        // Display zone for the panel: the browser's UTC offset when its cookie is present, else server local.
+        var displayOffset = httpContextAccessor?.HttpContext is { } httpContext && BrowserTimeZone.TryGetOffset(httpContext, out var browserOffset)
+            ? browserOffset
+            : (TimeSpan?)null;
+
         var url = $"https://graph.microsoft.com/v1.0/me/calendarView" +
-            $"?startDateTime={startUtc:yyyy-MM-ddTHH:mm:ssZ}Z" +
-            $"&endDateTime={endUtc:yyyy-MM-ddTHH:mm:ssZ}Z" +
+            $"?startDateTime={startParam}" +
+            $"&endDateTime={endParam}" +
+            // calendarView is inherently sorted by start ascending; $orderby is unsupported here and makes
+            // Graph return a generic 500. Events are re-sorted after merge anyway.
             "&$select=subject,isOnlineMeeting,locations,organizer,start,end" +
-            "&$orderby=start%2FdateTime%20asc" +
             "&$top=200";
 
         var client = httpClientFactory.CreateClient("Outlook365Graph");
@@ -192,7 +208,9 @@ public sealed class Outlook365Connector(
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException($"Graph calendarView failed (HTTP {(int)response.StatusCode}).");
+            var detail = await ReadGraphErrorAsync(response, ct);
+            throw new HttpRequestException(
+                $"Graph calendarView failed (HTTP {(int)response.StatusCode}): {detail}", null, response.StatusCode);
         }
 
         using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
@@ -212,9 +230,12 @@ public sealed class Outlook365Connector(
                 continue;
             }
 
-            var startLocal = start.Value.LocalDateTime;
-            var endLocal = end.Value.LocalDateTime;
-            if (startLocal < fromLocal.ToDateTime(TimeOnly.MinValue) || startLocal >= toLocal.ToDateTime(TimeOnly.MaxValue).AddDays(1))
+            // Convert the absolute instant into the display zone (browser offset, else server local)
+            // and keep events whose display-day falls inside the requested week.
+            var startLocal = displayOffset is null ? start.Value.LocalDateTime : start.Value.ToOffset(displayOffset.Value).DateTime;
+            var endLocal = displayOffset is null ? end.Value.LocalDateTime : end.Value.ToOffset(displayOffset.Value).DateTime;
+            var startDay = DateOnly.FromDateTime(startLocal);
+            if (startDay < fromLocal || startDay > toLocal)
             {
                 continue;
             }
@@ -260,7 +281,7 @@ public sealed class Outlook365Connector(
         return result;
     }
 
-    /// <summary>Parses a Graph <c>{ dateTime, timeZone }</c> property into a <see cref="DateTimeOffset"/>; null when absent.</summary>
+    /// <summary>Parses a Graph <c>{ dateTime, timeZone }</c> property into a UTC <see cref="DateTimeOffset"/>; null when absent.</summary>
     private static DateTimeOffset? ParseDateTimeProperty(JsonElement item, string name)
     {
         if (!item.TryGetProperty(name, out var prop) || prop.ValueKind != JsonValueKind.Object)
@@ -268,16 +289,39 @@ public sealed class Outlook365Connector(
             return null;
         }
 
-        if (!prop.TryGetProperty("dateTime", out var dt) || dt.ValueKind != JsonValueKind.String
-            || !DateTimeOffset.TryParse(dt.GetString(), out var parsed))
+        if (!prop.TryGetProperty("dateTime", out var dt) || dt.ValueKind != JsonValueKind.String)
         {
             return null;
         }
 
-        // Graph already returns an absolute offset; "UTC" needs no adjustment, and named zones in the
-        // property are advisory for the stored offset. Convert to the local display zone downstream.
+        var text = dt.GetString();
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        // Graph labels the zone in the sibling "timeZone" property. A "UTC" value arrives offset-less
+        // (…T06:45:00.0000000); parsed bare it would assume the server's offset and shift the
+        // instant, so append the literal Z when no offset is present. Named non-UTC zones remain
+        // advisory: the offset-less string is still parsed as server-local (previous behavior).
+        var zone = prop.TryGetProperty("timeZone", out var tz) && tz.ValueKind == JsonValueKind.String
+            ? tz.GetString()
+            : null;
+        if (zone == "UTC" && !HasUtcOffset(text))
+        {
+            text += "Z";
+        }
+
+        if (!DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+        {
+            return null;
+        }
+
         return parsed.ToUniversalTime();
     }
+
+    /// <summary>True when an ISO-8601 date-time string already carries a Z or ±hh:mm offset suffix.</summary>
+    private static bool HasUtcOffset(string text) => Regex.IsMatch(text, @"([zZ]|[-+]\d{2}:\d{2})$");
 
     /// <summary>Multi-tenant token endpoint of the dedicated connector app (common authority).</summary>
     private const string TokenEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
@@ -291,6 +335,34 @@ public sealed class Outlook365Connector(
         catch (Exception ex)
         {
             logger.LogWarning("calendar connector metadata could not be saved: {Error}", ex.GetType().Name);
+        }
+    }
+
+    /// <summary>Extracts Graph's error code + message (and inner code) from a failed response body; logs the raw body.</summary>
+    private async Task<string> ReadGraphErrorAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        try
+        {
+            var body = await response.Content.ReadAsStringAsync(ct);
+            logger.LogDebug("graph calendarView error body: {Body}", body);
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var err))
+            {
+                var code = err.TryGetProperty("code", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString() : null;
+                var message = err.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String ? m.GetString() : null;
+                var inner = err.TryGetProperty("innerError", out var ie)
+                    && ie.TryGetProperty("code", out var ic) && ic.ValueKind == JsonValueKind.String ? ic.GetString() : null;
+                var detail = string.Join(" | ", new[] { code, message, inner }.Where(x => !string.IsNullOrEmpty(x)));
+                if (!string.IsNullOrEmpty(detail))
+                {
+                    return detail;
+                }
+            }
+            return body.Length > 200 ? body[..200] : body;
+        }
+        catch
+        {
+            return "(unreadable error body)";
         }
     }
 

@@ -33,8 +33,9 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
         {
             // Calendar events are display-only enrichment (REQ-004/REQ-008); the reader never throws.
             var (weekStartDay, weekEndDay) = _content.CreateWeekBounds(weekStart);
+            var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
             var calendar = await calendarReader.ReadAsync(weekStartDay, weekEndDay, ct);
-            var model = await _content.CreatePageModelAsync(db, weekStart, calendar, ct);
+            var model = await _content.CreatePageModelAsync(db, weekStart, calendar, displayOffset, ct);
 
             if (ctx.IsHtmxTarget("time-tracking-grid"))
             {
@@ -51,6 +52,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
         });
 
         group.MapPost("create", async (
+            HttpContext ctx,
             [FromForm] TimeTrackingModel request,
             [FromServices] IValidator<TimeTrackingModel> validator,
             ApskaitaDbContext db,
@@ -87,13 +89,15 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             }
 
             var now = DateTime.UtcNow;
+            var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
             var occurrences = _content.CreateOccurrences(request);
             var rows = occurrences
                 .Select(startedAtLocal => new Apskaita.Entities.TimeTracking
                 {
                     Id = Guid.NewGuid(),
                     ProjectId = request.ProjectId!.Value,
-                    StartedAtLocal = startedAtLocal,
+                    // Dialog times are display-zone wall time; the column stores UTC.
+                    StartedAtUtc = BrowserTimeZone.WallToUtc(startedAtLocal, displayOffset),
                     DurationInMinutes = request.DurationMinutes,
                     HourlyRate = request.HourlyRate,
                     Description = request.Description!.Trim(),
@@ -115,7 +119,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
         group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
         {
-            var model = await _content.CreateEditDialogModelAsync(db, id, ct);
+            var model = await _content.CreateEditDialogModelAsync(db, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
             if (model is null)
             {
                 return Results.NotFound();
@@ -128,6 +132,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
         group.MapPost("edit/{id:guid}", async (
             Guid id,
+            HttpContext ctx,
             [FromForm] TimeTrackingModel request,
             [FromServices] IValidator<TimeTrackingModel> validator,
             ApskaitaDbContext db,
@@ -170,7 +175,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             }
 
             row.ProjectId = request.ProjectId!.Value;
-            row.StartedAtLocal = _content.ResolveStartedAtLocal(request);
+            row.StartedAtUtc = BrowserTimeZone.WallToUtc(_content.ResolveStartedAtLocal(request), BrowserTimeZone.GetDisplayOffset(ctx));
             row.DurationInMinutes = request.DurationMinutes;
             row.HourlyRate = request.HourlyRate;
             row.Description = request.Description!.Trim();
@@ -184,9 +189,9 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .WithToast($"Updated time entry for '{projectData.Label}'.", title: "Time entry", tone: ToastTone.Success);
         }).DisableAntiforgery();
 
-        group.MapGet("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("delete/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
         {
-            var model = await _content.CreateEditDialogModelAsync(db, id, ct);
+            var model = await _content.CreateEditDialogModelAsync(db, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
             return model is null
                 ? Results.NotFound()
                 : Result.Fragment(_DeleteDialog.Create(model));
@@ -211,6 +216,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
         group.MapPost("move/{id:guid}", async (
             Guid id,
+            HttpContext ctx,
             string date,
             string time,
             ApskaitaDbContext db,
@@ -227,7 +233,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 return Results.BadRequest();
             }
 
-            row.StartedAtLocal = newDate.ToDateTime(newTime);
+            row.StartedAtUtc = BrowserTimeZone.WallToUtc(newDate.ToDateTime(newTime), BrowserTimeZone.GetDisplayOffset(ctx));
             row.UpdatedAtUtc = DateTime.UtcNow;
             row.UpdatedByUserId = Guid.Empty;
             await db.SaveChangesAsync(ct);

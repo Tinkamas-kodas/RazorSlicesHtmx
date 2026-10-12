@@ -120,11 +120,9 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             }
 
             var cards = await BuildCardsAsync(registry, store, ct);
-            var providerInfo = registry.All.First(p => p.Provider == provider);
-            var card = cards.First(c => string.Equals(c.Key, providerInfo.Key, StringComparison.OrdinalIgnoreCase));
 
             return Result.Fragment(_Empty.Create())
-                .WithOob($"#connector-card-{SanitizeKey(providerInfo.Key)}", _CalendarConnectorCard.Create(card))
+                .WithOob("#connectors-table", _ConnectorsTable.Create(cards))
                 .WithToast("Calendar account was disconnected.", title: "Account", tone: ToastTone.Info);
         }).RequireAuthorization(AuthPolicies.Operational);
     }
@@ -185,9 +183,6 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                     .ToList());
         }).ToList();
     }
-
-    private static string SanitizeKey(string key) =>
-        new([.. key.ToLowerInvariant().Select(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_' ? ch : '-')]);
 
     private static bool IsLocalUrl(string? url) =>
         !string.IsNullOrEmpty(url) &&

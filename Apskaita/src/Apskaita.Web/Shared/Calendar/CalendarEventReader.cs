@@ -2,7 +2,8 @@ namespace Apskaita.Web.Shared.Calendar;
 
 /// <summary>
 /// A normalized calendar event for display. Mapped from a provider's event model (currently Microsoft
-/// Graph <c>calendarView</c>); times are already converted to the app's local display time zone.
+/// Graph <c>calendarView</c>); times are already converted to the display zone — the browser's UTC
+/// offset when its cookie is present, otherwise the server's local zone.
 /// Display-only: the UI must not offer actions derived from these events.
 /// </summary>
 public sealed record CalendarEventInfo(

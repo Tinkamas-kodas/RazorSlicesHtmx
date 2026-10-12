@@ -28,8 +28,11 @@
 
     var ordered = Model.Navigation.OrderBy(x => x.Order).ThenBy(x => x.Label).ToList();
     var adminItems = ordered.Where(x => string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase)).ToList();
+    // The account feature is reached through the username link at the bottom of the nav, so its nav item
+    // stays registered (route + page resolution) but is not rendered as a duplicate link here.
     var mainItems = ordered
-        .Where(x => !string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase))
+        .Where(x => !string.Equals(x.Group, "ADMIN", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(x.Key, "account", StringComparison.OrdinalIgnoreCase))
         .ToList();
 }
 
@@ -129,7 +132,7 @@
                hx-target="@detailTargetSelector"
                hx-swap="@Hx.Swap.InnerHtml"
                hx-push-url="true"
-               class="side-nav-link side-nav-settings"
+               class="side-nav-link side-nav-settings @(string.Equals(Model.ActiveKey, "account", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                title="@($"{userName} — {email}")"
                aria-label="@($"{@userName} settings")">
                 <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">

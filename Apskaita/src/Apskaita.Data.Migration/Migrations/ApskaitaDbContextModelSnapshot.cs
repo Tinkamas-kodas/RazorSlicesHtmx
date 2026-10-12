@@ -638,9 +638,9 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("project_id");
 
-                    b.Property<DateTime>("StartedAtLocal")
+                    b.Property<DateTime>("StartedAtUtc")
                         .HasColumnType("datetime(6)")
-                        .HasColumnName("started_at_local");
+                        .HasColumnName("started_at_utc");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("datetime(6)")
@@ -653,8 +653,8 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.HasKey("Id")
                         .HasName("pk_time_trackings");
 
-                    b.HasIndex("ProjectId", "StartedAtLocal")
-                        .HasDatabaseName("ix_time_trackings_project_id_started_at_local");
+                    b.HasIndex("ProjectId", "StartedAtUtc")
+                        .HasDatabaseName("ix_time_trackings_project_id_started_at_utc");
 
                     b.ToTable("time_trackings", (string)null);
                 });

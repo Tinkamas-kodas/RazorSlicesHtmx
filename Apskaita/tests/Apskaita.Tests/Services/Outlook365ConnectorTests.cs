@@ -38,7 +38,7 @@ public sealed class Outlook365ConnectorTests
 
     private static (Outlook365Connector connector, ConnectorTokenProtector protector, ApskaitaDbContext db, FakeHttpHandler handler) Build()
     {
-        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        var services = new ServiceCollection();
         services.AddDataProtection();
         var sp = services.BuildServiceProvider();
         var protector = new ConnectorTokenProtector(sp.GetRequiredService<IDataProtectionProvider>());
@@ -71,7 +71,7 @@ public sealed class Outlook365ConnectorTests
     [Fact]
     public void Protector_RoundTrips_AndRejectsGarbage()
     {
-        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        var services = new ServiceCollection();
         services.AddDataProtection();
         var sp = services.BuildServiceProvider();
         var protector = new ConnectorTokenProtector(sp.GetRequiredService<IDataProtectionProvider>());
@@ -94,7 +94,7 @@ public sealed class Outlook365ConnectorTests
         handler.SendFunc = _ =>
         {
             calls++;
-            return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         };
 
         var token = await connector.GetAccessTokenAsync(db.CalendarConnectors.Single(), CancellationToken.None);
@@ -155,7 +155,7 @@ public sealed class Outlook365ConnectorTests
     [Fact]
     public async Task Read_MergesEvents_FromMultipleAccounts()
     {
-        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        var services = new ServiceCollection();
         services.AddDataProtection();
         var sp = services.BuildServiceProvider();
         var protector = new ConnectorTokenProtector(sp.GetRequiredService<IDataProtectionProvider>());
@@ -219,7 +219,7 @@ public sealed class Outlook365ConnectorTests
         Assert.True(result.Notice is null, "No failures expected.");
     }
 
-    private sealed class SessionAccessor(string email, Guid userId) : IHttpContextAccessor
+    private sealed class SessionAccessor(string email, Guid userId, string? cookie = null) : IHttpContextAccessor
     {
         public HttpContext? HttpContext
         {
@@ -233,10 +233,75 @@ public sealed class Outlook365ConnectorTests
                 "Test",
                 System.Security.Claims.ClaimTypes.Name,
                 System.Security.Claims.ClaimTypes.Role);
-                return new DefaultHttpContext { User = new System.Security.Claims.ClaimsPrincipal(identity) };
+                var context = new DefaultHttpContext { User = new System.Security.Claims.ClaimsPrincipal(identity) };
+                if (cookie is not null)
+                {
+                    context.Request.Headers["Cookie"] = cookie;
+                }
+                return context;
             }
             set { }
         }
+    }
+
+    [Fact]
+    public async Task Read_ConvertsUtcEvents_ToBrowserCookieOffset()
+    {
+        var services = new ServiceCollection();
+        services.AddDataProtection();
+        var sp = services.BuildServiceProvider();
+        var protector = new ConnectorTokenProtector(sp.GetRequiredService<IDataProtectionProvider>());
+
+        var db = TestDb.New();
+        var owner = Guid.NewGuid();
+        db.Users.Add(new User
+        {
+            Id = owner,
+            Email = "user@example.com",
+            DisplayName = "User",
+            Provider = "entra",
+            SubjectId = "s",
+            IsActive = true,
+            Role = UserRole.User
+        });
+        db.CalendarConnectors.Add(NewConnector(protector, owner, "a@contoso.com"));
+        await db.SaveChangesAsync();
+
+        var handler = new FakeHttpHandler();
+        handler.SendFunc = request =>
+        {
+            if (request.RequestUri!.ToString().Contains("/oauth2/v2.0/token"))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"access_token":"fresh-token","expires_in":3600}""", Encoding.UTF8, "application/json")
+                };
+            }
+
+            // Graph returns "UTC" values offset-less; they must be read as UTC instants, then shown
+            // in the browser's zone (cookie tz-offset=180 → UTC+03:00).
+            var json = """{"value":[{"subject":"FDMS standup","start":{"dateTime":"2026-10-13T06:45:00.0000000","timeZone":"UTC"},"end":{"dateTime":"2026-10-13T07:00:00.0000000","timeZone":"UTC"}}]}""";
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+        };
+
+        var accessor = new SessionAccessor("user@example.com", owner, "tz-offset=180");
+        var connector = new Outlook365Connector(
+            new CalendarConnectorStore(db, accessor),
+            protector,
+            new FakeHttpClientFactory(handler),
+            Options.Create(new ConnectorAuthOptions { ClientId = "c", ClientSecret = "s" }),
+            NullLogger.Instance,
+            accessor);
+
+        var result = await connector.ReadAsync(new DateOnly(2026, 10, 12), new DateOnly(2026, 10, 18), CancellationToken.None);
+
+        Assert.True(result.Events.Count == 1, $"06:45 UTC should land on 13 Oct (+03:00) inside the week, got {result.Events.Count}.");
+        var evt = result.Events[0];
+        Assert.True(evt.StartLocal == new DateTime(2026, 10, 13, 9, 45, 0), $"06:45 UTC should display as 09:45, got {evt.StartLocal:HH:mm}.");
+        Assert.True(evt.EndLocal == new DateTime(2026, 10, 13, 10, 0, 0), $"07:00 UTC should display as 10:00, got {evt.EndLocal:HH:mm}.");
     }
 
     private static CalendarConnector NewConnector(ConnectorTokenProtector protector, Guid userId, string accountEmail) => new()

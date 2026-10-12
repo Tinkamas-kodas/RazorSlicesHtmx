@@ -19,16 +19,13 @@ public sealed class RequestLoggingMiddleware(RequestDelegate next, ILoggerFactor
         var htmx = string.Equals(request.Headers["HX-Request"], "true", StringComparison.OrdinalIgnoreCase);
         var htmxTarget = request.Headers["HX-Target"].ToString();
 
-        _logger.LogInformation("--> {Method} {Path}{Query} htmx={Htmx} htmxTarget={HtmxTarget}",
-            request.Method, request.Path, request.QueryString.Value, htmx, htmxTarget.Length == 0 ? "-" : htmxTarget);
-
         try
         {
             await next(context);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "--> UNHANDLED {Method} {Path}", request.Method, request.Path);
+            _logger.LogError(ex, "UNHANDLED {Method} {Path} htmx={Htmx} htmxTarget={HtmxTarget}", request.Method, request.Path, htmx, htmxTarget);
             throw;
         }
         finally
@@ -40,10 +37,12 @@ public sealed class RequestLoggingMiddleware(RequestDelegate next, ILoggerFactor
             var location = context.Response.Headers["Location"].ToString();
             var hxRedirect = context.Response.Headers["HX-Redirect"].ToString();
 
-            _logger.LogInformation("<-- {Status} {Method} {Path} {Elapsed} user={User} location={Location} hxRedirect={HxRedirect}",
+            _logger.LogInformation("{Status} {Method} {Path} {Elapsed} user={User} location={Location} htmx={Htmx} htmxTarget={HtmxTarget} hxRedirect={HxRedirect} ",
                 context.Response.StatusCode, request.Method, request.Path,
                 $"{elapsed.TotalMilliseconds:F0}ms", user,
                 location.Length == 0 ? "-" : location,
+                htmx,
+                htmxTarget,
                 hxRedirect.Length == 0 ? "-" : hxRedirect);
         }
     }

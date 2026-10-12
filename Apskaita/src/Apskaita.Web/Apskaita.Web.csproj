@@ -17,6 +17,9 @@
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
     <PackageReference Include="RazorSlices" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.Http.Diagnostics" />
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
   </ItemGroup>
 
   <ItemGroup>

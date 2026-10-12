@@ -1,0 +1,67 @@
+@inherits RazorSlice<List<CalendarConnectorCardModel>>
+
+@* One row per connected account, grouped under a full-width provider header row. The whole table carries
+   id="connectors-table" so the disconnect flow re-renders it via a single OOB swap (see AccountEndpoints).
+   The table must NOT carry hx-swap-oob itself: it is rendered as primary content on /account/me. *@
+<table id="connectors-table" class="table table-borderless align-middle connectors-table mb-0">
+    <thead>
+        <tr class="text-body-secondary">
+            <th scope="col" class="fw-semibold small">Account</th>
+            <th scope="col" class="fw-semibold small">Last sync</th>
+            <th scope="col" class="fw-semibold small text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var card in Model)
+        {
+            <tr class="connector-provider-row">
+                <td colspan="3">
+                    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                        <span class="fw-semibold">@card.Label</span>
+                        @if (card.IsImplemented)
+                        {
+                            <a class="btn btn-outline-primary btn-sm" href="@FeatureUri.Uri($"connect/{card.Key}")">Connect account</a>
+                        }
+                        else
+                        {
+                            <span class="text-body-secondary small">Coming soon</span>
+                        }
+                    </div>
+                </td>
+            </tr>
+
+            @if (card.IsImplemented && card.Connections.Count == 0)
+            {
+                <tr class="connector-empty-row">
+                    <td colspan="3" class="text-body-secondary">No accounts connected yet.</td>
+                </tr>
+            }
+
+            @foreach (var connection in card.Connections)
+            {
+                <tr class="connector-account-row">
+                    <td>
+                        <div class="fw-semibold text-truncate" title="@connection.AccountEmail">
+                            @(string.IsNullOrWhiteSpace(connection.DisplayName) ? connection.AccountEmail : connection.DisplayName)
+                        </div>
+                        <div class="small text-body-secondary text-truncate">@connection.AccountEmail</div>
+                        @if (!string.IsNullOrEmpty(connection.LastSyncError))
+                        {
+                            <div class="small text-danger">@connection.LastSyncError</div>
+                        }
+                    </td>
+                    <td class="text-body-secondary">@(connection.LastSyncAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                    <td class="text-end">
+                        @if (card.IsImplemented)
+                        {
+                            <button type="button"
+                                    class="btn btn-link btn-sm text-danger connector-disconnect"
+                                    hx-post="@FeatureUri.Uri($"disconnect/{connection.Id}")"
+                                    hx-swap="none">Disconnect</button>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

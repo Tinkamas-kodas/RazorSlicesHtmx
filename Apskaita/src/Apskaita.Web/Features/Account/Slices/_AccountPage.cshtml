@@ -1,14 +1,14 @@
 @inherits RazorSlice<Apskaita.Web.Features.Account.Models.AccountPageModel>
 
 <article class="section-panel">
-    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-1">
-        <h2 class="mb-0">Account</h2>
+    <div>
+        <h2 class="mb-1">Account</h2>
+        <p class="text-body-secondary mb-0">Connect your own calendar accounts. Connected calendars are shown on the time tracking page.</p>
     </div>
-    <p class="text-muted">Connect your own calendar accounts. Connected calendars are shown on the time tracking page.</p>
 
     @if (!string.IsNullOrEmpty(Model.Notice))
     {
-        <div class="alert alert-@Model.NoticeKind">
+        <div class="alert alert-@Model.NoticeKind py-2 px-3">
             @Model.Notice
             @if (!string.IsNullOrEmpty(Model.AdminConsentUrl))
             {
@@ -19,10 +19,5 @@
         </div>
     }
 
-    <div class="d-flex flex-column gap-3 settings-cards">
-        @foreach (var card in Model.Connectors)
-        {
-            @await RenderPartialAsync(_CalendarConnectorCard.Create(card))
-        }
-    </div>
+    @await RenderPartialAsync(_ConnectorsTable.Create(Model.Connectors.ToList()))
 </article>

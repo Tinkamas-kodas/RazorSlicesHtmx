@@ -300,8 +300,11 @@ body.sidebar-collapsed .side-nav-toggle-closed {
   min-width: 0;
 }
 
-button.side-nav-link {
+.side-nav-user .side-nav-link {
   width: 100%;
+}
+
+button.side-nav-link {
   background: transparent;
   border: 0;
   font: inherit;
@@ -318,9 +321,22 @@ body.sidebar-collapsed button.side-nav-link {
   text-align: center;
 }
 
-/* Settings: calendar connector cards */
-.settings-cards .settings-connector-card .min-w-0 {
-  min-width: 0;
+/* Account: calendar connectors table */
+.connectors-table tr.connector-provider-row > td {
+  background: var(--bs-secondary-bg);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.connectors-table tr.connector-account-row > td:first-child {
+  padding-left: 1.75rem;
+}
+
+.connectors-table tr.connector-account-row > td:last-child {
+  white-space: nowrap;
+}
+
+.connectors-table .connector-disconnect {
+  text-decoration: none;
 }
 
 /* Time tracking: week layout with calendar side panel (Clockify-like) */

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Apskaita.Entities;
 using Apskaita.Web.Features.TimeTracking.Models;
+using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.Calendar;
 using Apskaita.Web.Shared.ProjectColors;
 using Microsoft.EntityFrameworkCore;
@@ -25,12 +26,18 @@ public sealed class TimeTrackingContentService
         ApskaitaDbContext db,
         string? weekStartRaw,
         CalendarReadResult? calendar,
+        TimeSpan displayOffset,
         CancellationToken ct)
     {
         var anchorDate = ResolveAnchorDate(weekStartRaw);
         var weekStart = GetWeekStart(anchorDate);
         var weekStartLocal = weekStart.ToDateTime(TimeOnly.MinValue);
         var weekEndExclusiveLocal = weekStartLocal.AddDays(7);
+        // Entries are stored as UTC; the week is defined in the display zone, so the query bounds
+        // shift from display wall time to UTC (utc = wall − offset).
+        var weekStartUtc = BrowserTimeZone.WallToUtc(weekStartLocal, displayOffset);
+        var weekEndExclusiveUtc = BrowserTimeZone.WallToUtc(weekEndExclusiveLocal, displayOffset);
+        var todayDisplay = DateOnly.FromDateTime(BrowserTimeZone.UtcToWall(DateTime.UtcNow, displayOffset));
 
         var days = Enumerable
             .Range(0, 7)
@@ -40,7 +47,7 @@ public sealed class TimeTrackingContentService
                 return new TimeTrackingDayModel(
                     day,
                     day.ToString("ddd dd.MM", CultureInfo.InvariantCulture),
-                    day == DateOnly.FromDateTime(DateTime.Now));
+                    day == todayDisplay);
             })
             .ToArray();
 
@@ -58,18 +65,18 @@ public sealed class TimeTrackingContentService
         var rows = await (
             from time in db.TimeTrackings.AsNoTracking()
             join project in db.Projects.AsNoTracking() on time.ProjectId equals project.Id
-            where time.StartedAtLocal >= weekStartLocal && time.StartedAtLocal < weekEndExclusiveLocal
-            orderby time.StartedAtLocal
+            where time.StartedAtUtc >= weekStartUtc && time.StartedAtUtc < weekEndExclusiveUtc
+            orderby time.StartedAtUtc
             select new TimeTrackingEntryRow(
                 time.Id,
-                time.StartedAtLocal,
+                time.StartedAtUtc,
                 time.DurationInMinutes,
                 time.Description,
                 project.ColorRgb)
             )
             .ToListAsync(ct);
 
-        var entries = rows.Select(CreateEntryViewModel).ToArray();
+        var entries = rows.Select(row => CreateEntryViewModel(row, displayOffset)).ToArray();
 
         var calendarEvents = (calendar?.Events ?? [])
             .Select(e => new TimeTrackingCalendarEventViewModel(
@@ -156,6 +163,7 @@ public sealed class TimeTrackingContentService
     public async Task<TimeTrackingModel?> CreateEditDialogModelAsync(
         ApskaitaDbContext db,
         Guid id,
+        TimeSpan displayOffset,
         CancellationToken ct)
     {
         var row = await (
@@ -164,7 +172,7 @@ public sealed class TimeTrackingContentService
             where time.Id == id
             select new
             {
-                time.StartedAtLocal,
+                time.StartedAtUtc,
                 time.DurationInMinutes,
                 time.HourlyRate,
                 time.ProjectId,
@@ -178,10 +186,13 @@ public sealed class TimeTrackingContentService
             return null;
         }
 
+        // The dialog edits wall-clock time in the display zone; shift the stored UTC value back.
+        var startedAtLocal = BrowserTimeZone.UtcToWall(row.StartedAtUtc, displayOffset);
+
         return new TimeTrackingModel
         {
-            Date = DateOnly.FromDateTime(row.StartedAtLocal),
-            Start = TimeOnly.FromDateTime(row.StartedAtLocal),
+            Date = DateOnly.FromDateTime(startedAtLocal),
+            Start = TimeOnly.FromDateTime(startedAtLocal),
             DurationMinutes = row.DurationInMinutes,
             HourlyRate = row.HourlyRate,
             ProjectId = row.ProjectId,
@@ -274,6 +285,7 @@ public sealed class TimeTrackingContentService
         return results;
     }
 
+    /// <summary>Resolves the dialog's date+start into a display-zone wall time; callers convert it to UTC before storing.</summary>
     public DateTime ResolveStartedAtLocal(TimeTrackingModel request)
     {
         var date = request.Date == default ? DateOnly.FromDateTime(DateTime.Now) : request.Date;
@@ -309,9 +321,10 @@ public sealed class TimeTrackingContentService
         return date.AddDays(mondayOffset);
     }
 
-    private static TimeTrackingEntryViewModel CreateEntryViewModel(TimeTrackingEntryRow row)
+    private static TimeTrackingEntryViewModel CreateEntryViewModel(TimeTrackingEntryRow row, TimeSpan displayOffset)
     {
-        var startedAtLocal = row.StartedAtLocal;
+        // Stored UTC → display-zone wall time; all grid math below works in wall time.
+        var startedAtLocal = BrowserTimeZone.UtcToWall(row.StartedAtUtc, displayOffset);
         var durationMinutes = Math.Clamp(row.DurationInMinutes, MinimumDurationMinutes, TimeTrackingLimits.MaxDurationMinutes);
         var entryEnd = startedAtLocal.AddMinutes(durationMinutes);
         var dayEnd = startedAtLocal.Date.AddDays(1);
@@ -358,7 +371,7 @@ public sealed class TimeTrackingContentService
 
     private sealed record TimeTrackingEntryRow(
         Guid Id,
-        DateTime StartedAtLocal,
+        DateTime StartedAtUtc,
         int DurationInMinutes,
         string Description,
         string ColorRgb);

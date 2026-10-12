@@ -70,12 +70,11 @@ public static class ProjectColorCatalog
         }
 
         var value = colorRgb.Trim();
-        return value.Length == 7
-               && value[0] == '#'
+        return value is ['#', _, _, _, _, _, _]
                && value.Skip(1).All(ch =>
-                   (ch >= '0' && ch <= '9') ||
-                   (ch >= 'A' && ch <= 'F') ||
-                   (ch >= 'a' && ch <= 'f'));
+                   ch is >= '0' and <= '9' ||
+                   ch is >= 'A' and <= 'F' ||
+                   ch is >= 'a' and <= 'f');
     }
 
     public static string GetLookupText(string? colorRgb)

@@ -33,6 +33,23 @@
     setToggleAria();
   });
 
+  // Calendar side panel: expand/collapse via the vertical "Calendar" label. State is intentionally
+  // not persisted — the panel re-renders collapsed on every grid refresh.
+  document.addEventListener("click", event => {
+    const toggle = event.target instanceof Element ? event.target.closest(".tt-calendar-toggle") : null;
+    if (!toggle) {
+      return;
+    }
+
+    const panel = toggle.closest(".tt-calendar-panel");
+    if (!panel) {
+      return;
+    }
+
+    const expanded = panel.classList.toggle("is-expanded");
+    toggle.setAttribute("aria-expanded", expanded.toString());
+  });
+
   const clearModalArtifacts = () => {
     document.body.classList.remove("modal-open");
     document.body.style.removeProperty("padding-right");

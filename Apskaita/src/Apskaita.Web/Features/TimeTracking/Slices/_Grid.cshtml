@@ -8,7 +8,8 @@
     hx-trigger="time-tracking-list-refresh from:document"
      hx-target="#time-tracking-grid"
      hx-swap="outerHTML">
-    <div class="card border-0 shadow-sm">
+    <div class="tt-week-layout">
+    <div class="card border-0 shadow-sm tt-week-main">
         <div class="card-body p-0 tt-week-grid-wrap">
             <div class="tt-week-grid">
                 <div class="tt-grid-time-header"></div>
@@ -84,5 +85,8 @@
                 }
             </div>
         </div>
+    </div>
+
+    @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._CalendarPanel.Create(Model))
     </div>
 </div>

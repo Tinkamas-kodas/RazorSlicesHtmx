@@ -1,0 +1,28 @@
+@inherits RazorSlice<Apskaita.Web.Features.Account.Models.AccountPageModel>
+
+<article class="section-panel">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-1">
+        <h2 class="mb-0">Account</h2>
+    </div>
+    <p class="text-muted">Connect your own calendar accounts. Connected calendars are shown on the time tracking page.</p>
+
+    @if (!string.IsNullOrEmpty(Model.Notice))
+    {
+        <div class="alert alert-@Model.NoticeKind">
+            @Model.Notice
+            @if (!string.IsNullOrEmpty(Model.AdminConsentUrl))
+            {
+                <div class="mt-2">
+                    <a class="btn btn-sm btn-outline-danger" href="@Model.AdminConsentUrl" target="_blank" rel="noopener noreferrer">Open admin approval page</a>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="d-flex flex-column gap-3 settings-cards">
+        @foreach (var card in Model.Connectors)
+        {
+            @await RenderPartialAsync(_CalendarConnectorCard.Create(card))
+        }
+    </div>
+</article>

@@ -19,6 +19,7 @@
             "invoice-templates" => "nav-invoice-templates",
             "system-settings" => "nav-system-settings",
             "users" => "nav-users",
+            "settings" => "nav-settings",
             "signout" => "nav-signout",
             _ => "nav-default"
         });
@@ -116,9 +117,27 @@
         var displayName = HttpContext.User.FindFirst(Apskaita.Web.Features.Account.AuthConstants.DisplayNameClaim)?.Value;
         var email = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         var userName = string.IsNullOrWhiteSpace(displayName) ? email : displayName;
+        var settingsUrl = ResolveIconUrl("settings");
+        // The account route comes from the registered navigation (prefix applied by FeatureRegistry),
+        // so the link follows the feature's mount point instead of a hardcoded path.
+        var settingsRoute = Model.Navigation
+            .FirstOrDefault(n => string.Equals(n.Key, "account", StringComparison.OrdinalIgnoreCase))
+            ?.Route ?? "/account/me";
         <div class="side-nav-user">
-            <div class="side-nav-user-name text-truncate" title="@($"{userName} — {email}")">@userName</div>
-            <button type="button" class="side-nav-link side-nav-signout active" hx-post="/account/logout" hx-swap="none" title="Log out" aria-label="Log out">
+            <a href="@settingsRoute"
+               hx-get="@settingsRoute"
+               hx-target="@detailTargetSelector"
+               hx-swap="@Hx.Swap.InnerHtml"
+               hx-push-url="true"
+               class="side-nav-link side-nav-settings"
+               title="@($"{userName} — {email}")"
+               aria-label="@($"{@userName} settings")">
+                <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
+                    <use href="@settingsUrl" />
+                </svg>
+                <span class="side-nav-link-label text-truncate">@userName</span>
+            </a>
+            <button type="button" class="side-nav-link side-nav-signout" hx-post="/account/logout" hx-swap="none" title="Log out" aria-label="Log out">
                 <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
                     <use href="@signoutUrl" />
                 </svg>

@@ -1,9 +1,16 @@
 using Apskaita.Entities.Mapping;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Entities;
 
-public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> options) : DbContext(options)
+/// <summary>
+/// Application database context. Also implements <see cref="IDataProtectionKeyContext"/> so the ASP.NET
+/// Core Data Protection key ring persists to the database (<c>PersistKeysToDbContext</c>) instead of the
+/// local machine — calendar connector tokens survive redeployment and scale-out (see README).
+/// Table/column names follow the snake_case naming convention like the rest of the schema.
+/// </summary>
+public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> options) : DbContext(options), IDataProtectionKeyContext
 {
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<Client> Clients => Set<Client>();
@@ -19,6 +26,10 @@ public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> option
     public DbSet<WorkAct> WorkActs => Set<WorkAct>();
     public DbSet<WorkActLine> WorkActLines => Set<WorkActLine>();
     public DbSet<TimeTracking> TimeTrackings => Set<TimeTracking>();
+    public DbSet<CalendarConnector> CalendarConnectors => Set<CalendarConnector>();
+
+    /// <summary>Data Protection key ring store entity (required by <c>PersistKeysToDbContext</c>).</summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

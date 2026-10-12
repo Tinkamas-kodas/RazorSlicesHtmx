@@ -293,6 +293,8 @@ internal sealed class GenerateHtmlNamesAttribute : global::System.Attribute
 
     private static INamedTypeSymbol UnwrapNullable(INamedTypeSymbol type)
     {
+        // netstandard2.0 has no System.Index/Range: use Length + indexer instead of a list pattern.
+        // ReSharper disable once MergeIntoPattern
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && type.TypeArguments.Length == 1 && type.TypeArguments[0] is INamedTypeSymbol inner)
         {
             return inner;

@@ -89,6 +89,16 @@ public sealed class SideNavSliceTests
     }
 
     [Fact]
+    public async Task SideNav_UserNameOpensSettings_WithSettingsIcon()
+    {
+        var html = await RenderAsync(_SideNav.Create(Model()), Authenticated());
+
+        Assert.Contains($"href=\"/icons/sprite.svg?v={Assets.Version}#nav-settings\"", html);
+        Assert.Contains("href=\"/account/me\"", html);
+        Assert.Contains("Test User", html);
+    }
+
+    [Fact]
     public async Task SideNav_HidesSignoutForAnonymous()
     {
         var html = await RenderAsync(_SideNav.Create(Model()));

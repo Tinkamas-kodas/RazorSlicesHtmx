@@ -1,0 +1,87 @@
+@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
+@inject RazorSlicesHtmx.AspNetCore.Features.FeatureRegistry FeatureRegistry
+
+@* Calendar side panel (Clockify-like): display-only — no hx-* attributes on events (REQ-008).
+   Collapsed by default; the vertical Calendar label toggles expand/collapse (state not persisted).
+   The connect link follows the account feature's registered route group — no hardcoded prefix. *@
+
+@{
+    var settingsHref = FeatureRegistry.TryGetRouteItem("account", out var accountItem)
+        && !string.IsNullOrWhiteSpace(accountItem.Route)
+        ? accountItem.Route
+        : "/account/me";
+}
+
+<div class="tt-calendar-panel">
+    <button type="button" class="tt-calendar-toggle" aria-expanded="false" title="Show or hide calendar events">
+        <span class="tt-calendar-toggle-label">Calendar</span>
+    </button>
+
+    <div class="tt-calendar-body">
+
+    @if (!Model.HasCalendarConnector)
+    {
+        <div class="tt-calendar-empty">
+            <p class="mb-2">No calendar connected.</p>
+                <a href="@settingsHref" class="btn btn-sm btn-outline-dark">Connect Outlook 365</a>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Model.CalendarNotice))
+    {
+        <div class="tt-calendar-empty">
+            <p class="mb-0 text-danger">@Model.CalendarNotice</p>
+        </div>
+    }
+    else if (Model.CalendarEvents.Count == 0)
+    {
+        <div class="tt-calendar-empty">
+            <p class="mb-0">No events this week.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tt-calendar-list">
+            @foreach (var day in Model.Days)
+            {
+                var dayEvents = Model.CalendarEvents
+                    .Where(e => e.DayDate == day.Date)
+                    .OrderBy(e => e.Start)
+                    .ToArray();
+
+                if (dayEvents.Length == 0)
+                {
+                    continue;
+                }
+
+                <div class="tt-calendar-day">
+                    <div class="tt-calendar-day-header">@day.Label</div>
+                    @foreach (var evt in dayEvents)
+                    {
+                        <div class="tt-calendar-event">
+                            <div class="tt-calendar-event-time">@evt.Start.ToString("HH:mm") - @evt.End.ToString("HH:mm")</div>
+                            <div class="tt-calendar-event-subject" title="@evt.Subject">@evt.Subject</div>
+                            @if (!string.IsNullOrEmpty(evt.Location) || evt.IsOnline)
+                            {
+                                <div class="tt-calendar-event-meta">
+                                    @if (evt.IsOnline)
+                                    {
+                                        <span class="tt-calendar-event-online">Online</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(evt.Location))
+                                    {
+                                        <span>@evt.Location</span>
+                                    }
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(evt.OrganizerName))
+                            {
+                                <div class="tt-calendar-event-organizer">@evt.OrganizerName</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    </div>
+</div>

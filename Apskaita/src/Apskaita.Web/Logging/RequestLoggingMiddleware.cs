@@ -8,16 +8,9 @@ namespace Apskaita.Web.Logging;
 /// and the authenticated user (or anonymous). Registered first in the pipeline so it wraps static files,
 /// authentication, authorization, and endpoints.
 /// </summary>
-public sealed class RequestLoggingMiddleware
+public sealed class RequestLoggingMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger _logger;
-
-    public RequestLoggingMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
-    {
-        _next = next;
-        _logger = loggerFactory.CreateLogger("Apskaita.Requests");
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger("Apskaita.Requests");
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -31,7 +24,7 @@ public sealed class RequestLoggingMiddleware
 
         try
         {
-            await _next(context);
+            await next(context);
         }
         catch (Exception ex)
         {

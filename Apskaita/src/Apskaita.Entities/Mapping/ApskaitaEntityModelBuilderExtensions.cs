@@ -26,6 +26,7 @@ public static class ApskaitaEntityModelBuilderExtensions
         ConfigureInvoiceLine(modelBuilder);
         ConfigureSystemSettings(modelBuilder);
         ConfigureInvoiceSequenceState(modelBuilder);
+        ConfigureCalendarConnector(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -178,6 +179,28 @@ public static class ApskaitaEntityModelBuilderExtensions
             entity.Property(x => x.TotalAmount).HasPrecision(18, 2);
             entity.HasIndex(x => new { x.InvoiceId, x.LineNo }).IsUnique();
             entity.HasIndex(x => x.WorkActId).IsUnique();
+        });
+    }
+
+    private static void ConfigureCalendarConnector(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CalendarConnector>(entity =>
+        {
+            entity.Property(x => x.Provider)
+                .HasColumnType(CalendarProvider.Outlook365.ToMySqlDefinition())
+                .HasConversion<string>();
+            entity.Property(x => x.AccountKey).HasMaxLength(FieldLengths.CalendarConnector.AccountKey).IsRequired();
+            entity.Property(x => x.AccountEmail).HasMaxLength(FieldLengths.CalendarConnector.AccountEmail).IsRequired();
+            entity.Property(x => x.DisplayName).HasMaxLength(FieldLengths.CalendarConnector.DisplayName).IsRequired();
+            entity.Property(x => x.RefreshTokenProtected).IsRequired();
+            entity.Property(x => x.AccessTokenProtected).IsRequired(false);
+            entity.Property(x => x.Scopes).HasMaxLength(FieldLengths.CalendarConnector.Scopes).IsRequired();
+            entity.Property(x => x.LastSyncError).HasMaxLength(FieldLengths.CalendarConnector.LastSyncError).IsRequired(false);
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(x => new { x.UserId, x.Provider, x.AccountKey }).IsUnique();
         });
     }
 

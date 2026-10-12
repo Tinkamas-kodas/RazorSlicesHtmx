@@ -291,9 +291,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
 
     private static bool IsSortableType(ITypeSymbol type)
     {
-        if (type is INamedTypeSymbol named
-            && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
-            && named.TypeArguments.Length == 1)
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T, TypeArguments.Length: 1 } named)
         {
             return IsSortableType(named.TypeArguments[0]);
         }
@@ -510,7 +508,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         private static string? GetConstString(INamedTypeSymbol symbol, string fieldName)
         {
             var field = symbol.GetMembers(fieldName).OfType<IFieldSymbol>().FirstOrDefault();
-            return field is { IsConst: true } && field.ConstantValue is string s && !string.IsNullOrWhiteSpace(s)
+            return field is { IsConst: true, ConstantValue: string s } && !string.IsNullOrWhiteSpace(s)
                 ? s
                 : null;
         }
@@ -518,7 +516,7 @@ public sealed class GenerateListRequestBinderGenerator : IIncrementalGenerator
         private static int? GetConstInt(INamedTypeSymbol symbol, string fieldName)
         {
             var field = symbol.GetMembers(fieldName).OfType<IFieldSymbol>().FirstOrDefault();
-            return field is { IsConst: true } && field.ConstantValue is int i ? i : null;
+            return field is { IsConst: true, ConstantValue: int i } ? i : null;
         }
     }
 

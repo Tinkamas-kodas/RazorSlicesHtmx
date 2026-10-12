@@ -14,7 +14,7 @@ namespace Apskaita.Tests.Endpoints;
 /// a stub handler (<see cref="TestStubHandler"/>) that authenticates a configurable principal
 /// (default: admin).
 /// </summary>
-public sealed class ApskaitaApiFactory : WebApplicationFactory<Program>
+public class ApskaitaApiFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"e2e-{Guid.NewGuid():N}";
 
@@ -28,14 +28,18 @@ public sealed class ApskaitaApiFactory : WebApplicationFactory<Program>
             // AddDataAccess registers the MySQL/Microting provider (options action would auto-detect a MySQL
             // server). Remove every EF/MySQL/Microting descriptor it added, then re-register the context
             // cleanly against a shared in-memory store so exactly one database provider remains.
+            // Data Protection's EF store (namespace ...DataProtection.EntityFrameworkCore) must survive —
+            // it is provider-agnostic and keeps the key ring working under the in-memory context.
             var toRemove = services
                 .Where(d =>
-                    (d.ServiceType.FullName?.Contains("EntityFrameworkCore") ?? false) ||
+                    ((d.ServiceType.FullName?.Contains("EntityFrameworkCore") ?? false) ||
                     (d.ServiceType.FullName?.Contains("MySql") ?? false) ||
                     (d.ImplementationType?.FullName?.Contains("EntityFrameworkCore") ?? false) ||
                     (d.ImplementationType?.FullName?.Contains("MySql") ?? false) ||
                     (d.ImplementationType?.FullName?.Contains("Microting") ?? false) ||
                     (d.ImplementationType?.FullName?.Contains("Pomelo") ?? false))
+                    && !(d.ServiceType.FullName?.Contains("DataProtection") ?? false)
+                    && !(d.ImplementationType?.FullName?.Contains("DataProtection") ?? false))
                 .ToList();
 
             foreach (var descriptor in toRemove)
@@ -60,7 +64,7 @@ public sealed class ApskaitaApiFactory : WebApplicationFactory<Program>
     }
 
     /// <summary>Authenticates subsequent requests as the given email/role (null role = roleless user).</summary>
-    public void SetPrincipal(string email, UserRole? role) => Principals.Principal = TestPrincipal.Build(email, role);
+    public void SetPrincipal(string email, UserRole? role, Guid? userId = null) => Principals.Principal = TestPrincipal.Build(email, role, userId);
 
     /// <summary>Makes subsequent requests unauthenticated.</summary>
     public void SetAnonymous() => Principals.Principal = null;

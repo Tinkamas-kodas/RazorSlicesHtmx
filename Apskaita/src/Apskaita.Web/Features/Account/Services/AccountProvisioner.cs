@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Apskaita.Web.Features.Account.Services;
 
 /// <summary>
-/// Outcome of provisioning a user during sign-in: whether access is allowed and the resulting role.
-/// A sign-in for a deactivated user yields <see cref="Allowed"/> = false (no session is issued).
+/// Outcome of provisioning a user during sign-in: whether access is allowed, the resulting role, and the
+/// <see cref="User"/> id for the session claims. A sign-in for a deactivated user yields
+/// <see cref="Allowed"/> = false (no session is issued).
 /// </summary>
-public sealed record ProvisionResult(bool Allowed, UserRole? Role);
+public sealed record ProvisionResult(bool Allowed, UserRole? Role, Guid? UserId);
 
 /// <summary>
 /// Creates/updates the <see cref="User"/> row for an external sign-in and resolves its role.
@@ -33,7 +34,7 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
 
         if (user is null)
         {
-            db.Users.Add(new User
+            user = new User
             {
                 Id = Guid.NewGuid(),
                 Email = normalizedEmail,
@@ -44,15 +45,16 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
                 Role = isBootstrapAdmin ? UserRole.Admin : null,
                 CreatedAtUtc = now,
                 LastLoginAtUtc = now
-            });
+            };
 
+            db.Users.Add(user);
             await db.SaveChangesAsync(ct);
-            return new ProvisionResult(true, isBootstrapAdmin ? UserRole.Admin : null);
+            return new ProvisionResult(true, user.Role, user.Id);
         }
 
         if (!user.IsActive)
         {
-            return new ProvisionResult(false, null);
+            return new ProvisionResult(false, null, null);
         }
 
         user.DisplayName = string.IsNullOrWhiteSpace(displayName) ? user.DisplayName : displayName.Trim();
@@ -66,6 +68,6 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
         }
 
         await db.SaveChangesAsync(ct);
-        return new ProvisionResult(true, user.Role);
+        return new ProvisionResult(true, user.Role, user.Id);
     }
 }

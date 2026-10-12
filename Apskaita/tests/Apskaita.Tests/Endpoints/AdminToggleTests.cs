@@ -50,7 +50,7 @@ public sealed class AdminToggleTests
         Assert.DoesNotContain("<form", content);
 
         Assert.True(response.Headers.TryGetValues("HX-Trigger", out var triggers));
-        Assert.Contains("deactivated", string.Join(",", triggers!));
+        Assert.Contains("deactivated", string.Join(",", triggers));
 
         await using (var db = factory.NewDbContext())
         {

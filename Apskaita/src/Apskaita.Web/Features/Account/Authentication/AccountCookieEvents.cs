@@ -31,7 +31,7 @@ public static class AccountCookieEvents
 
             var provisioner = context.HttpContext.RequestServices.GetRequiredService<AccountProvisioner>();
             var result = await provisioner.ProvisionAsync(
-                email!, displayName, provider!, subjectId, context.HttpContext.RequestAborted);
+                email, displayName, provider, subjectId, context.HttpContext.RequestAborted);
 
             if (!result.Allowed)
             {
@@ -44,9 +44,14 @@ public static class AccountCookieEvents
                 nameType: ClaimTypes.Name,
                 roleType: ClaimTypes.Role);
 
-            identity.AddClaim(new Claim(ClaimTypes.Name, email!));
-            identity.AddClaim(new Claim(AuthConstants.DisplayNameClaim, string.IsNullOrWhiteSpace(displayName) ? email! : displayName));
-            identity.AddClaim(new Claim(AuthConstants.ProviderClaim, provider!));
+            identity.AddClaim(new Claim(ClaimTypes.Name, email));
+            identity.AddClaim(new Claim(AuthConstants.DisplayNameClaim, string.IsNullOrWhiteSpace(displayName) ? email : displayName));
+            identity.AddClaim(new Claim(AuthConstants.ProviderClaim, provider));
+
+            if (result.UserId is { } userId)
+            {
+                identity.AddClaim(new Claim(AuthConstants.UserIdClaim, userId.ToString()));
+            }
 
             if (result.Role.HasValue)
             {

@@ -88,4 +88,13 @@ public static class FieldLengths
     {
         public const int Description = 1000;
     }
+
+    public static class CalendarConnector
+    {
+        public const int AccountKey = 254;
+        public const int AccountEmail = 254;
+        public const int DisplayName = 200;
+        public const int Scopes = 300;
+        public const int LastSyncError = 500;
+    }
 }

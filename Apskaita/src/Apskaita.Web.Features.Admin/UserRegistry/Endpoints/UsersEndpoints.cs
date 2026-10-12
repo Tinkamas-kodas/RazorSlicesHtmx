@@ -68,9 +68,9 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.ShowDialog(_SetRoleDialog.Create(new SetRoleDialogModel(row.Id, row.DisplayName, row.Email, row.Role)));
         });
 
-        group.MapPost("set-role/{id:guid}", async (Guid id, [FromForm] string Role, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("set-role/{id:guid}", async (Guid id, [FromForm] string role, ApskaitaDbContext db, CancellationToken ct) =>
         {
-            if (!Enum.TryParse<UserRole>(Role, ignoreCase: true, out var role) || !Enum.IsDefined(role))
+            if (string.IsNullOrWhiteSpace(role) || !Enum.TryParse<UserRole>(role, ignoreCase: true, out var userRole) || !Enum.IsDefined(userRole))
             {
                 return Results.BadRequest();
             }
@@ -78,12 +78,12 @@ public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
 
-            await _content.SetRoleAsync(db, row, role, ct);
+            await _content.SetRoleAsync(db, row, userRole, ct);
 
             return Result.Fragment(_Empty.Create())
                 .ClearDialog()
-                .WithOob($"#user-role-{id}", _RoleBadge.Create(new RoleBadgeModel(id, role)))
-                .WithToast($"Role for '{row.DisplayName}' set to '{role}'.", title: "Role", tone: ToastTone.Success);
+                .WithOob($"#user-role-{id}", _RoleBadge.Create(new RoleBadgeModel(id, userRole)))
+                .WithToast($"Role for '{row.DisplayName}' set to '{userRole}'.", title: "Role", tone: ToastTone.Success);
         });
     }
 }

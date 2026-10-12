@@ -1,3 +1,5 @@
+using Apskaita.Web.Shared.Calendar;
+
 namespace Apskaita.Web.Features.Account;
 
 /// <summary>
@@ -11,6 +13,12 @@ public sealed class AuthOptions
     public EntraAuthOptions Entra { get; set; } = new();
 
     public GoogleAuthOptions Google { get; set; } = new();
+
+    /// <summary>
+    /// Dedicated app registration for calendar-connector consent. Kept separate from <see cref="Entra"/>
+    /// (sign-in) so connectors are multi-tenant and a new connection always requires its own authentication.
+    /// </summary>
+    public ConnectorAuthOptions Connectors { get; set; } = new();
 
     /// <summary>
     /// Emails that receive the <c>admin</c> role automatically on sign-in when the user has no role yet.

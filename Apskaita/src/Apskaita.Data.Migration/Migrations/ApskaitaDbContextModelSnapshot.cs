@@ -22,6 +22,98 @@ namespace Apskaita.Data.Migrations.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Apskaita.Entities.CalendarConnector", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("AccessTokenExpiresAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("access_token_expires_at_utc");
+
+                    b.Property<string>("AccessTokenProtected")
+                        .HasColumnType("longtext")
+                        .HasColumnName("access_token_protected");
+
+                    b.Property<string>("AccountEmail")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("account_email");
+
+                    b.Property<string>("AccountKey")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("account_key");
+
+                    b.Property<DateTime>("ConnectedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("connected_at_utc");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<DateTime?>("LastSyncAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("last_sync_at_utc");
+
+                    b.Property<string>("LastSyncError")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("last_sync_error");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("enum('Outlook365')")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("RefreshTokenProtected")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("refresh_token_protected");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("scopes");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("UpdatedByUserId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("updated_by_user_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_calendar_connectors");
+
+                    b.HasIndex("UserId", "Provider", "AccountKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_calendar_connectors_user_id_provider_account_key");
+
+                    b.ToTable("calendar_connectors", (string)null);
+                });
+
             modelBuilder.Entity("Apskaita.Entities.Company", b =>
                 {
                     b.Property<Guid>("Id")
@@ -823,6 +915,29 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.ToTable("work_act_lines", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("longtext")
+                        .HasColumnName("friendly_name");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("longtext")
+                        .HasColumnName("xml");
+
+                    b.HasKey("Id")
+                        .HasName("pk_data_protection_keys");
+
+                    b.ToTable("data_protection_keys", (string)null);
+                });
+
             modelBuilder.Entity("Apskaita.Entities.Client", b =>
                 {
                     b.HasBaseType("Apskaita.Entities.Company");
@@ -835,6 +950,18 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.HasBaseType("Apskaita.Entities.Company");
 
                     b.HasDiscriminator().HasValue("Issuer");
+                });
+
+            modelBuilder.Entity("Apskaita.Entities.CalendarConnector", b =>
+                {
+                    b.HasOne("Apskaita.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_calendar_connectors_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Apskaita.Entities.Company", b =>

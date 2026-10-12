@@ -56,7 +56,7 @@ public sealed class TimeTrackingCreateTests
 
         Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
         Assert.True(response.Headers.TryGetValues("HX-Trigger", out var triggers));
-        Assert.Contains("time-tracking-list-refresh", string.Join(",", triggers!));
+        Assert.Contains("time-tracking-list-refresh", string.Join(",", triggers));
 
         await using (var db = factory.NewDbContext())
         {

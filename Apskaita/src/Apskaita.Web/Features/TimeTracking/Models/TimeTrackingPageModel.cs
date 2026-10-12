@@ -7,7 +7,10 @@ public sealed record TimeTrackingPageModel(
     DateOnly NextWeekStart,
     IReadOnlyList<TimeTrackingDayModel> Days,
     IReadOnlyList<TimeTrackingSlotModel> Slots,
-    IReadOnlyList<TimeTrackingEntryViewModel> Entries);
+    IReadOnlyList<TimeTrackingEntryViewModel> Entries,
+    IReadOnlyList<TimeTrackingCalendarEventViewModel> CalendarEvents,
+    bool HasCalendarConnector,
+    string? CalendarNotice);
 
 public sealed record TimeTrackingDayModel(
     DateOnly Date,
@@ -34,3 +37,16 @@ public sealed record TimeTrackingEntryViewModel(
     double HeightPx,
     decimal OverflowHours,
     int DescriptionLineClamp);
+
+/// <summary>
+/// A calendar event rendered in the time tracking side panel (display-only, REQ-008). Times are local;
+/// <see cref="DayDate"/> groups the event under its day header.
+/// </summary>
+public sealed record TimeTrackingCalendarEventViewModel(
+    DateOnly DayDate,
+    string Subject,
+    TimeOnly Start,
+    TimeOnly End,
+    string? Location,
+    bool IsOnline,
+    string? OrganizerName);

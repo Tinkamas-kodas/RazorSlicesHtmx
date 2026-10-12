@@ -236,7 +236,7 @@ public sealed class GenerateFormBinderGenerator : IIncrementalGenerator
                 : $"ReadString(form, \"{Escape(name)}\")";
         }
 
-        if (type is INamedTypeSymbol named && named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T && named.TypeArguments.Length == 1)
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T, TypeArguments.Length: 1 } named)
         {
             var underlying = named.TypeArguments[0];
             return GetNullableValueExpression(underlying, name);

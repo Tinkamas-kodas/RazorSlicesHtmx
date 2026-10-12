@@ -67,7 +67,7 @@ public sealed class AuthTests
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.True(response.Headers.TryGetValues("HX-Redirect", out var values));
-        Assert.Contains("/account/login", string.Join(",", values!));
+        Assert.Contains("/account/login", string.Join(",", values));
     }
 
     [Fact]

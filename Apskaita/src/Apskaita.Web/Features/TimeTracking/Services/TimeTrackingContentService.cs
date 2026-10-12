@@ -1,6 +1,7 @@
 using System.Globalization;
 using Apskaita.Entities;
 using Apskaita.Web.Features.TimeTracking.Models;
+using Apskaita.Web.Shared.Calendar;
 using Apskaita.Web.Shared.ProjectColors;
 using Microsoft.EntityFrameworkCore;
 using TimeTrackingModel = Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel;
@@ -20,7 +21,11 @@ public sealed class TimeTrackingContentService
     private static readonly TimeOnly WorkDayEnd = new(17, 0);
     private static readonly TimeOnly DefaultSlotStart = new(8, 0);
 
-    public async Task<TimeTrackingPageModel> CreatePageModelAsync(ApskaitaDbContext db, string? weekStartRaw, CancellationToken ct)
+    public async Task<TimeTrackingPageModel> CreatePageModelAsync(
+        ApskaitaDbContext db,
+        string? weekStartRaw,
+        CalendarReadResult? calendar,
+        CancellationToken ct)
     {
         var anchorDate = ResolveAnchorDate(weekStartRaw);
         var weekStart = GetWeekStart(anchorDate);
@@ -66,6 +71,17 @@ public sealed class TimeTrackingContentService
 
         var entries = rows.Select(CreateEntryViewModel).ToArray();
 
+        var calendarEvents = (calendar?.Events ?? [])
+            .Select(e => new TimeTrackingCalendarEventViewModel(
+                DateOnly.FromDateTime(e.StartLocal),
+                e.Subject,
+                TimeOnly.FromDateTime(e.StartLocal),
+                TimeOnly.FromDateTime(e.EndLocal),
+                e.Location,
+                e.IsOnline,
+                e.OrganizerName))
+            .ToArray();
+
         return new TimeTrackingPageModel(
             weekStart,
             weekStart.AddDays(6),
@@ -73,7 +89,10 @@ public sealed class TimeTrackingContentService
             weekStart.AddDays(7),
             days,
             slots,
-            entries);
+            entries,
+            calendarEvents,
+            calendar?.HasConnector == true,
+            calendar?.Notice);
     }
 
     public TimeTrackingModel CreateCreateDialogModel(string? dateRaw, string? timeRaw, string? weekStartRaw)
@@ -261,6 +280,16 @@ public sealed class TimeTrackingContentService
         var start = request.Start == default ? DefaultSlotStart : request.Start;
 
         return date.ToDateTime(start);
+    }
+
+    /// <summary>
+    /// Resolves the displayed week bounds (Monday..Sunday) from a raw <c>weekStart</c> query value without
+    /// touching the database, so the calendar reader can be called before building the page model.
+    /// </summary>
+    public (DateOnly WeekStart, DateOnly WeekEnd) CreateWeekBounds(string? weekStartRaw)
+    {
+        var weekStart = GetWeekStart(ResolveAnchorDate(weekStartRaw));
+        return (weekStart, weekStart.AddDays(6));
     }
 
     private static DateOnly ResolveAnchorDate(string? weekStartRaw)

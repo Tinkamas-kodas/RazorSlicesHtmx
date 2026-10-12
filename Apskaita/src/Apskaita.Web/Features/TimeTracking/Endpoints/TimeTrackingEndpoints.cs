@@ -2,6 +2,8 @@ using Apskaita.Entities;
 using Apskaita.Web.Features.TimeTracking.Services;
 using Apskaita.Web.Features.TimeTracking.Slices;
 using Apskaita.Web.Shared;
+using Apskaita.Web.Shared.Calendar;
+using Apskaita.Web.Shared.Routing;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,11 +24,18 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
     {
         group.RequireAuthorization(AuthPolicies.Operational);
 
-        group.MapGet("", () => Results.Redirect("list"));
+        // Prefix-derived redirect: IFeatureUri resolves the registered route group for this request,
+        // so the target follows wherever the feature is mounted (query string preserved).
+        group.MapGet("", (IFeatureUri uri, HttpContext ctx) =>
+            Results.Redirect(uri.Uri("list") + ctx.Request.QueryString.Value, permanent: false));
 
-        group.MapGet("list", async (HttpContext ctx, string? weekStart, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("list", async (HttpContext ctx, string? weekStart, ApskaitaDbContext db, ICalendarEventReader calendarReader, CancellationToken ct) =>
         {
-            var model = await _content.CreatePageModelAsync(db, weekStart, ct);
+            // Calendar events are display-only enrichment (REQ-004/REQ-008); the reader never throws.
+            var (weekStartDay, weekEndDay) = _content.CreateWeekBounds(weekStart);
+            var calendar = await calendarReader.ReadAsync(weekStartDay, weekEndDay, ct);
+            var model = await _content.CreatePageModelAsync(db, weekStart, calendar, ct);
+
             if (ctx.IsHtmxTarget("time-tracking-grid"))
             {
                 return Result.Fragment(_Grid.Create(model));

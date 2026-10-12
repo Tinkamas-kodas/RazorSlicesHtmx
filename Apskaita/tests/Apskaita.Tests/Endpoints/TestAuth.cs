@@ -45,7 +45,7 @@ public sealed class TestStubHandler(
 /// </summary>
 public static class TestPrincipal
 {
-    public static ClaimsPrincipal Build(string email, UserRole? role)
+    public static ClaimsPrincipal Build(string email, UserRole? role, Guid? userId = null)
     {
         var identity = new ClaimsIdentity(
             authenticationType: TestStubHandler.SchemeName,
@@ -54,6 +54,11 @@ public static class TestPrincipal
 
         identity.AddClaim(new Claim(ClaimTypes.Name, email));
         identity.AddClaim(new Claim(AuthConstants.DisplayNameClaim, email));
+
+        if (userId is { } id)
+        {
+            identity.AddClaim(new Claim(AuthConstants.UserIdClaim, id.ToString()));
+        }
 
         if (role.HasValue)
         {

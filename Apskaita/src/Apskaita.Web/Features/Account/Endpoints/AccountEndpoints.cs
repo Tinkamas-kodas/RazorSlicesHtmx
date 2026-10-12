@@ -1,18 +1,25 @@
 using System.Security.Claims;
 using Apskaita.Web.Features.Account.Models;
 using Apskaita.Web.Features.Account.Slices;
+using Apskaita.Web.Shared;
+using Apskaita.Web.Shared.Calendar;
+using Apskaita.Web.Shared.Routing;
 using Microsoft.AspNetCore.Authentication;
 
 namespace Apskaita.Web.Features.Account.Endpoints;
 
 /// <summary>
-/// Authentication feature: login page, provider challenges, cookie sign-out, and the pending-access landing
-/// page for roleless users. Login and challenge endpoints are anonymous; logout and pending require an
-/// authenticated session (CON-004) but no role.
+/// Account feature: login page, provider challenges, cookie sign-out, the pending-access landing page for
+/// roleless users, and the account page with calendar-connector management (connect/disconnect). Policies
+/// are per-endpoint on purpose: login/challenge are anonymous (CON-004), logout/pending/denied need a
+/// session but no role, and list/connect/disconnect require <see cref="AuthPolicies.Operational"/>.
 /// </summary>
 public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
 {
-    public override IReadOnlyList<NavigationItem> NavigationItems => [];
+    public override IReadOnlyList<AdminNavItem> NavigationItems =>
+    [
+        new("MAIN", "account", "Account", "me", Order: 2, AuthorizationPolicy: AuthPolicies.Operational)
+    ];
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
@@ -65,7 +72,122 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         });
 
         group.MapGet("denied", () => HtmxFragmentResult.Create(_DeniedPage.Create()).Build());
+
+        // --- Account page + calendar connectors (formerly the Settings feature) ---
+
+        // The feature base comes from IFeatureUri (the registered route group), so these URLs follow the
+        // prefix this module is mounted under — no hardcoded "/account". The query string is preserved so
+        // the connect round-trip notices (?connected / ?connectError) survive the root redirect.
+        group.MapGet("", (IFeatureUri uri, HttpContext ctx) =>
+            Results.Redirect(uri.Uri("me") + ctx.Request.QueryString.Value, permanent: false))
+            .RequireAuthorization(AuthPolicies.Operational);
+
+        group.MapGet("me", async (HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IOptions<ConnectorAuthOptions> options, CancellationToken ct) =>
+        {
+            var model = await CreatePageModelAsync(ctx, uri, registry, store, options, ct);
+            return Result.Page(_AccountPage.Create(model));
+        }).RequireAuthorization(AuthPolicies.Operational);
+
+        group.MapGet("connect/{provider}", async (string provider, IFeatureUri uri, CalendarConnectorRegistry registry, IAuthenticationSchemeProvider schemes, ILoggerFactory loggerFactory) =>
+        {
+            var logger = loggerFactory.CreateLogger("Apskaita.Account.Connect");
+
+            var found = registry.Find(provider);
+            if (found is null || !found.IsImplemented)
+            {
+                logger.LogWarning("connect rejected: unknown or unimplemented provider '{Provider}'", provider);
+                return Results.Problem("Provider must be a known calendar provider.", statusCode: StatusCodes.Status400BadRequest, title: "Unknown provider");
+            }
+
+            // The consent scheme is only registered when connector credentials are configured.
+            if (await schemes.GetSchemeAsync(AuthConstants.ConnectEntraScheme) is null)
+            {
+                logger.LogWarning("connect rejected: scheme '{Scheme}' is not configured (Auth:Connectors:ClientId is empty)", AuthConstants.ConnectEntraScheme);
+                return Results.Problem("Microsoft calendar sign-in is not configured on this server.", statusCode: StatusCodes.Status400BadRequest, title: "Provider not configured");
+            }
+
+            var props = new AuthenticationProperties { RedirectUri = $"{uri.Uri("me")}?connected={found.Key}" };
+            logger.LogInformation("challenging consent scheme '{Scheme}' for provider '{Provider}'", AuthConstants.ConnectEntraScheme, found.Key);
+            return Results.Challenge(properties: props, authenticationSchemes: [AuthConstants.ConnectEntraScheme]);
+        }).RequireAuthorization(AuthPolicies.Operational);
+
+        group.MapPost("disconnect/{id:guid}", async (Guid id, CalendarConnectorRegistry registry, CalendarConnectorStore store, CancellationToken ct) =>
+        {
+            var provider = await store.DisconnectByIdAsync(id, ct);
+            if (provider is null)
+            {
+                return Results.NotFound();
+            }
+
+            var cards = await BuildCardsAsync(registry, store, ct);
+            var providerInfo = registry.All.First(p => p.Provider == provider);
+            var card = cards.First(c => string.Equals(c.Key, providerInfo.Key, StringComparison.OrdinalIgnoreCase));
+
+            return Result.Fragment(_Empty.Create())
+                .WithOob($"#connector-card-{SanitizeKey(providerInfo.Key)}", _CalendarConnectorCard.Create(card))
+                .WithToast("Calendar account was disconnected.", title: "Account", tone: ToastTone.Info);
+        }).RequireAuthorization(AuthPolicies.Operational);
     }
+
+    private static async Task<AccountPageModel> CreatePageModelAsync(HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IOptions<ConnectorAuthOptions> options, CancellationToken ct)
+    {
+        var cards = await BuildCardsAsync(registry, store, ct);
+
+        var connected = ctx.Request.Query["connected"].ToString();
+        var connectError = ctx.Request.Query["connectError"].ToString();
+
+        string? notice = null;
+        var noticeKind = "success";
+        string? adminConsentUrl = null;
+
+        if (connectError.Equals("admin-consent", StringComparison.OrdinalIgnoreCase))
+        {
+            notice = "Your organization requires administrator approval for this connection. " +
+                "Ask an admin of that organization to approve the connector app, then connect again.";
+            noticeKind = "danger";
+            adminConsentUrl = $"https://login.microsoftonline.com/common/adminconsent?client_id={Uri.EscapeDataString(options.Value.ClientId)}" +
+                $"&redirect_uri={Uri.EscapeDataString($"{ctx.Request.Scheme}://{ctx.Request.Host}{uri.Base}")}";
+        }
+        else if (!string.IsNullOrEmpty(connectError))
+        {
+            notice = "The calendar connection could not be completed. Please try again.";
+            noticeKind = "danger";
+        }
+        else if (!string.IsNullOrEmpty(connected))
+        {
+            var card = cards.FirstOrDefault(c => string.Equals(c.Key, connected, StringComparison.OrdinalIgnoreCase));
+            notice = card?.Connections.Count > 0
+                ? $"{card.Label} was connected."
+                : "The calendar connection could not be completed. Please try again.";
+            noticeKind = card?.Connections.Count > 0 ? "success" : "danger";
+        }
+
+        return new AccountPageModel(notice, noticeKind, cards, adminConsentUrl);
+    }
+
+    private static async Task<List<CalendarConnectorCardModel>> BuildCardsAsync(CalendarConnectorRegistry registry, CalendarConnectorStore store, CancellationToken ct)
+    {
+        var connectors = await store.GetOwnAllAsync(ct);
+
+        return registry.All.Select(provider =>
+        {
+            var providerConnectors = provider.Provider is null
+                ? []
+                : connectors.Where(c => c.Provider == provider.Provider).ToArray();
+
+            return new CalendarConnectorCardModel(
+                provider.Key,
+                provider.Label,
+                provider.IsImplemented,
+                providerConnectors
+                    .OrderBy(c => c.AccountEmail, StringComparer.OrdinalIgnoreCase)
+                    .Select(c => new CalendarConnectionModel(c.Id, c.AccountEmail, c.DisplayName, c.ConnectedAtUtc, c.LastSyncAtUtc, c.LastSyncError))
+                    .ToList());
+        }).ToList();
+    }
+
+    private static string SanitizeKey(string key) =>
+        new([.. key.ToLowerInvariant().Select(ch => char.IsLetterOrDigit(ch) || ch == '-' || ch == '_' ? ch : '-')]);
 
     private static bool IsLocalUrl(string? url) =>
         !string.IsNullOrEmpty(url) &&

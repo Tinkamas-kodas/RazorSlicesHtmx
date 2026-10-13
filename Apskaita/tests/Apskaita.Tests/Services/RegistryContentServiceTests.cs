@@ -1,6 +1,6 @@
+using System.Text.RegularExpressions;
 using Apskaita.Entities;
-using Apskaita.Web.Features.Admin.ClientsRegistry.Models;
-using Apskaita.Web.Features.Admin.ClientsRegistry.Services;
+using Apskaita.Tests.Endpoints;
 using Apskaita.Web.Features.Admin.UnitRegistry.Models;
 using Apskaita.Web.Features.Admin.UnitRegistry.Services;
 using Apskaita.Web.Features.Admin.UserRegistry.Services;
@@ -16,34 +16,65 @@ public sealed class RegistryContentServiceTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;
 
-    // ---- Clients ----
+    // ---- Clients (endpoint-level) ----
 
     [Fact]
     public async Task Clients_Create_ForcesActiveRegardlessOfRequest()
     {
-        await using var db = TestDb.New();
-        var service = new ClientsContentService();
-        var request = new ClientUpsertRequest { Name = "Acme", IsActive = false };
+        await using var factory = new ApskaitaApiFactory();
+        var http = factory.CreateClient();
 
-        await service.CreateAsync(new TestAdminStore(db), request, Ct);
+        var listPage = await http.GetStringAsync("/admin/clients/list");
+        var token = Regex.Match(listPage, "request-verification-token\"\\s+content=\"([^\"]+)\"").Groups[1].Value;
 
-        Assert.True(db.Clients.Single().IsActive);
+        var form = new Dictionary<string, string> { ["Name"] = "Acme", ["IsActive"] = "false" };
+        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/clients/create")
+        {
+            Content = new FormUrlEncodedContent(form)
+        };
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using var db = factory.NewDbContext();
+        Assert.True(db.Clients.Single().IsActive, "Create must force IsActive = true regardless of the request flag.");
     }
 
     [Fact]
     public async Task Clients_Apply_DoesNotChangeIsActive()
     {
-        await using var db = TestDb.New();
-        var service = new ClientsContentService();
-        var client = new Client { Id = Guid.NewGuid(), Info = new CompanyInfo { Name = "Old" }, IsActive = false };
-        db.Clients.Add(client);
-        await db.SaveChangesAsync(Ct);
+        await using var factory = new ApskaitaApiFactory();
 
-        var request = new ClientUpsertRequest { Id = client.Id, Name = "Renamed", IsActive = true };
-        await service.ApplyAsync(new TestAdminStore(db), client, request, Ct);
+        Guid clientId;
+        await using (var db = factory.NewDbContext())
+        {
+            var client = new Client { Id = Guid.NewGuid(), Info = new CompanyInfo { Name = "Old" }, IsActive = false };
+            db.Clients.Add(client);
+            await db.SaveChangesAsync(Ct);
+            clientId = client.Id;
+        }
 
-        Assert.False(client.IsActive, "ApplyAsync must not map IsActive from the request.");
-        Assert.Equal("Renamed", client.Info.Name);
+        var http = factory.CreateClient();
+        var listPage = await http.GetStringAsync("/admin/clients/list");
+        var token = Regex.Match(listPage, "request-verification-token\"\\s+content=\"([^\"]+)\"").Groups[1].Value;
+
+        var form = new Dictionary<string, string> { ["Name"] = "Renamed", ["IsActive"] = "true" };
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/clients/edit/{clientId}")
+        {
+            Content = new FormUrlEncodedContent(form)
+        };
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using var verify = factory.NewDbContext();
+        var updated = verify.Clients.Single();
+        Assert.False(updated.IsActive, "Edit must not change IsActive (the toggle action owns it).");
+        Assert.Equal("Renamed", updated.Info.Name);
     }
 
     // ---- Units ----

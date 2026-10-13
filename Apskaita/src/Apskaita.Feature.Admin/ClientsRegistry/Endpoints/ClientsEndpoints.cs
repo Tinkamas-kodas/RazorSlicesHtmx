@@ -1,16 +1,16 @@
+using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.ClientsRegistry.Models;
-using Apskaita.Web.Features.Admin.ClientsRegistry.Services;
 using Apskaita.Web.Features.Admin.ClientsRegistry.Slices;
 using Apskaita.Web.Features.Admin.Common.Models;
 using Apskaita.Web.Features.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.ClientsRegistry.Endpoints;
 
 public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ClientsWorkspaceFactory>(resultBuilder)
 {
-    private readonly ClientsContentService _content = new();
     public override string FeatureDivId => "feature-details";
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
@@ -22,36 +22,56 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
     {
         group.RequireAuthorization(AuthPolicies.Admin);
 
+        // GET list — read seam (IQuery<Client>).
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] ClientSearchModel search,
             ClientListQuery query,
-            IAdminStore db,
+            IQuery<Client> clients,
             CancellationToken ct) =>
         {
-            var model = await _content.CreateListModelAsync(db, search, query, ct);
-            if (ctx.IsHtmxTarget("clients-list"))
+            var items = clients.All().Select(c => new ClientRowModel
             {
-                return Result.Fragment(_ClientsList.Create(model))
-                    .WithState(search)
-                    .WithState(query);
+                Id = c.Id,
+                Name = c.Info.Name,
+                CompanyCode = c.Info.CompanyCode,
+                VatCode = c.Info.VatCode,
+                ContactEmail = c.Info.ContactEmail,
+                IsActive = c.IsActive
+            });
+
+            if (!string.IsNullOrWhiteSpace(search.Search))
+            {
+                var term = search.Search.Trim();
+                items = items.Where(c =>
+                    c.Name.Contains(term) ||
+                    (c.CompanyCode != null && c.CompanyCode.Contains(term)) ||
+                    (c.VatCode != null && c.VatCode.Contains(term)) ||
+                    (c.ContactEmail != null && c.ContactEmail.Contains(term)));
             }
 
-            return Result.Page(_ListPage.Create(model))
-                .WithState(search)
-                .WithState(query);
+            var paged = await items.ToPagedListAsync(query, ct);
+            var model = new ClientListModel(paged.Total, search, query, paged.Items);
+
+            if (ctx.IsHtmxTarget("clients-list"))
+            {
+                return Result.Fragment(_ClientsList.Create(model)).WithState(search).WithState(query);
+            }
+
+            return Result.Page(_ListPage.Create(model)).WithState(search).WithState(query);
         });
 
         group.MapGet("create", () =>
-            Result.Page(_CreatePage.Create(_content.CreateCreateFormModel())));
+            Result.Page(_CreatePage.Create(ClientUpsertRequest.CreateDefault())));
 
+        // POST create — write seam (IAdminStore).
         group.MapPost("create", async (
             ClientUpsertRequest request,
             IValidator<ClientUpsertRequest> validator,
-            IAdminStore db,
+            IAdminStore store,
             CancellationToken ct) =>
         {
-            _content.TrimRequest(request);
+            request.Normalize();
             var validationResult = await validator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -60,38 +80,44 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                 return Result.Page(_CreatePage.Create(request));
             }
 
-            await _content.CreateAsync(db, request, ct);
+            var now = DateTime.UtcNow;
+            store.Clients.Add(new Client
+            {
+                Id = Guid.NewGuid(),
+                Info = request.ToCompanyInfo(),
+                IsActive = true,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+                CreatedByUserId = Guid.Empty,
+                UpdatedByUserId = Guid.Empty
+            });
+            await store.SaveChangesAsync(ct);
 
-            return Result.Page(_CreatePage.Create(_content.CreateCreateFormModel()))
+            return Result.Page(_CreatePage.Create(ClientUpsertRequest.CreateDefault()))
                 .WithTrigger("clients-list-refresh")
                 .WithToast($"Client '{request.Name}' was created.");
         });
 
-        group.MapGet("edit/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // GET edit — read seam (no-tracking find for display).
+        group.MapGet("edit/{id:guid}", async (Guid id, IQuery<Client> clients, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
-            if (row is null)
-            {
-                return Results.NotFound();
-            }
-
-            return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)));
+            var row = await clients.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (row is null) return Results.NotFound();
+            return Result.Page(_EditPage.Create(ClientUpsertRequest.FromEntity(row)));
         });
 
+        // POST edit — write seam (tracked load for mutation).
         group.MapPost("edit/{id:guid}", async (
             Guid id,
             ClientUpsertRequest request,
             IValidator<ClientUpsertRequest> validator,
-            IAdminStore db,
+            IAdminStore store,
             CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
-            if (row is null)
-            {
-                return Results.NotFound();
-            }
+            var row = await store.Clients.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (row is null) return Results.NotFound();
 
-            _content.TrimRequest(request);
+            request.Normalize();
             var validationResult = await validator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -101,21 +127,25 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                 return Result.Page(_EditPage.Create(request));
             }
 
-            await _content.ApplyAsync(db, row, request, ct);
+            row.Info = request.ToCompanyInfo();
+            row.UpdatedAtUtc = DateTime.UtcNow;
+            row.UpdatedByUserId = Guid.Empty;
+            await store.SaveChangesAsync(ct);
 
-            return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row)))
+            return Result.Page(_EditPage.Create(ClientUpsertRequest.FromEntity(row)))
                 .WithTrigger("clients-list-refresh")
                 .WithToast($"Client '{request.Name}' was updated.");
         });
 
-        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore db, CancellationToken ct) =>
+        // POST toggle — write seam (tracked load + mutate).
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore store, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await store.Clients.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (row is null) return Results.NotFound();
 
             row.IsActive = !row.IsActive;
             row.UpdatedAtUtc = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            await store.SaveChangesAsync(ct);
 
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
@@ -124,26 +154,22 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 
-        group.MapGet("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // GET delete — read seam (no-tracking find for the dialog).
+        group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Client> clients, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
-            if (row is null)
-            {
-                return Results.NotFound();
-            }
-
-            return Result.ShowDialog(_ClientDelete.Create(_content.CreateDeleteDialogModel(row)));
+            var row = await clients.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (row is null) return Results.NotFound();
+            return Result.ShowDialog(_ClientDelete.Create(new ClientDeleteDialogModel(row.Id, row.Info.Name)));
         });
 
-        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // POST delete — write seam (tracked load + remove).
+        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore store, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
-            if (row is null)
-            {
-                return Results.NotFound();
-            }
+            var row = await store.Clients.FirstOrDefaultAsync(c => c.Id == id, ct);
+            if (row is null) return Results.NotFound();
 
-            await _content.DeleteAsync(db, row, ct);
+            store.Clients.Remove(row);
+            await store.SaveChangesAsync(ct);
 
             return Result.Page(_Empty.Create())
                 .WithTrigger("clients-list-refresh")

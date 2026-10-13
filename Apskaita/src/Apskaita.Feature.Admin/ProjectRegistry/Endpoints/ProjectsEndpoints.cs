@@ -55,10 +55,14 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
 
             if (ctx.IsHtmxTarget("projects-list"))
             {
-                return Result.Fragment(_ProjectsList.Create(model)).WithState(search).WithState(query);
+                return Result.Fragment(_ProjectsList.Create(model))
+                    .WithState(search)
+                    .WithState(query);
             }
 
-            return Result.Page(_ListPage.Create(model)).WithState(search).WithState(query);
+            return Result.Page(_ListPage.Create(model))
+                .WithState(search)
+                .WithState(query);
         });
 
         // GET create — read seam for the client/template option lists.
@@ -142,7 +146,9 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
 
             var model = ProjectUpsertRequest.CreateDefault();
             await PopulateOptionsAsync(model, clients, templates, ct);
-            return Result.Page(_CreatePage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
+            return Result.Page(_CreatePage.Create(model))
+                .WithTrigger("Projects.ListRefresh")
+                .WithToast($"Project '{request.Name}' was created.");
         });
 
         // GET edit — read seam (no-tracking find for display).

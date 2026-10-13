@@ -3,18 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.IssuerRegistry.Services;
 
-public sealed class IssuersContentService
+internal sealed class IssuersContentService
 {
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
     public async Task<IssuerListModel> CreateListModelAsync(
-        ApskaitaDbContext db,
+        IAdminStore store,
         IssuerSearchModel search,
         IssuerListQuery query,
         CancellationToken ct)
     {
-        var items = db.Issuers.AsNoTracking()
+        var items = store.Issuers.AsNoTracking()
             .Select(c => new IssuerRowModel
             {
                 Id = c.Id,
@@ -89,10 +89,10 @@ public sealed class IssuersContentService
         request.VatPayerCode = request.VatPayerCode?.Trim();
     }
 
-    public Task<Issuer?> FindByIdAsync(ApskaitaDbContext db, Guid id, CancellationToken ct) =>
-        db.Issuers.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public Task<Issuer?> FindByIdAsync(IAdminStore store, Guid id, CancellationToken ct) =>
+        store.Issuers.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(ApskaitaDbContext db, IssuerUpsertRequest request, CancellationToken ct)
+    public async Task CreateAsync(IAdminStore store, IssuerUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
 
@@ -107,23 +107,23 @@ public sealed class IssuersContentService
             UpdatedByUserId = Guid.Empty
         };
 
-        db.Issuers.Add(entity);
-        await db.SaveChangesAsync(ct);
+        store.Issuers.Add(entity);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task ApplyAsync(ApskaitaDbContext db, Issuer issuer, IssuerUpsertRequest request, CancellationToken ct)
+    public async Task ApplyAsync(IAdminStore store, Issuer issuer, IssuerUpsertRequest request, CancellationToken ct)
     {
         issuer.Info = ToCompanyInfo(request);
         issuer.UpdatedAtUtc = DateTime.UtcNow;
         issuer.UpdatedByUserId = Guid.Empty;
 
-        await db.SaveChangesAsync(ct);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(ApskaitaDbContext db, Issuer issuer, CancellationToken ct)
+    public async Task DeleteAsync(IAdminStore store, Issuer issuer, CancellationToken ct)
     {
-        db.Issuers.Remove(issuer);
-        await db.SaveChangesAsync(ct);
+        store.Issuers.Remove(issuer);
+        await store.SaveChangesAsync(ct);
     }
 
     private static CompanyInfo ToCompanyInfo(IssuerUpsertRequest request) => new()

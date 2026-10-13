@@ -27,7 +27,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             HttpContext ctx,
             [AsParameters] ProjectSearchModel search,
             ProjectListQuery query,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             var model = await _content.CreateListModelAsync(db, search, query, ct);
@@ -39,7 +39,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             return Result.Page(_ListPage.Create(model)).WithState(search).WithState(query);
         });
 
-        group.MapGet("create", async (ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("create", async (IAdminStore db, CancellationToken ct) =>
             Result.Page(_CreatePage.Create(await _content.CreateCreateFormModelAsync(db, ct))));
 
         group.MapGet("color-lookup", (string? query) =>
@@ -67,7 +67,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         group.MapPost("create", async (
             ProjectUpsertRequest request,
             IValidator<ProjectUpsertRequest> validator,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             _content.TrimRequest(request);
@@ -83,7 +83,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             return Result.Page(_CreatePage.Create(await _content.CreateCreateFormModelAsync(db, ct))).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
         });
 
-        group.MapGet("edit/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("edit/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
@@ -95,7 +95,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             Guid id,
             ProjectUpsertRequest request,
             IValidator<ProjectUpsertRequest> validator,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
@@ -115,7 +115,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             return Result.Page(_EditPage.Create(await _content.CreateEditFormModelAsync(db, row, ct))).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
         });
 
-        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
@@ -131,14 +131,14 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 
-        group.MapGet("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_ProjectDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
-        group.MapPost("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();

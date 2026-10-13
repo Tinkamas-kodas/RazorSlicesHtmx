@@ -25,7 +25,7 @@ public sealed class RegistryContentServiceTests
         var service = new ClientsContentService();
         var request = new ClientUpsertRequest { Name = "Acme", IsActive = false };
 
-        await service.CreateAsync(db, request, Ct);
+        await service.CreateAsync(new TestAdminStore(db), request, Ct);
 
         Assert.True(db.Clients.Single().IsActive);
     }
@@ -40,7 +40,7 @@ public sealed class RegistryContentServiceTests
         await db.SaveChangesAsync(Ct);
 
         var request = new ClientUpsertRequest { Id = client.Id, Name = "Renamed", IsActive = true };
-        await service.ApplyAsync(db, client, request, Ct);
+        await service.ApplyAsync(new TestAdminStore(db), client, request, Ct);
 
         Assert.False(client.IsActive, "ApplyAsync must not map IsActive from the request.");
         Assert.Equal("Renamed", client.Info.Name);
@@ -55,7 +55,7 @@ public sealed class RegistryContentServiceTests
         var service = new UnitsContentService();
         var request = new UnitUpsertRequest { Code = "h", Name = "hours", IsActive = false };
 
-        await service.CreateAsync(db, request, Ct);
+        await service.CreateAsync(new TestAdminStore(db), request, Ct);
 
         Assert.True(db.Units.Single().IsActive);
     }
@@ -70,7 +70,7 @@ public sealed class RegistryContentServiceTests
         await db.SaveChangesAsync(Ct);
 
         var request = new UnitUpsertRequest { Id = unit.Id, Code = "h", Name = "hours edited", IsActive = true };
-        await service.ApplyAsync(db, unit, request, Ct);
+        await service.ApplyAsync(new TestAdminStore(db), unit, request, Ct);
 
         Assert.False(unit.IsActive, "ApplyAsync must not map IsActive from the request.");
         Assert.Equal("hours edited", unit.Name);
@@ -85,7 +85,7 @@ public sealed class RegistryContentServiceTests
         db.Units.Add(new Unit { Id = Guid.NewGuid(), Code = "bb", Name = "Beta", IsActive = true });
         await db.SaveChangesAsync(Ct);
 
-        var model = await service.CreateListModelAsync(db, new UnitSearchModel("Beta"), new UnitListQuery(), Ct);
+        var model = await service.CreateListModelAsync(new TestAdminStore(db), new UnitSearchModel("Beta"), new UnitListQuery(), Ct);
 
         Assert.Equal(1, model.Total);
         Assert.Equal("Beta", model.Items.Single().Name);

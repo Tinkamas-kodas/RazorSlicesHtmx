@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 
-public sealed class ProjectsContentService
+internal sealed class ProjectsContentService
 {
     private const string SampleTime = "10:00 - 11:30";
     private const string SampleDescription = "Prepare monthly report\nReview invoice details";
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public async Task<ProjectListModel> CreateListModelAsync(ApskaitaDbContext db, ProjectSearchModel search, ProjectListQuery query, CancellationToken ct)
+    public async Task<ProjectListModel> CreateListModelAsync(IAdminStore db, ProjectSearchModel search, ProjectListQuery query, CancellationToken ct)
     {
         var items =
             from p in db.Projects.AsNoTracking()
@@ -39,7 +39,7 @@ public sealed class ProjectsContentService
         return new ProjectListModel(paged.Total, search, query, paged.Items);
     }
 
-    public async Task<ProjectUpsertRequest> CreateCreateFormModelAsync(ApskaitaDbContext db, CancellationToken ct)
+    public async Task<ProjectUpsertRequest> CreateCreateFormModelAsync(IAdminStore db, CancellationToken ct)
     {
         var model = new ProjectUpsertRequest
         {
@@ -54,7 +54,7 @@ public sealed class ProjectsContentService
         return model;
     }
 
-    public async Task<ProjectUpsertRequest> CreateEditFormModelAsync(ApskaitaDbContext db, Project row, CancellationToken ct)
+    public async Task<ProjectUpsertRequest> CreateEditFormModelAsync(IAdminStore db, Project row, CancellationToken ct)
     {
         var model = new ProjectUpsertRequest
         {
@@ -75,7 +75,7 @@ public sealed class ProjectsContentService
         return model;
     }
 
-    public async Task PopulateOptionsAsync(ApskaitaDbContext db, ProjectUpsertRequest model, CancellationToken ct)
+    public async Task PopulateOptionsAsync(IAdminStore db, ProjectUpsertRequest model, CancellationToken ct)
     {
         model.Clients = await db.Clients.AsNoTracking().OrderBy(x => x.Info.Name)
             .Select(x => new ProjectOptionModel(x.Id, x.Info.Name))
@@ -117,9 +117,9 @@ public sealed class ProjectsContentService
         request.CurrencyCode = request.CurrencyCode?.Trim().ToUpperInvariant();
     }
 
-    public Task<Project?> FindByIdAsync(ApskaitaDbContext db, Guid id, CancellationToken ct) => db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public Task<Project?> FindByIdAsync(IAdminStore db, Guid id, CancellationToken ct) => db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(ApskaitaDbContext db, ProjectUpsertRequest request, CancellationToken ct)
+    public async Task CreateAsync(IAdminStore db, ProjectUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var row = new Project
@@ -143,7 +143,7 @@ public sealed class ProjectsContentService
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task ApplyAsync(ApskaitaDbContext db, Project row, ProjectUpsertRequest request, CancellationToken ct)
+    public async Task ApplyAsync(IAdminStore db, Project row, ProjectUpsertRequest request, CancellationToken ct)
     {
         row.ClientId = request.ClientId ?? Guid.Empty;
         row.Name = request.Name ?? string.Empty;
@@ -158,7 +158,7 @@ public sealed class ProjectsContentService
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(ApskaitaDbContext db, Project row, CancellationToken ct)
+    public async Task DeleteAsync(IAdminStore db, Project row, CancellationToken ct)
     {
         db.Projects.Remove(row);
         await db.SaveChangesAsync(ct);

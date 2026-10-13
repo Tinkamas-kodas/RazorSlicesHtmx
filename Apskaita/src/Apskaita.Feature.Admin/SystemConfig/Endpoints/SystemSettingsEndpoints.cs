@@ -20,7 +20,7 @@ public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) 
     {
         group.RequireAuthorization(AuthPolicies.Admin);
 
-        group.MapGet("", async (ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("", async (IAdminStore db, CancellationToken ct) =>
         {
             var model = await _content.CreateModelAsync(db, ct);
             return Result.Page(_SettingsPage.Create(model));
@@ -29,7 +29,7 @@ public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) 
         group.MapPost("", async (
             SystemSettingsUpsertRequest request,
             IValidator<SystemSettingsUpsertRequest> validator,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             _content.TrimRequest(request);

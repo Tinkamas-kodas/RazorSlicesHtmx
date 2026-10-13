@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Services;
 
-public sealed class InvoiceTemplatesContentService
+internal sealed class InvoiceTemplatesContentService
 {
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public async Task<InvoiceTemplateListModel> CreateListModelAsync(ApskaitaDbContext db, InvoiceTemplateSearchModel search, InvoiceTemplateListQuery query, CancellationToken ct)
+    public async Task<InvoiceTemplateListModel> CreateListModelAsync(IAdminStore db, InvoiceTemplateSearchModel search, InvoiceTemplateListQuery query, CancellationToken ct)
     {
         var items = db.InvoiceTemplates.AsNoTracking()
             .Select(x => new InvoiceTemplateRowModel
@@ -55,9 +55,9 @@ public sealed class InvoiceTemplatesContentService
         request.Content = request.Content?.Trim();
     }
 
-    public Task<InvoiceTemplate?> FindByIdAsync(ApskaitaDbContext db, Guid id, CancellationToken ct) => db.InvoiceTemplates.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public Task<InvoiceTemplate?> FindByIdAsync(IAdminStore db, Guid id, CancellationToken ct) => db.InvoiceTemplates.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(ApskaitaDbContext db, InvoiceTemplateUpsertRequest request, CancellationToken ct)
+    public async Task CreateAsync(IAdminStore db, InvoiceTemplateUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var entity = new InvoiceTemplate
@@ -84,7 +84,7 @@ public sealed class InvoiceTemplatesContentService
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task ApplyAsync(ApskaitaDbContext db, InvoiceTemplate row, InvoiceTemplateUpsertRequest request, CancellationToken ct)
+    public async Task ApplyAsync(IAdminStore db, InvoiceTemplate row, InvoiceTemplateUpsertRequest request, CancellationToken ct)
     {
         row.Code = request.Code ?? string.Empty;
         row.Name = request.Name ?? string.Empty;
@@ -102,13 +102,13 @@ public sealed class InvoiceTemplatesContentService
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(ApskaitaDbContext db, InvoiceTemplate row, CancellationToken ct)
+    public async Task DeleteAsync(IAdminStore db, InvoiceTemplate row, CancellationToken ct)
     {
         db.InvoiceTemplates.Remove(row);
         await db.SaveChangesAsync(ct);
     }
 
-    private static async Task ClearDefaultAsync(ApskaitaDbContext db, CancellationToken ct, Guid? exceptId = null)
+    private static async Task ClearDefaultAsync(IAdminStore db, CancellationToken ct, Guid? exceptId = null)
     {
         var defaults = db.InvoiceTemplates.Where(x => x.IsDefault && (!exceptId.HasValue || x.Id != exceptId.Value));
         await defaults.ForEachAsync(x => x.IsDefault = false, ct);

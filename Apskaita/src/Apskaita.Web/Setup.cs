@@ -3,6 +3,7 @@ using Apskaita.Web.Features.Account;
 using Apskaita.Web.Features.Account.Authentication;
 using Apskaita.Web.Features.Account.Endpoints;
 using Apskaita.Web.Features.Account.Services;
+using Apskaita.Web.Features.Admin;
 using Apskaita.Web.Features.Admin.ClientsRegistry.Endpoints;
 using Apskaita.Web.Features.Admin.IssuerRegistry.Endpoints;
 using Apskaita.Web.Features.Admin.UnitRegistry.Endpoints;
@@ -116,6 +117,7 @@ public static class Setup
         // Feature write stores: composition adapters over the shared context, registered against each
         // feature's internal store interface (visible via InternalsVisibleTo).
         services.AddScoped<IAccountStore, AccountStore>();
+        services.AddScoped<IAdminStore, AdminStore>();
     }
 
     /// <summary>

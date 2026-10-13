@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.UnitRegistry.Services;
 
-public sealed class UnitsContentService
+internal sealed class UnitsContentService
 {
 
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public async Task<UnitListModel> CreateListModelAsync(ApskaitaDbContext db, UnitSearchModel search, UnitListQuery query, CancellationToken ct)
+    public async Task<UnitListModel> CreateListModelAsync(IAdminStore store, UnitSearchModel search, UnitListQuery query, CancellationToken ct)
     {
 
-        var items = db.Units.AsNoTracking()
+        var items = store.Units.AsNoTracking()
             .Select(x => new UnitRowModel
             {
                 Id = x.Id,
@@ -50,9 +50,9 @@ public sealed class UnitsContentService
         request.Name = request.Name?.Trim();
     }
 
-    public Task<Unit?> FindByIdAsync(ApskaitaDbContext db, Guid id, CancellationToken ct) => db.Units.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public Task<Unit?> FindByIdAsync(IAdminStore store, Guid id, CancellationToken ct) => store.Units.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(ApskaitaDbContext db, UnitUpsertRequest request, CancellationToken ct)
+    public async Task CreateAsync(IAdminStore store, UnitUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var entity = new Unit
@@ -67,23 +67,23 @@ public sealed class UnitsContentService
             UpdatedByUserId = Guid.Empty
         };
 
-        db.Units.Add(entity);
-        await db.SaveChangesAsync(ct);
+        store.Units.Add(entity);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task ApplyAsync(ApskaitaDbContext db, Unit unit, UnitUpsertRequest request, CancellationToken ct)
+    public async Task ApplyAsync(IAdminStore store, Unit unit, UnitUpsertRequest request, CancellationToken ct)
     {
         unit.Code = request.Code ?? string.Empty;
         unit.Name = request.Name ?? string.Empty;
         unit.UpdatedAtUtc = DateTime.UtcNow;
         unit.UpdatedByUserId = Guid.Empty;
-        await db.SaveChangesAsync(ct);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(ApskaitaDbContext db, Unit unit, CancellationToken ct)
+    public async Task DeleteAsync(IAdminStore store, Unit unit, CancellationToken ct)
     {
-        db.Units.Remove(unit);
-        await db.SaveChangesAsync(ct);
+        store.Units.Remove(unit);
+        await store.SaveChangesAsync(ct);
     }
 }
 

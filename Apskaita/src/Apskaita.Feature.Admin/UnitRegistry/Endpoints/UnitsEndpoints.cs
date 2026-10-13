@@ -26,7 +26,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             HttpContext ctx,
             [AsParameters] UnitSearchModel search,
             UnitListQuery query,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             var model = await _content.CreateListModelAsync(db, search, query, ct);
@@ -46,7 +46,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         group.MapPost("create", async (
             UnitUpsertRequest request,
             IValidator<UnitUpsertRequest> validator,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             _content.TrimRequest(request);
@@ -61,7 +61,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.Page(_CreatePage.Create(_content.CreateCreateFormModel())).WithTrigger("Units.ListRefresh").WithToast($"Unit '{request.Name}' was created.");
         });
 
-        group.MapGet("edit/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("edit/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
@@ -72,7 +72,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             Guid id,
             UnitUpsertRequest request,
             IValidator<UnitUpsertRequest> validator,
-            ApskaitaDbContext db,
+            IAdminStore db,
             CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
@@ -91,7 +91,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
             return Result.Page(_EditPage.Create(_content.CreateEditFormModel(row))).WithTrigger("Units.ListRefresh").WithToast($"Unit '{request.Name}' was updated.");
         });
 
-        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
@@ -107,14 +107,14 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 
-        group.MapGet("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapGet("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_UnitDelete.Create(_content.CreateDeleteDialogModel(row)));
         });
 
-        group.MapPost("delete/{id:guid}", async (Guid id, ApskaitaDbContext db, CancellationToken ct) =>
+        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
         {
             var row = await _content.FindByIdAsync(db, id, ct);
             if (row is null) return Results.NotFound();

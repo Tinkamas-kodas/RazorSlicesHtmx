@@ -3,18 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.ClientsRegistry.Services;
 
-public sealed class ClientsContentService
+internal sealed class ClientsContentService
 {
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
     public async Task<ClientListModel> CreateListModelAsync(
-        ApskaitaDbContext db,
+        IAdminStore store,
         ClientSearchModel search,
         ClientListQuery query,
         CancellationToken ct)
     {
-        var items = db.Clients.AsNoTracking()
+        var items = store.Clients.AsNoTracking()
             .Select(c => new ClientRowModel
             {
                 Id = c.Id,
@@ -89,10 +89,10 @@ public sealed class ClientsContentService
         request.VatPayerCode = request.VatPayerCode?.Trim();
     }
 
-    public Task<Client?> FindByIdAsync(ApskaitaDbContext db, Guid id, CancellationToken ct) =>
-        db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public Task<Client?> FindByIdAsync(IAdminStore store, Guid id, CancellationToken ct) =>
+        store.Clients.FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public async Task CreateAsync(ApskaitaDbContext db, ClientUpsertRequest request, CancellationToken ct)
+    public async Task CreateAsync(IAdminStore store, ClientUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
 
@@ -107,23 +107,23 @@ public sealed class ClientsContentService
             UpdatedByUserId = Guid.Empty
         };
 
-        db.Clients.Add(entity);
-        await db.SaveChangesAsync(ct);
+        store.Clients.Add(entity);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task ApplyAsync(ApskaitaDbContext db, Client client, ClientUpsertRequest request, CancellationToken ct)
+    public async Task ApplyAsync(IAdminStore store, Client client, ClientUpsertRequest request, CancellationToken ct)
     {
         client.Info = ToCompanyInfo(request);
         client.UpdatedAtUtc = DateTime.UtcNow;
         client.UpdatedByUserId = Guid.Empty;
 
-        await db.SaveChangesAsync(ct);
+        await store.SaveChangesAsync(ct);
     }
 
-    public async Task DeleteAsync(ApskaitaDbContext db, Client client, CancellationToken ct)
+    public async Task DeleteAsync(IAdminStore store, Client client, CancellationToken ct)
     {
-        db.Clients.Remove(client);
-        await db.SaveChangesAsync(ct);
+        store.Clients.Remove(client);
+        await store.SaveChangesAsync(ct);
     }
 
     private static CompanyInfo ToCompanyInfo(ClientUpsertRequest request) => new()

@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.SystemConfig.Services;
 
-public sealed class SystemSettingsContentService
+internal sealed class SystemSettingsContentService
 {
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
-    public async Task<SystemSettingsUpsertRequest> CreateModelAsync(ApskaitaDbContext db, CancellationToken ct)
+    public async Task<SystemSettingsUpsertRequest> CreateModelAsync(IAdminStore db, CancellationToken ct)
     {
         var row = await db.SystemSettings.FirstOrDefaultAsync(ct);
         if (row is null)
@@ -36,7 +36,7 @@ public sealed class SystemSettingsContentService
         request.InvoiceNumberTemplate = request.InvoiceNumberTemplate?.Trim();
     }
 
-    public async Task SaveAsync(ApskaitaDbContext db, SystemSettingsUpsertRequest request, CancellationToken ct)
+    public async Task SaveAsync(IAdminStore db, SystemSettingsUpsertRequest request, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var row = await db.SystemSettings.FirstOrDefaultAsync(ct);

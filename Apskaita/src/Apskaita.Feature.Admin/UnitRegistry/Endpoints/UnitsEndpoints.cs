@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.UnitRegistry.Models;
 using Apskaita.Web.Features.Admin.UnitRegistry.Slices;
 using Apskaita.Web.Features.Admin.Common.Models;

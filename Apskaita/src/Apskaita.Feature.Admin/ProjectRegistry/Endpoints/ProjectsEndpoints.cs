@@ -1,5 +1,4 @@
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
-using Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
 using Apskaita.Web.Features.Admin.Common.Models;
 using Apskaita.Web.Features.Admin.Common.Slices;
@@ -66,7 +65,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         group.MapGet("create", async (IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
         {
             var model = ProjectUpsertRequest.CreateDefault();
-            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_CreatePage.Create(model));
         });
 
@@ -118,7 +117,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (!validationResult.IsValid)
             {
                 request.Errors = validationResult.ToErrorDictionary();
-                await ProjectForms.PopulateOptionsAsync(request, clients, templates, ct);
+                await PopulateOptionsAsync(request, clients, templates, ct);
                 return Result.Page(_CreatePage.Create(request));
             }
 
@@ -142,7 +141,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             await store.SaveChangesAsync(ct);
 
             var model = ProjectUpsertRequest.CreateDefault();
-            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_CreatePage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
         });
 
@@ -158,7 +157,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (row is null) return Results.NotFound();
 
             var model = ProjectUpsertRequest.FromEntity(row);
-            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_EditPage.Create(model));
         });
 
@@ -181,7 +180,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             {
                 request.Errors = validationResult.ToErrorDictionary();
                 request.IsActive = row.IsActive;
-                await ProjectForms.PopulateOptionsAsync(request, clients, templates, ct);
+                await PopulateOptionsAsync(request, clients, templates, ct);
                 return Result.Page(_EditPage.Create(request));
             }
 
@@ -197,7 +196,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             await store.SaveChangesAsync(ct);
 
             var model = ProjectUpsertRequest.FromEntity(row);
-            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_EditPage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
         });
 
@@ -240,5 +239,16 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                 .WithToast($"Project '{row.Name}' was deleted.", title: "Deleted", tone: ToastTone.Warning)
                 .ClearDialog();
         });
+    }
+
+    private static async Task PopulateOptionsAsync(ProjectUpsertRequest model, IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct)
+    {
+        model.Clients = await clients.All().OrderBy(x => x.Info.Name)
+            .Select(x => new ProjectOptionModel(x.Id, x.Info.Name))
+            .ToListAsync(ct);
+
+        model.Templates = await templates.All().OrderBy(x => x.Name)
+            .Select(x => new ProjectOptionModel(x.Id, x.Name))
+            .ToListAsync(ct);
     }
 }

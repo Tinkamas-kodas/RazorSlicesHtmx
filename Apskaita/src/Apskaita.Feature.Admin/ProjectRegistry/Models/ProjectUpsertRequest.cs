@@ -1,3 +1,5 @@
+using Apskaita.Web.Shared.ProjectColors;
+
 namespace Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 
 [GenerateHtmlNames]
@@ -19,5 +21,43 @@ public sealed partial class ProjectUpsertRequest : IHaveValidationResult
 
     public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
+
+    private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
+        new Dictionary<string, (string errorCode, string errorMessage)[]>();
+
+    public static ProjectUpsertRequest CreateDefault() => new()
+    {
+        ColorRgb = ProjectColorCatalog.DefaultColorRgb,
+        ColorLabel = ProjectColorCatalog.GetLookupText(ProjectColorCatalog.DefaultColorRgb),
+        CurrencyCode = "EUR",
+        IsActive = true,
+        Errors = EmptyErrors
+    };
+
+    public static ProjectUpsertRequest FromEntity(Project row) => new()
+    {
+        Id = row.Id,
+        ClientId = row.ClientId,
+        Name = row.Name,
+        Code = row.Code,
+        HourlyRate = row.HourlyRate,
+        ColorRgb = ProjectColorCatalog.NormalizeOrDefault(row.ColorRgb),
+        ColorLabel = ProjectColorCatalog.GetLookupText(row.ColorRgb),
+        CurrencyCode = row.CurrencyCode,
+        InvoiceTemplateId = row.InvoiceTemplateId,
+        IsActive = row.IsActive,
+        Errors = EmptyErrors
+    };
+
+    public void Normalize()
+    {
+        Name = Name?.Trim();
+        Code = Code?.Trim();
+        ColorRgb = ProjectColorCatalog.Normalize(ColorRgb);
+        ColorLabel = string.IsNullOrWhiteSpace(ColorLabel)
+            ? ProjectColorCatalog.GetLookupText(ColorRgb)
+            : ColorLabel.Trim();
+        CurrencyCode = CurrencyCode?.Trim().ToUpperInvariant();
+    }
 }
 

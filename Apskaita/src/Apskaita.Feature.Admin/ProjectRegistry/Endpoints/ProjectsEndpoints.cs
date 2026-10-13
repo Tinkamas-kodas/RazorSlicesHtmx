@@ -65,7 +65,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         // GET create — read seam for the client/template option lists.
         group.MapGet("create", async (IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
         {
-            var model = ProjectForms.CreateCreateFormModel();
+            var model = ProjectUpsertRequest.CreateDefault();
             await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_CreatePage.Create(model));
         });
@@ -113,7 +113,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             IQuery<InvoiceTemplate> templates,
             CancellationToken ct) =>
         {
-            ProjectForms.TrimRequest(request);
+            request.Normalize();
             var validationResult = await validator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
@@ -141,7 +141,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             });
             await store.SaveChangesAsync(ct);
 
-            var model = ProjectForms.CreateCreateFormModel();
+            var model = ProjectUpsertRequest.CreateDefault();
             await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_CreatePage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
         });
@@ -157,7 +157,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
 
-            var model = ProjectForms.CreateEditFormModel(row);
+            var model = ProjectUpsertRequest.FromEntity(row);
             await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_EditPage.Create(model));
         });
@@ -175,7 +175,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             var row = await store.Projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
 
-            ProjectForms.TrimRequest(request);
+            request.Normalize();
             var validationResult = await validator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
@@ -196,7 +196,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             row.UpdatedByUserId = Guid.Empty;
             await store.SaveChangesAsync(ct);
 
-            var model = ProjectForms.CreateEditFormModel(row);
+            var model = ProjectUpsertRequest.FromEntity(row);
             await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_EditPage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
         });

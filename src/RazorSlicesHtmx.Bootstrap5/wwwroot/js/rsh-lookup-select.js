@@ -80,14 +80,30 @@
         }
       });
 
+      const requestTarget = event => event.detail?.ctx?.target ?? event.detail?.target;
+
+      // htmx 4 colon-namespaced events.
+      document.body.addEventListener("htmx:before:request", event => {
+        if (requestTarget(event) === this.results) {
+          this.searchInput.classList.add("is-loading");
+        }
+      });
+
+      document.body.addEventListener("htmx:after:request", event => {
+        if (requestTarget(event) === this.results) {
+          this.searchInput.classList.remove("is-loading");
+        }
+      });
+
+      // htmx 1.x/2.x camelCase events kept for backward compatibility.
       document.body.addEventListener("htmx:beforeRequest", event => {
-        if (event.detail?.target === this.results) {
+        if (requestTarget(event) === this.results) {
           this.searchInput.classList.add("is-loading");
         }
       });
 
       document.body.addEventListener("htmx:afterRequest", event => {
-        if (event.detail?.target === this.results) {
+        if (requestTarget(event) === this.results) {
           this.searchInput.classList.remove("is-loading");
         }
       });

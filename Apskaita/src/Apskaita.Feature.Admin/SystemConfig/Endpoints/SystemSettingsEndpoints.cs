@@ -1,14 +1,14 @@
+using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.SystemConfig.Models;
-using Apskaita.Web.Features.Admin.SystemConfig.Services;
 using Apskaita.Web.Features.Admin.SystemConfig.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.SystemConfig.Endpoints;
 
 public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<SystemConfigWorkspaceFactory>(resultBuilder)
 {
-    private readonly SystemSettingsContentService _content = new();
     public override string FeatureDivId => "feature-details";
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
@@ -20,19 +20,24 @@ public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) 
     {
         group.RequireAuthorization(AuthPolicies.Admin);
 
-        group.MapGet("", async (IAdminStore db, CancellationToken ct) =>
+        // GET — read seam (IQuery<SystemSettings>); default form when no row exists yet.
+        group.MapGet("", async (IQuery<SystemSettings> settings, CancellationToken ct) =>
         {
-            var model = await _content.CreateModelAsync(db, ct);
+            var row = await settings.All().FirstOrDefaultAsync(ct);
+            var model = row is null
+                ? SystemSettingsUpsertRequest.CreateDefault()
+                : SystemSettingsUpsertRequest.FromEntity(row);
             return Result.Page(_SettingsPage.Create(model));
         });
 
+        // POST — write seam (IAdminStore); single-row upsert.
         group.MapPost("", async (
             SystemSettingsUpsertRequest request,
             IValidator<SystemSettingsUpsertRequest> validator,
-            IAdminStore db,
+            IAdminStore store,
             CancellationToken ct) =>
         {
-            _content.TrimRequest(request);
+            request.Normalize();
             var validationResult = await validator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
@@ -40,10 +45,35 @@ public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) 
                 return Result.Page(_SettingsPage.Create(request));
             }
 
-            await _content.SaveAsync(db, request, ct);
-            var model = await _content.CreateModelAsync(db, ct);
-            return Result.Page(_SettingsPage.Create(model)).WithToast("System settings were updated.");
+            var now = DateTime.UtcNow;
+            var row = await store.SystemSettings.FirstOrDefaultAsync(ct);
+
+            if (row is null)
+            {
+                row = new SystemSettings
+                {
+                    Id = request.Id <= 0 ? 1 : request.Id,
+                    DefaultVatRatePercent = request.DefaultVatRatePercent,
+                    InvoiceNumberTemplate = request.InvoiceNumberTemplate ?? string.Empty,
+                    CreatedAtUtc = now,
+                    UpdatedAtUtc = now,
+                    CreatedByUserId = Guid.Empty,
+                    UpdatedByUserId = Guid.Empty
+                };
+                store.SystemSettings.Add(row);
+            }
+            else
+            {
+                row.DefaultVatRatePercent = request.DefaultVatRatePercent;
+                row.InvoiceNumberTemplate = request.InvoiceNumberTemplate ?? string.Empty;
+                row.UpdatedAtUtc = now;
+                row.UpdatedByUserId = Guid.Empty;
+            }
+
+            await store.SaveChangesAsync(ct);
+
+            return Result.Page(_SettingsPage.Create(SystemSettingsUpsertRequest.FromEntity(row)))
+                .WithToast("System settings were updated.");
         });
     }
 }
-

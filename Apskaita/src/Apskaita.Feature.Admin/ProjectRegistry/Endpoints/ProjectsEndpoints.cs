@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
@@ -13,6 +12,9 @@ namespace Apskaita.Web.Features.Admin.ProjectRegistry.Endpoints;
 
 public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ProjectRegistryWorkspaceFactory>(resultBuilder)
 {
+    private const string SampleTime = "10:00 - 11:30";
+    private const string SampleDescription = "Prepare monthly report\nReview invoice details";
+
     public override string FeatureDivId => "feature-details";
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
@@ -24,7 +26,6 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
     {
         group.RequireAuthorization(AuthPolicies.Admin);
 
-        // GET list — read seam (IQuery<Project>); required navigations translate to inner joins.
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] ProjectSearchModel search,
@@ -87,7 +88,19 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
 
         group.MapGet("color-preview", (string? colorRgb, string? colorLabel) =>
         {
-            var model = ProjectForms.CreateColorPreviewModel(colorRgb, colorLabel);
+            var presentation = ProjectColorCatalog.CreatePresentation(colorRgb);
+            var normalized = ProjectColorCatalog.NormalizeOrDefault(colorRgb);
+            var label = string.IsNullOrWhiteSpace(colorLabel)
+                ? ProjectColorCatalog.GetLookupText(normalized)
+                : colorLabel.Trim();
+            var model = new ProjectColorPreviewModel(
+                presentation.BackgroundColorRgb,
+                presentation.AccentColorRgb,
+                presentation.TextColorRgb,
+                label,
+                normalized,
+                SampleTime,
+                SampleDescription);
             return Result.Fragment(_ColorPreview.Create(model));
         });
 
@@ -109,7 +122,23 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                 return Result.Page(_CreatePage.Create(request));
             }
 
-            store.Projects.Add(ProjectForms.ToEntity(request));
+            var now = DateTime.UtcNow;
+            store.Projects.Add(new Project
+            {
+                Id = Guid.NewGuid(),
+                ClientId = request.ClientId ?? Guid.Empty,
+                Name = request.Name ?? string.Empty,
+                Code = request.Code,
+                HourlyRate = request.HourlyRate,
+                ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb),
+                CurrencyCode = request.CurrencyCode ?? "EUR",
+                InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty,
+                IsActive = true,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+                CreatedByUserId = Guid.Empty,
+                UpdatedByUserId = Guid.Empty
+            });
             await store.SaveChangesAsync(ct);
 
             var model = ProjectForms.CreateCreateFormModel();
@@ -156,7 +185,15 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                 return Result.Page(_EditPage.Create(request));
             }
 
-            ProjectForms.ApplyToEntity(row, request);
+            row.ClientId = request.ClientId ?? Guid.Empty;
+            row.Name = request.Name ?? string.Empty;
+            row.Code = request.Code;
+            row.HourlyRate = request.HourlyRate;
+            row.ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb);
+            row.CurrencyCode = request.CurrencyCode ?? "EUR";
+            row.InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty;
+            row.UpdatedAtUtc = DateTime.UtcNow;
+            row.UpdatedByUserId = Guid.Empty;
             await store.SaveChangesAsync(ct);
 
             var model = ProjectForms.CreateEditFormModel(row);
@@ -186,7 +223,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         {
             var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
-            return Result.ShowDialog(_ProjectDelete.Create(ProjectForms.CreateDeleteDialogModel(row)));
+            return Result.ShowDialog(_ProjectDelete.Create(new ProjectDeleteDialogModel(row.Id, row.Name)));
         });
 
         // POST delete — write seam (tracked load + remove).

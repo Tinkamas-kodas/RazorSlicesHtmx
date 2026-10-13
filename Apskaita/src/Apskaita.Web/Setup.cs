@@ -29,7 +29,6 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.DependencyInjection;
 using AdminFeatureType = Apskaita.Web.Features.Admin.ClientsRegistry.Models.ClientListQuery;
 
 namespace Apskaita.Web;

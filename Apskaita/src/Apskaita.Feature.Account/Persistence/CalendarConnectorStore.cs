@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Apskaita.Entities;
 using Apskaita.Web.Features.Account;
 using Microsoft.EntityFrameworkCore;
 

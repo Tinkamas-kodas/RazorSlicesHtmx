@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 using Apskaita.Web.Shared.ProjectColors;
 using Microsoft.EntityFrameworkCore;
@@ -6,15 +5,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 
 /// <summary>
-/// Projects-specific pure helpers: request/entity mapping, form-model factories, color preview, and
-/// option-list population. No <c>DbContext</c> and no store — reads go through <c>IQuery&lt;T&gt;</c>
+/// Projects-specific shared helpers: form-model factories, request trimming, and option-list population.
+/// Only methods reused across endpoints live here; single-use mapping is inlined in
+/// <c>ProjectsEndpoints</c>. No <c>DbContext</c> and no store — reads go through <c>IQuery&lt;T&gt;</c>
 /// (the read seam), writes are done by the endpoints through <c>IAdminStore</c>. Replaces the former
 /// <c>ProjectsContentService</c>.
 /// </summary>
 internal static class ProjectForms
 {
-    private const string SampleTime = "10:00 - 11:30";
-    private const string SampleDescription = "Prepare monthly report\nReview invoice details";
     private static readonly IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> EmptyErrors =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 
@@ -42,26 +40,6 @@ internal static class ProjectForms
         Errors = EmptyErrors
     };
 
-    public static ProjectDeleteDialogModel CreateDeleteDialogModel(Project row) => new(row.Id, row.Name);
-
-    public static ProjectColorPreviewModel CreateColorPreviewModel(string? colorRgb, string? colorLabel)
-    {
-        var presentation = ProjectColorCatalog.CreatePresentation(colorRgb);
-        var normalized = ProjectColorCatalog.NormalizeOrDefault(colorRgb);
-        var label = string.IsNullOrWhiteSpace(colorLabel)
-            ? ProjectColorCatalog.GetLookupText(normalized)
-            : colorLabel.Trim();
-
-        return new ProjectColorPreviewModel(
-            presentation.BackgroundColorRgb,
-            presentation.AccentColorRgb,
-            presentation.TextColorRgb,
-            label,
-            normalized,
-            SampleTime,
-            SampleDescription);
-    }
-
     public static void TrimRequest(ProjectUpsertRequest request)
     {
         request.Name = request.Name?.Trim();
@@ -71,40 +49,6 @@ internal static class ProjectForms
             ? ProjectColorCatalog.GetLookupText(request.ColorRgb)
             : request.ColorLabel.Trim();
         request.CurrencyCode = request.CurrencyCode?.Trim().ToUpperInvariant();
-    }
-
-    public static Project ToEntity(ProjectUpsertRequest request)
-    {
-        var now = DateTime.UtcNow;
-        return new Project
-        {
-            Id = Guid.NewGuid(),
-            ClientId = request.ClientId ?? Guid.Empty,
-            Name = request.Name ?? string.Empty,
-            Code = request.Code,
-            HourlyRate = request.HourlyRate,
-            ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb),
-            CurrencyCode = request.CurrencyCode ?? "EUR",
-            InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty,
-            IsActive = true,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now,
-            CreatedByUserId = Guid.Empty,
-            UpdatedByUserId = Guid.Empty
-        };
-    }
-
-    public static void ApplyToEntity(Project row, ProjectUpsertRequest request)
-    {
-        row.ClientId = request.ClientId ?? Guid.Empty;
-        row.Name = request.Name ?? string.Empty;
-        row.Code = request.Code;
-        row.HourlyRate = request.HourlyRate;
-        row.ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb);
-        row.CurrencyCode = request.CurrencyCode ?? "EUR";
-        row.InvoiceTemplateId = request.InvoiceTemplateId ?? Guid.Empty;
-        row.UpdatedAtUtc = DateTime.UtcNow;
-        row.UpdatedByUserId = Guid.Empty;
     }
 
     public static async Task PopulateOptionsAsync(ProjectUpsertRequest model, IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct)

@@ -1,8 +1,6 @@
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
 using Apskaita.Tests.Endpoints;
-using Apskaita.Web.Features.Admin.UnitRegistry.Models;
-using Apskaita.Web.Features.Admin.UnitRegistry.Services;
 using Apskaita.Web.Features.Admin.UserRegistry.Services;
 
 namespace Apskaita.Tests.Services;
@@ -77,49 +75,82 @@ public sealed class RegistryContentServiceTests
         Assert.Equal("Renamed", updated.Info.Name);
     }
 
-    // ---- Units ----
+    // ---- Units (endpoint-level) ----
 
     [Fact]
     public async Task Units_Create_ForcesActiveRegardlessOfRequest()
     {
-        await using var db = TestDb.New();
-        var service = new UnitsContentService();
-        var request = new UnitUpsertRequest { Code = "h", Name = "hours", IsActive = false };
+        await using var factory = new ApskaitaApiFactory();
+        var http = factory.CreateClient();
 
-        await service.CreateAsync(new TestAdminStore(db), request, Ct);
+        var listPage = await http.GetStringAsync("/admin/units/list");
+        var token = Regex.Match(listPage, "request-verification-token\"\\s+content=\"([^\"]+)\"").Groups[1].Value;
 
-        Assert.True(db.Units.Single().IsActive);
+        var form = new Dictionary<string, string> { ["Code"] = "h", ["Name"] = "hours", ["IsActive"] = "false" };
+        var request = new HttpRequestMessage(HttpMethod.Post, "/admin/units/create") { Content = new FormUrlEncodedContent(form) };
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using var db = factory.NewDbContext();
+        Assert.True(db.Units.Single().IsActive, "Create must force IsActive = true regardless of the request flag.");
     }
 
     [Fact]
     public async Task Units_Apply_DoesNotChangeIsActive()
     {
-        await using var db = TestDb.New();
-        var service = new UnitsContentService();
-        var unit = new Unit { Id = Guid.NewGuid(), Code = "h", Name = "hours", IsActive = false };
-        db.Units.Add(unit);
-        await db.SaveChangesAsync(Ct);
+        await using var factory = new ApskaitaApiFactory();
 
-        var request = new UnitUpsertRequest { Id = unit.Id, Code = "h", Name = "hours edited", IsActive = true };
-        await service.ApplyAsync(new TestAdminStore(db), unit, request, Ct);
+        Guid unitId;
+        await using (var db = factory.NewDbContext())
+        {
+            var unit = new Unit { Id = Guid.NewGuid(), Code = "h", Name = "hours", IsActive = false };
+            db.Units.Add(unit);
+            await db.SaveChangesAsync(Ct);
+            unitId = unit.Id;
+        }
 
-        Assert.False(unit.IsActive, "ApplyAsync must not map IsActive from the request.");
-        Assert.Equal("hours edited", unit.Name);
+        var http = factory.CreateClient();
+        var listPage = await http.GetStringAsync("/admin/units/list");
+        var token = Regex.Match(listPage, "request-verification-token\"\\s+content=\"([^\"]+)\"").Groups[1].Value;
+
+        var form = new Dictionary<string, string> { ["Code"] = "h", ["Name"] = "hours edited", ["IsActive"] = "true" };
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/units/edit/{unitId}") { Content = new FormUrlEncodedContent(form) };
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using var verify = factory.NewDbContext();
+        var updated = verify.Units.Single();
+        Assert.False(updated.IsActive, "Edit must not change IsActive (the toggle action owns it).");
+        Assert.Equal("hours edited", updated.Name);
     }
 
     [Fact]
     public async Task Units_List_SearchFiltersByName()
     {
-        await using var db = TestDb.New();
-        var service = new UnitsContentService();
-        db.Units.Add(new Unit { Id = Guid.NewGuid(), Code = "aa", Name = "Alpha", IsActive = true });
-        db.Units.Add(new Unit { Id = Guid.NewGuid(), Code = "bb", Name = "Beta", IsActive = true });
-        await db.SaveChangesAsync(Ct);
+        await using var factory = new ApskaitaApiFactory();
+        await using (var db = factory.NewDbContext())
+        {
+            db.Units.Add(new Unit { Id = Guid.NewGuid(), Code = "aa", Name = "Alpha", IsActive = true });
+            db.Units.Add(new Unit { Id = Guid.NewGuid(), Code = "bb", Name = "Beta", IsActive = true });
+            await db.SaveChangesAsync(Ct);
+        }
 
-        var model = await service.CreateListModelAsync(new TestAdminStore(db), new UnitSearchModel("Beta"), new UnitListQuery(), Ct);
+        var http = factory.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Get, "/admin/units/list?search=Beta");
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("HX-Target", "units-list");
 
-        Assert.Equal(1, model.Total);
-        Assert.Equal("Beta", model.Items.Single().Name);
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Beta", content);
+        Assert.DoesNotContain("Alpha", content);
     }
 
     // ---- Users ----

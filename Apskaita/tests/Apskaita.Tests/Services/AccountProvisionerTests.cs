@@ -13,7 +13,7 @@ public sealed class AccountProvisionerTests
     private static readonly CancellationToken Ct = CancellationToken.None;
 
     private static AccountProvisioner CreateProvisioner(ApskaitaDbContext db, params string[] adminEmails) =>
-        new(db, Microsoft.Extensions.Options.Options.Create(new AuthOptions { AdminEmails = [.. adminEmails] }));
+        new(new TestAccountStore(db), Microsoft.Extensions.Options.Options.Create(new AuthOptions { AdminEmails = [.. adminEmails] }));
 
     [Fact]
     public async Task Provisioner_UnknownEmail_CreatesRolelessUserWithNormalizedEmail()

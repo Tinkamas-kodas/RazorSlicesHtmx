@@ -46,7 +46,7 @@ public sealed class Outlook365ConnectorTests
         var db = TestDb.New();
         var handler = new FakeHttpHandler();
         var connector = new Outlook365Connector(
-            new CalendarConnectorStore(db, new NoSessionAccessor()),
+            new CalendarConnectorStore(new TestAccountStore(db), new NoSessionAccessor()),
             protector,
             new FakeHttpClientFactory(handler),
             Options.Create(new ConnectorAuthOptions { ClientId = "client-id", ClientSecret = "client-secret" }),
@@ -204,7 +204,7 @@ public sealed class Outlook365ConnectorTests
 
         var accessor = new SessionAccessor("user@example.com", owner);
         var connector = new Outlook365Connector(
-            new CalendarConnectorStore(db, accessor),
+            new CalendarConnectorStore(new TestAccountStore(db), accessor),
             protector,
             new FakeHttpClientFactory(handler),
             Options.Create(new ConnectorAuthOptions { ClientId = "c", ClientSecret = "s" }),
@@ -289,7 +289,7 @@ public sealed class Outlook365ConnectorTests
 
         var accessor = new SessionAccessor("user@example.com", owner, "tz-offset=180");
         var connector = new Outlook365Connector(
-            new CalendarConnectorStore(db, accessor),
+            new CalendarConnectorStore(new TestAccountStore(db), accessor),
             protector,
             new FakeHttpClientFactory(handler),
             Options.Create(new ConnectorAuthOptions { ClientId = "c", ClientSecret = "s" }),

@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\..\src\RazorSlicesHtmx.FluentValidation\RazorSlicesHtmx.FluentValidation.csproj" />
     <ProjectReference Include="..\..\..\src\RazorSlicesHtmx.Generators\RazorSlicesHtmx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <ProjectReference Include="..\Apskaita.Entities\Apskaita.Entities.csproj" />
+    <ProjectReference Include="..\Apskaita.Feature.Account\Apskaita.Feature.Account.csproj" />
     <ProjectReference Include="..\Apskaita.Web.Features.Admin\Apskaita.Web.Features.Admin.csproj" />
     <ProjectReference Include="..\Apskaita.Shared\Apskaita.Shared.csproj" />
   </ItemGroup>

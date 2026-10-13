@@ -16,7 +16,7 @@ public sealed record ProvisionResult(bool Allowed, UserRole? Role, Guid? UserId)
 /// (<c>oid</c>/<c>sub</c>) is stored for audit only. First sign-in with an unknown email auto-provisions a
 /// roleless user unless the email is a configured bootstrap admin (<c>Auth:AdminEmails</c>).
 /// </summary>
-public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOptions> options)
+internal sealed class AccountProvisioner(IAccountStore store, IOptions<AuthOptions> options)
 {
     public async Task<ProvisionResult> ProvisionAsync(
         string email,
@@ -30,7 +30,7 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
         var isBootstrapAdmin = options.Value.AdminEmails
             .Any(a => string.Equals(a.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase));
 
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, ct);
+        var user = await store.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, ct);
 
         if (user is null)
         {
@@ -47,8 +47,8 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
                 LastLoginAtUtc = now
             };
 
-            db.Users.Add(user);
-            await db.SaveChangesAsync(ct);
+            store.Users.Add(user);
+            await store.SaveChangesAsync(ct);
             return new ProvisionResult(true, user.Role, user.Id);
         }
 
@@ -67,7 +67,7 @@ public sealed class AccountProvisioner(ApskaitaDbContext db, IOptions<AuthOption
             user.Role = UserRole.Admin;
         }
 
-        await db.SaveChangesAsync(ct);
+        await store.SaveChangesAsync(ct);
         return new ProvisionResult(true, user.Role, user.Id);
     }
 }

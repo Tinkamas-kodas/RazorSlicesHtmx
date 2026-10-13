@@ -11,7 +11,7 @@ namespace Apskaita.Web.Shared.Calendar;
 /// never from a route or form value. Used by the account endpoints, the connect callback, and the Graph
 /// connector for token-cache updates.
 /// </summary>
-public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAccessor httpContextAccessor) : ICalendarConnectorTokenStore
+internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAccessor httpContextAccessor) : ICalendarConnectorTokenStore
 {
     /// <summary>Normalized email of the current session user, or null when unauthenticated.</summary>
     public string? CurrentEmail
@@ -40,7 +40,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
             return null;
         }
 
-        return await db.CalendarConnectors
+        return await store.Connectors
             .FirstOrDefaultAsync(c => c.UserId == userId && c.Provider == provider, ct);
     }
 
@@ -52,7 +52,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
             return [];
         }
 
-        return await db.CalendarConnectors
+        return await store.Connectors
             .Where(c => c.UserId == userId)
             .OrderBy(c => c.Provider)
             .ToListAsync(ct);
@@ -67,7 +67,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
             return [];
         }
 
-        return await db.CalendarConnectors
+        return await store.Connectors
             .Where(c => c.UserId == userId && c.Provider == provider)
             .OrderBy(c => c.AccountEmail)
             .ToListAsync(ct);
@@ -94,7 +94,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
         }
 
         var now = DateTime.UtcNow;
-        var connector = await db.CalendarConnectors
+        var connector = await store.Connectors
             .FirstOrDefaultAsync(c => c.UserId == userId && c.Provider == provider && c.AccountKey == accountKey, ct);
 
         if (connector is null)
@@ -108,7 +108,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
                 CreatedAtUtc = now,
                 CreatedByUserId = userId.Value
             };
-            db.CalendarConnectors.Add(connector);
+            store.Connectors.Add(connector);
         }
 
         connector.AccountEmail = accountEmail;
@@ -123,7 +123,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
         connector.UpdatedAtUtc = now;
         connector.UpdatedByUserId = userId.Value;
 
-        await db.SaveChangesAsync(ct);
+        await store.SaveChangesAsync(ct);
         return connector;
     }
 
@@ -136,8 +136,8 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
             return false;
         }
 
-        db.CalendarConnectors.Remove(connector);
-        await db.SaveChangesAsync(ct);
+        store.Connectors.Remove(connector);
+        await store.SaveChangesAsync(ct);
         return true;
     }
 
@@ -153,7 +153,7 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
             return null;
         }
 
-        var connector = await db.CalendarConnectors
+        var connector = await store.Connectors
             .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId, ct);
 
         if (connector is null)
@@ -162,13 +162,13 @@ public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAcc
         }
 
         var provider = connector.Provider;
-        db.CalendarConnectors.Remove(connector);
-        await db.SaveChangesAsync(ct);
+        store.Connectors.Remove(connector);
+        await store.SaveChangesAsync(ct);
         return provider;
     }
 
     /// <summary>Persists token-cache and sync-metadata changes made by the Graph connector.</summary>
-    public async Task SaveChangesAsync(CancellationToken ct) => await db.SaveChangesAsync(ct);
+    public async Task SaveChangesAsync(CancellationToken ct) => await store.SaveChangesAsync(ct);
 
     /// <summary>
     /// Records the outcome of a sync attempt on a tracked connector row: success clears the error and stamps

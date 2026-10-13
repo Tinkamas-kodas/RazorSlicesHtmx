@@ -361,7 +361,7 @@ public sealed class TimeTrackingContentService
     /// keys are non-blank and within <see cref="CalendarEventReference.MaxKeyLength"/>, and the account
     /// belongs to one of the current user's connectors for that provider. Null when invalid.
     /// </summary>
-    public async Task<CalendarEventReference?> ValidateEventReferenceAsync(
+    internal async Task<CalendarEventReference?> ValidateEventReferenceAsync(
         CalendarConnectorStore store,
         string? providerKey,
         string? accountKey,

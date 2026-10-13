@@ -15,7 +15,5 @@ namespace Apskaita.Web.Composition;
 /// </summary>
 public sealed class Query<TEntity>(ApskaitaDbContext db) : IQuery<TEntity> where TEntity : class
 {
-    private readonly ApskaitaDbContext _db = db;
-
-    public IQueryable<TEntity> All() => _db.Set<TEntity>().AsNoTracking();
+    public IQueryable<TEntity> All() => db.Set<TEntity>().AsNoTracking();
 }

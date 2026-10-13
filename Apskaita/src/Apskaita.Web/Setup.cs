@@ -113,6 +113,9 @@ public static class Setup
             .PersistKeysToDbContext<ApskaitaDbContext>();
         // Cross-feature read seam: one open-generic no-tracking IQuery<> over the shared context.
         services.AddScoped(typeof(IQuery<>), typeof(Query<>));
+        // Feature write stores: composition adapters over the shared context, registered against each
+        // feature's internal store interface (visible via InternalsVisibleTo).
+        services.AddScoped<IAccountStore, AccountStore>();
     }
 
     /// <summary>

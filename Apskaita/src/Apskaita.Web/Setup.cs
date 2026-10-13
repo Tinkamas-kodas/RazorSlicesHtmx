@@ -18,6 +18,7 @@ using Apskaita.Web.Features.TimeTracking.Validators;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.Routing;
 using Apskaita.Web.Logging;
+using Apskaita.Web.Composition;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -110,6 +111,8 @@ public static class Setup
         services.AddDataAccess(config.GetConnectionString("Default"));
         services.AddDataProtection()
             .PersistKeysToDbContext<ApskaitaDbContext>();
+        // Cross-feature read seam: one open-generic no-tracking IQuery<> over the shared context.
+        services.AddScoped(typeof(IQuery<>), typeof(Query<>));
     }
 
     /// <summary>

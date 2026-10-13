@@ -11,7 +11,7 @@ namespace Apskaita.Web.Shared.Calendar;
 /// never from a route or form value. Used by the account endpoints, the connect callback, and the Graph
 /// connector for token-cache updates.
 /// </summary>
-public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAccessor httpContextAccessor)
+public sealed class CalendarConnectorStore(ApskaitaDbContext db, IHttpContextAccessor httpContextAccessor) : ICalendarConnectorTokenStore
 {
     /// <summary>Normalized email of the current session user, or null when unauthenticated.</summary>
     public string? CurrentEmail

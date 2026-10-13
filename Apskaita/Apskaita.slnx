@@ -3,7 +3,7 @@
     <Project Path="src/Apskaita.Data.Migration/Apskaita.Data.Migration.csproj" />
     <Project Path="src/Apskaita.Entities/Apskaita.Entities.csproj" />
     <Project Path="src/Apskaita.Web.Features.Admin/Apskaita.Web.Features.Admin.csproj" />
-    <Project Path="src/Apskaita.Web.Shared/Apskaita.Web.Shared.csproj" />
+    <Project Path="src/Apskaita.Shared/Apskaita.Shared.csproj" />
     <Project Path="src/Apskaita.Web/Apskaita.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">

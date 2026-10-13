@@ -13,7 +13,7 @@ namespace Apskaita.Web.Shared.Calendar;
 /// nothing here throws toward the page. Provider metadata lives in <see cref="CalendarProviderInfo"/>.
 /// </summary>
 public sealed class Outlook365Connector(
-    CalendarConnectorStore store,
+    ICalendarConnectorTokenStore store,
     ConnectorTokenProtector protector,
     IHttpClientFactory httpClientFactory,
     IOptions<ConnectorAuthOptions> authOptions,

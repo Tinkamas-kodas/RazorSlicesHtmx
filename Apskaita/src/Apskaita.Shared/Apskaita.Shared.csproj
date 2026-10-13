@@ -1,15 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="RazorSlices" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />
+    <ProjectReference Include="..\Apskaita.Entities\Apskaita.Entities.csproj" />
   </ItemGroup>
+
 </Project>

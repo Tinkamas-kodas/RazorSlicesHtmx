@@ -81,6 +81,14 @@ public static class ApskaitaEntityModelBuilderExtensions
             entity.Property(x => x.ColorRgb).HasMaxLength(FieldLengths.Project.ColorRgb).IsRequired().HasDefaultValue("#FF0000");
             entity.Property(x => x.CurrencyCode).HasMaxLength(FieldLengths.Project.CurrencyCode).IsRequired();
             entity.HasIndex(x => new { x.ClientId, x.IsActive });
+            entity.HasOne(x => x.Client)
+                .WithMany()
+                .HasForeignKey(x => x.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.InvoiceTemplate)
+                .WithMany()
+                .HasForeignKey(x => x.InvoiceTemplateId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

@@ -557,6 +557,9 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.HasKey("Id")
                         .HasName("pk_projects");
 
+                    b.HasIndex("InvoiceTemplateId")
+                        .HasDatabaseName("ix_projects_invoice_template_id");
+
                     b.HasIndex("ClientId", "IsActive")
                         .HasDatabaseName("ix_projects_client_id_is_active");
 
@@ -1250,6 +1253,27 @@ namespace Apskaita.Data.Migrations.Migrations
 
                     b.Navigation("IssuerInfo")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Apskaita.Entities.Project", b =>
+                {
+                    b.HasOne("Apskaita.Entities.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_clients_client_id");
+
+                    b.HasOne("Apskaita.Entities.InvoiceTemplate", "InvoiceTemplate")
+                        .WithMany()
+                        .HasForeignKey("InvoiceTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_invoice_templates_invoice_template_id");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("InvoiceTemplate");
                 });
 
             modelBuilder.Entity("Apskaita.Entities.TimeTracking", b =>

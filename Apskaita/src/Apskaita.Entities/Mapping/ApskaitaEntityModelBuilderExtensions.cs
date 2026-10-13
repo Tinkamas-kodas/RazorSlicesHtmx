@@ -122,6 +122,20 @@ public static class ApskaitaEntityModelBuilderExtensions
             entity.Property(x => x.HourlyRate).IsRequired(false);
             entity.Property(x => x.Description).HasMaxLength(FieldLengths.TimeTracking.Description).IsRequired();
             entity.HasIndex(x => new { x.ProjectId, x.StartedAtUtc });
+
+            // Owned event reference in the same table (columns calendar_provider, account_key,
+            // external_event_id); all-NULL means a manual entry. The unique index enforces one entry
+            // per event — MySQL treats NULLs as distinct, so manual rows coexist freely.
+            entity.OwnsOne(x => x.CalendarEvent, owned =>
+            {
+                owned.WithOwner();
+                owned.Property(p => p.CalendarProvider)
+                    .HasColumnType(CalendarProvider.Outlook365.ToMySqlDefinition())
+                    .HasConversion<string>();
+                owned.Property(p => p.AccountKey).HasMaxLength(FieldLengths.TimeTracking.AccountKey);
+                owned.Property(p => p.ExternalEventId).HasMaxLength(FieldLengths.TimeTracking.ExternalEventId);
+                owned.HasIndex(p => new { p.CalendarProvider, p.AccountKey, p.ExternalEventId }).IsUnique();
+            });
         });
     }
 

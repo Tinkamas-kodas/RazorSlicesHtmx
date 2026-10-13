@@ -1,8 +1,8 @@
 @inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
 @inject FeatureRegistry FeatureRegistry
 
-@* Calendar side panel (Clockify-like): display-only — no hx-* attributes on events (REQ-008).
-   Collapsed by default; the vertical Calendar label toggles expand/collapse (state not persisted).
+@* Calendar side panel (Clockify-like): every event card requests the single `event` URI with the
+   identity triple + display-zone start/duration; the server decides create vs edit dialog.
    The connect link follows the account feature's registered route group — no hardcoded prefix. *@
 
 @{
@@ -57,9 +57,23 @@
                     <div class="tt-calendar-day-header">@day.Label</div>
                     @foreach (var evt in dayEvents)
                     {
-                        <div class="tt-calendar-event">
-                            <div class="tt-calendar-event-time">@evt.Start.ToString("HH:mm") - @evt.End.ToString("HH:mm")</div>
-                            <div class="tt-calendar-event-subject" title="@evt.Subject">@evt.Subject</div>
+                        var hasIdentity = !string.IsNullOrEmpty(evt.ProviderKey) && !string.IsNullOrEmpty(evt.EventId);
+                        var eventUrl = hasIdentity
+                            ? FeatureUri.Uri($"event?date={evt.DayDate:yyyy-MM-dd}&time={evt.Start:HH\\:mm}&duration={evt.DurationMinutes}&weekStart={Model.WeekStart:yyyy-MM-dd}&provider={evt.ProviderKey}&account={Uri.EscapeDataString(evt.AccountKey)}&eventId={Uri.EscapeDataString(evt.EventId)}")
+                            : null;
+                        <div class="tt-calendar-event @(eventUrl is not null ? "tt-calendar-event-clickable" : null)"
+                            hx-get="@eventUrl"
+                            hx-target="@(eventUrl is not null ? "#dialog-host" : null)"
+                            tabindex="@(eventUrl is not null ? "0" : null)"
+                            role="@(eventUrl is not null ? "button" : null)"
+                            title="@evt.Subject">
+                            <div class="tt-calendar-event-time">@evt.Start.ToString("HH:mm") - @evt.End.ToString("HH:mm")
+                                @if (evt.IsTracked)
+                                {
+                                    <span class="tt-event-tracked-badge">Logged</span>
+                                }
+                            </div>
+                            <div class="tt-calendar-event-subject">@evt.Subject</div>
                             @if (!string.IsNullOrEmpty(evt.Location) || evt.IsOnline)
                             {
                                 <div class="tt-calendar-event-meta">

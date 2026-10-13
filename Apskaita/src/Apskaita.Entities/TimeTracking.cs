@@ -9,4 +9,10 @@ public class TimeTracking : BaseEntity
     public int DurationInMinutes { get; set; }
     public int? HourlyRate { get; set; }
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Calendar event this entry was created from; NULL for manual entries. Owned type in the same
+    /// table, uniquely indexed — at most one entry per event (see <see cref="CalendarEventReference"/>).
+    /// </summary>
+    public CalendarEventReference? CalendarEvent { get; set; }
 }

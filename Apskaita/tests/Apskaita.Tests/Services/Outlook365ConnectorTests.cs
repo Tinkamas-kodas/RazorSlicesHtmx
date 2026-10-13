@@ -194,7 +194,7 @@ public sealed class Outlook365ConnectorTests
             var subject = call == 1 ? "Alpha meeting" : "Beta review";
             var start = call == 1 ? "2026-10-13T07:00:00Z" : "2026-10-12T08:00:00Z";
             var end = call == 1 ? "2026-10-13T07:30:00Z" : "2026-10-12T08:15:00Z";
-            var json = "{\"value\":[{\"subject\":\"" + subject + "\",\"start\":{\"dateTime\":\"" + start
+            var json = "{\"value\":[{\"id\":\"evt-" + subject.Replace(" ", "-") + "\",\"subject\":\"" + subject + "\",\"start\":{\"dateTime\":\"" + start
                 + "\",\"timeZone\":\"UTC\"},\"end\":{\"dateTime\":\"" + end + "\",\"timeZone\":\"UTC\"}}]}";
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -280,7 +280,7 @@ public sealed class Outlook365ConnectorTests
 
             // Graph returns "UTC" values offset-less; they must be read as UTC instants, then shown
             // in the browser's zone (cookie tz-offset=180 → UTC+03:00).
-            var json = """{"value":[{"subject":"FDMS standup","start":{"dateTime":"2026-10-13T06:45:00.0000000","timeZone":"UTC"},"end":{"dateTime":"2026-10-13T07:00:00.0000000","timeZone":"UTC"}}]}""";
+            var json = """{"value":[{"id":"evt-standup-1","subject":"FDMS standup","start":{"dateTime":"2026-10-13T06:45:00.0000000","timeZone":"UTC"},"end":{"dateTime":"2026-10-13T07:00:00.0000000","timeZone":"UTC"}}]}""";
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")

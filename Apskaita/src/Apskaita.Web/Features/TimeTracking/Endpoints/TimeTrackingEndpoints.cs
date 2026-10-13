@@ -51,11 +51,46 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             return Result.ShowDialog(_CreateDialog.Create(model));
         });
 
+        // Single URI for every calendar-event click (REQ-001): the server decides which dialog to
+        // return — the existing entry's edit dialog when an entry references the event, otherwise a
+        // create dialog prefilled with the event's display-zone start and duration.
+        group.MapGet("event", async (
+            HttpContext ctx,
+            IFeatureUri uri,
+            string provider,
+            string account,
+            string eventId,
+            string? date,
+            string? time,
+            int? duration,
+            string? weekStart,
+            ApskaitaDbContext db,
+            CalendarConnectorStore store,
+            CancellationToken ct) =>
+        {
+            var reference = await _content.ValidateEventReferenceAsync(store, provider, account, eventId, ct);
+            if (reference is null)
+            {
+                return Results.NotFound();
+            }
+
+            var trackedId = await _content.FindTrackedEntryIdAsync(db, reference, ct);
+            if (trackedId is not null)
+            {
+                // Reuse the edit route (route id is authoritative for the dialog's targets).
+                return Results.Redirect(uri.Uri($"edit/{trackedId.Value}"));
+            }
+
+            var model = _content.CreateEventDialogModel(date, time, duration, weekStart, reference.ProviderKey, reference.AccountKey, reference.ExternalEventId);
+            return Result.ShowDialog(_CreateDialog.Create(model));
+        });
+
         group.MapPost("create", async (
             HttpContext ctx,
             [FromForm] TimeTrackingModel request,
             [FromServices] IValidator<TimeTrackingModel> validator,
             ApskaitaDbContext db,
+            CalendarConnectorStore store,
             CancellationToken ct) =>
         {
             var validationResult = await validator.ValidateAsync(request, ct);
@@ -90,6 +125,45 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
 
             var now = DateTime.UtcNow;
             var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
+
+            // Calendar event reference (all-or-nothing); invalid or forged reference → dialog error.
+            var hasAnyEventField = !string.IsNullOrEmpty(request.EventProviderKey)
+                || !string.IsNullOrEmpty(request.EventAccountKey)
+                || !string.IsNullOrEmpty(request.EventId);
+            CalendarEventReference? calendarEvent = null;
+            if (hasAnyEventField)
+            {
+                calendarEvent = await _content.ValidateEventReferenceAsync(store, request.EventProviderKey, request.EventAccountKey, request.EventId, ct);
+                if (calendarEvent is null)
+                {
+                    var invalidModel = _content.CreateCreateDialogModel(request,
+                        new Dictionary<string, (string errorCode, string errorMessage)[]>
+                        {
+                            [nameof(TimeTrackingModel.EventId)] = [("invalid_event_reference", "The calendar event reference is invalid or its account is not connected.")]
+                        });
+                    return Result.Fragment(_CreateDialog.Create(invalidModel));
+                }
+
+                if (request.Repeat)
+                {
+                    var invalidModel = _content.CreateCreateDialogModel(request,
+                        new Dictionary<string, (string errorCode, string errorMessage)[]>
+                        {
+                            [nameof(TimeTrackingModel.Repeat)] = [("invalid_recurrence", "Recurring entries cannot reference a calendar event.")]
+                        });
+                    return Result.Fragment(_CreateDialog.Create(invalidModel));
+                }
+
+                // App-level dedupe (the unique index remains the race backstop): one entry per event.
+                if (await _content.FindTrackedEntryIdAsync(db, calendarEvent, ct) is not null)
+                {
+                    return Result.Fragment(_Empty.Create())
+                        .ClearDialog()
+                        .WithTrigger("time-tracking-list-refresh")
+                        .WithToast("This calendar event is already logged.", title: "Time entry", tone: ToastTone.Warning);
+                }
+            }
+
             var occurrences = _content.CreateOccurrences(request);
             var rows = occurrences
                 .Select(startedAtLocal => new Apskaita.Entities.TimeTracking
@@ -101,6 +175,8 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                     DurationInMinutes = request.DurationMinutes,
                     HourlyRate = request.HourlyRate,
                     Description = request.Description!.Trim(),
+                    // Fresh instance per row: an owned reference belongs to exactly one owner.
+                    CalendarEvent = calendarEvent is null ? null : new CalendarEventReference(calendarEvent.CalendarProvider, calendarEvent.AccountKey, calendarEvent.ExternalEventId),
                     CreatedAtUtc = now,
                     UpdatedAtUtc = now,
                     CreatedByUserId = Guid.Empty,
@@ -109,7 +185,18 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .ToArray();
 
             db.TimeTrackings.AddRange(rows);
-            await db.SaveChangesAsync(ct);
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                // Unique index race: the event was logged (here or in another tab) since the panel rendered.
+                return Result.Fragment(_Empty.Create())
+                    .ClearDialog()
+                    .WithTrigger("time-tracking-list-refresh")
+                    .WithToast("This calendar event is already logged.", title: "Time entry", tone: ToastTone.Warning);
+            }
 
             return Result.Fragment(_Empty.Create())
                 .ClearDialog()

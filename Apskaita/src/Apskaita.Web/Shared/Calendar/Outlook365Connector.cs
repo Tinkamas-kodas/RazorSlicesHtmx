@@ -190,7 +190,7 @@ public sealed class Outlook365Connector(
             $"&endDateTime={endParam}" +
             // calendarView is inherently sorted by start ascending; $orderby is unsupported here and makes
             // Graph return a generic 500. Events are re-sorted after merge anyway.
-            "&$select=subject,isOnlineMeeting,locations,organizer,start,end" +
+            "&$select=id,subject,isOnlineMeeting,locations,organizer,start,end" +
             "&$top=200";
 
         var client = httpClientFactory.CreateClient("Outlook365Graph");
@@ -223,6 +223,16 @@ public sealed class Outlook365Connector(
 
         foreach (var item in items.EnumerateArray())
         {
+            // Identity triple (provider, account, external id) links time entries to this event;
+            // events without a usable id cannot be referenced and are skipped.
+            var externalId = item.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.String
+                ? idProp.GetString()
+                : null;
+            if (string.IsNullOrWhiteSpace(externalId) || externalId.Length > CalendarEventReference.MaxKeyLength)
+            {
+                continue;
+            }
+
             var start = ParseDateTimeProperty(item, "start");
             var end = ParseDateTimeProperty(item, "end");
             if (start is null || end is null)
@@ -275,7 +285,10 @@ public sealed class Outlook365Connector(
                 endLocal,
                 location,
                 isOnline,
-                organizer));
+                organizer,
+                ProviderKey,
+                connector.AccountKey,
+                externalId!));
         }
 
         return result;

@@ -12,8 +12,18 @@
 
         @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
 
-        <div class="px-3 pb-3">
-            <div class="border-top pt-3">
+        @if (Model.FromCalendarEvent)
+        {
+            @* Calendar event reference: carried invisibly so the entry links to the event (one entry per event). *@
+            <input type="hidden" name="@f.EventProviderKey.Name" value="@Model.EventProviderKey" />
+            <input type="hidden" name="@f.EventAccountKey.Name" value="@Model.EventAccountKey" />
+            <input type="hidden" name="@f.EventId.Name" value="@Model.EventId" />
+        }
+
+        @if (!Model.FromCalendarEvent)
+        {
+            <div class="px-3 pb-3">
+                <div class="border-top pt-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="tt-repeat-toggle" name="Repeat" value="true" autocomplete="off" onchange="const c = document.getElementById('tt-recurrence-fields'); if (c) { c.classList.toggle('d-none', !this.checked); } const w = this.form?.querySelector('[name=\'RepeatEveryWeeks\']'); const u = this.form?.querySelector('[name=\'RepeatUntil\']'); if (w) { w.disabled = !this.checked; } if (u) { u.disabled = !this.checked; }" @(Model.Repeat ? "checked" : null)>
                     <label class="form-check-label" for="tt-repeat-toggle">Enable recurrence</label>
@@ -34,6 +44,7 @@
                 </div>
             </div>
         </div>
+        }
 
         <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

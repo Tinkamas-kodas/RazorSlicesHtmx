@@ -4,7 +4,10 @@ namespace Apskaita.Web.Shared.Calendar;
 /// A normalized calendar event for display. Mapped from a provider's event model (currently Microsoft
 /// Graph <c>calendarView</c>); times are already converted to the display zone — the browser's UTC
 /// offset when its cookie is present, otherwise the server's local zone.
-/// Display-only: the UI must not offer actions derived from these events.
+/// <see cref="ProviderKey"/> + <see cref="AccountKey"/> + <see cref="EventId"/> form the stable
+/// identity triple used to link time entries to an event (see <c>CalendarEventReference</c>).
+/// Display-only otherwise: the UI must not offer actions derived from these events beyond the
+/// create/edit dialog flow.
 /// </summary>
 public sealed record CalendarEventInfo(
     string Subject,
@@ -12,7 +15,10 @@ public sealed record CalendarEventInfo(
     DateTime EndLocal,
     string? Location,
     bool IsOnline,
-    string? OrganizerName);
+    string? OrganizerName,
+    string ProviderKey = "",
+    string AccountKey = "",
+    string EventId = "");
 
 /// <summary>
 /// Outcome of reading the current session user's calendar for a week. <see cref="HasConnector"/> is false

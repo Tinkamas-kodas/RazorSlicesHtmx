@@ -78,6 +78,22 @@ public sealed class TimeTrackingContentService
 
         var entries = rows.Select(row => CreateEntryViewModel(row, displayOffset)).ToArray();
 
+        // References of entries in the displayed week: an event whose identity triple matches is
+        // "tracked" (badge); the unique index guarantees at most one entry per event.
+        var trackedRefs = await (
+            from time in db.TimeTrackings.AsNoTracking()
+            where time.CalendarEvent != null && time.StartedAtUtc >= weekStartUtc && time.StartedAtUtc < weekEndExclusiveUtc
+            select new
+            {
+                time.CalendarEvent!.CalendarProvider,
+                time.CalendarEvent.AccountKey,
+                time.CalendarEvent.ExternalEventId
+            })
+            .ToListAsync(ct);
+        var trackedSet = trackedRefs
+            .Select(t => (t.CalendarProvider.ToString().ToLowerInvariant(), t.AccountKey, t.ExternalEventId))
+            .ToHashSet();
+
         var calendarEvents = (calendar?.Events ?? [])
             .Select(e => new TimeTrackingCalendarEventViewModel(
                 DateOnly.FromDateTime(e.StartLocal),
@@ -86,7 +102,12 @@ public sealed class TimeTrackingContentService
                 TimeOnly.FromDateTime(e.EndLocal),
                 e.Location,
                 e.IsOnline,
-                e.OrganizerName))
+                e.OrganizerName,
+                e.ProviderKey,
+                e.AccountKey,
+                e.EventId,
+                Math.Max(1, (int)Math.Round((e.EndLocal - e.StartLocal).TotalMinutes)),
+                trackedSet.Contains((e.ProviderKey.ToLowerInvariant(), e.AccountKey, e.EventId))))
             .ToArray();
 
         return new TimeTrackingPageModel(
@@ -156,7 +177,48 @@ public sealed class TimeTrackingContentService
             Repeat = request.Repeat,
             RepeatEveryWeeks = request.RepeatEveryWeeks,
             RepeatUntil = request.RepeatUntil,
+            EventProviderKey = request.EventProviderKey,
+            EventAccountKey = request.EventAccountKey,
+            EventId = request.EventId,
+            FromCalendarEvent = !string.IsNullOrEmpty(request.EventProviderKey)
+                || !string.IsNullOrEmpty(request.EventAccountKey)
+                || !string.IsNullOrEmpty(request.EventId),
             Errors = errors
+        };
+    }
+
+    /// <summary>
+    /// Create-dialog model for the <c>event</c> endpoint's miss path: prefilled with the event's
+    /// display-zone start and duration plus the identity triple carried as hidden fields.
+    /// </summary>
+    public TimeTrackingModel CreateEventDialogModel(
+        string? dateRaw,
+        string? timeRaw,
+        int? durationMinutes,
+        string? weekStartRaw,
+        string providerKey,
+        string accountKey,
+        string eventId)
+    {
+        var weekStart = GetWeekStart(ResolveAnchorDate(weekStartRaw));
+        var selectedDate = DateOnly.TryParse(dateRaw, out var date) ? date : weekStart;
+        var start = TimeOnly.TryParse(timeRaw, out var parsedStart) ? parsedStart : DefaultSlotStart;
+
+        return new TimeTrackingModel
+        {
+            Date = selectedDate,
+            Start = start,
+            DurationMinutes = Math.Clamp(durationMinutes ?? DefaultDurationMinutes, MinimumDurationMinutes, TimeTrackingLimits.MaxDurationMinutes),
+            HourlyRate = null,
+            ProjectId = null,
+            ProjectLabel = null,
+            Description = null,
+            Repeat = false,
+            EventProviderKey = providerKey,
+            EventAccountKey = accountKey,
+            EventId = eventId,
+            FromCalendarEvent = true,
+            Errors = EmptyErrors
         };
     }
 
@@ -292,6 +354,45 @@ public sealed class TimeTrackingContentService
         var start = request.Start == default ? DefaultSlotStart : request.Start;
 
         return date.ToDateTime(start);
+    }
+
+    /// <summary>
+    /// Validates a calendar event reference triple (REQ-004): provider key parses case-insensitively,
+    /// keys are non-blank and within <see cref="CalendarEventReference.MaxKeyLength"/>, and the account
+    /// belongs to one of the current user's connectors for that provider. Null when invalid.
+    /// </summary>
+    public async Task<CalendarEventReference?> ValidateEventReferenceAsync(
+        CalendarConnectorStore store,
+        string? providerKey,
+        string? accountKey,
+        string? externalEventId,
+        CancellationToken ct)
+    {
+        if (!CalendarEventReference.TryCreate(providerKey, accountKey, externalEventId, out var reference) || reference is null)
+        {
+            return null;
+        }
+
+        var connectors = await store.GetOwnByProviderAsync(reference.CalendarProvider, ct);
+        var ownsAccount = connectors.Any(c => string.Equals(c.AccountKey, reference.AccountKey, StringComparison.OrdinalIgnoreCase));
+        return ownsAccount ? reference : null;
+    }
+
+    /// <summary>
+    /// Id of the existing time entry referencing the event triple (unique index ⇒ at most one), or null.
+    /// </summary>
+    public async Task<Guid?> FindTrackedEntryIdAsync(
+        ApskaitaDbContext db,
+        CalendarEventReference reference,
+        CancellationToken ct)
+    {
+        return await db.TimeTrackings
+            .Where(t => t.CalendarEvent != null
+                && t.CalendarEvent!.CalendarProvider == reference.CalendarProvider
+                && t.CalendarEvent.AccountKey == reference.AccountKey
+                && t.CalendarEvent.ExternalEventId == reference.ExternalEventId)
+            .Select(t => (Guid?)t.Id)
+            .FirstOrDefaultAsync(ct);
     }
 
     /// <summary>

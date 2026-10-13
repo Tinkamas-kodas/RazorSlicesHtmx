@@ -314,12 +314,13 @@ public sealed class CalendarConnectorTests
     }
 
     [Fact]
-    public async Task TimeTrackingList_CalendarEvents_AreDisplayOnly()
+    public async Task TimeTrackingList_IdentitylessCalendarEvents_AreInert()
     {
         await using var factory = new CalendarStubApiFactory();
         factory.SetPrincipal(UserEmail, UserRole.User);
         await SeedUserAsync(factory);
 
+        // Events without an identity triple (no provider/event id) cannot be referenced -> no click wiring.
         factory.Reader.Result = new CalendarReadResult(true, [
             new CalendarEventInfo(
                 "Standup",
@@ -335,7 +336,7 @@ public sealed class CalendarConnectorTests
         Assert.Contains("Standup", html);
         Assert.Contains("Online", html);
 
-        // REQ-008: no htmx wiring on calendar event elements.
+        // Superseded REQ-008 (display-only) still holds for identity-less events: no htmx wiring.
         var panelStart = html.IndexOf("tt-calendar-panel", StringComparison.Ordinal);
         Assert.True(panelStart >= 0, "Calendar panel should be rendered.");
         var panel = html.Substring(panelStart);

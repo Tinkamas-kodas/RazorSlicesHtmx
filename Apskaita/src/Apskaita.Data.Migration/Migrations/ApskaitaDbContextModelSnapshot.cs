@@ -1251,6 +1251,47 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.Navigation("IssuerInfo")
                         .IsRequired();
                 });
+
+            modelBuilder.Entity("Apskaita.Entities.TimeTracking", b =>
+                {
+                    b.OwnsOne("Apskaita.Entities.CalendarEventReference", "CalendarEvent", b1 =>
+                        {
+                            b1.Property<Guid>("TimeTrackingId")
+                                .HasColumnType("char(36)")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("AccountKey")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("varchar(255)")
+                                .HasColumnName("calendar_event_account_key");
+
+                            b1.Property<string>("CalendarProvider")
+                                .IsRequired()
+                                .HasColumnType("enum('Outlook365')")
+                                .HasColumnName("calendar_event_calendar_provider");
+
+                            b1.Property<string>("ExternalEventId")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("varchar(255)")
+                                .HasColumnName("calendar_event_external_event_id");
+
+                            b1.HasKey("TimeTrackingId");
+
+                            b1.HasIndex("CalendarProvider", "AccountKey", "ExternalEventId")
+                                .IsUnique()
+                                .HasDatabaseName("ix_time_trackings_calendar_event_calendar_provider_calendar_eve");
+
+                            b1.ToTable("time_trackings");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TimeTrackingId")
+                                .HasConstraintName("fk_time_trackings_time_trackings_id");
+                        });
+
+                    b.Navigation("CalendarEvent");
+                });
 #pragma warning restore 612, 618
         }
     }

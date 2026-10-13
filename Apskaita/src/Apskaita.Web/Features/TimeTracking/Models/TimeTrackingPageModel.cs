@@ -39,8 +39,11 @@ public sealed record TimeTrackingEntryViewModel(
     int DescriptionLineClamp);
 
 /// <summary>
-/// A calendar event rendered in the time tracking side panel (display-only, REQ-008). Times are local;
-/// <see cref="DayDate"/> groups the event under its day header.
+/// A calendar event rendered in the time tracking side panel. Times are display-zone wall times;
+/// <see cref="DayDate"/> groups the event under its day header. The identity triple
+/// (<see cref="ProviderKey"/>, <see cref="AccountKey"/>, <see cref="EventId"/>) builds the single
+/// <c>event</c> URL; <see cref="IsTracked"/> renders the "Logged" badge while the server still
+/// decides create-vs-edit on click.
 /// </summary>
 public sealed record TimeTrackingCalendarEventViewModel(
     DateOnly DayDate,
@@ -49,4 +52,9 @@ public sealed record TimeTrackingCalendarEventViewModel(
     TimeOnly End,
     string? Location,
     bool IsOnline,
-    string? OrganizerName);
+    string? OrganizerName,
+    string ProviderKey,
+    string AccountKey,
+    string EventId,
+    int DurationMinutes,
+    bool IsTracked);

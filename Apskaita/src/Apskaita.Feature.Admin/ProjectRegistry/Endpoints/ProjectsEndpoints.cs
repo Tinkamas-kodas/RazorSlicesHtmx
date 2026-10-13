@@ -1,3 +1,4 @@
+using Apskaita.Entities;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Services;
 using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
@@ -6,12 +7,12 @@ using Apskaita.Web.Features.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.ProjectColors;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Features.Admin.ProjectRegistry.Endpoints;
 
 public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ProjectRegistryWorkspaceFactory>(resultBuilder)
 {
-    private readonly ProjectsContentService _content = new();
     public override string FeatureDivId => "feature-details";
 
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
@@ -23,14 +24,35 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
     {
         group.RequireAuthorization(AuthPolicies.Admin);
 
+        // GET list — read seam (IQuery<Project>); required navigations translate to inner joins.
         group.MapGet("list", async (
             HttpContext ctx,
             [AsParameters] ProjectSearchModel search,
             ProjectListQuery query,
-            IAdminStore db,
+            IQuery<Project> projects,
             CancellationToken ct) =>
         {
-            var model = await _content.CreateListModelAsync(db, search, query, ct);
+            var items = projects.All().Select(p => new ProjectRowModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Code = p.Code,
+                ClientName = p.Client.Info.Name,
+                HourlyRate = p.HourlyRate,
+                CurrencyCode = p.CurrencyCode,
+                TemplateName = p.InvoiceTemplate.Name,
+                IsActive = p.IsActive
+            });
+
+            if (!string.IsNullOrWhiteSpace(search.Search))
+            {
+                var term = search.Search.Trim();
+                items = items.Where(x => x.Name.Contains(term) || (x.Code != null && x.Code.Contains(term)) || x.CurrencyCode.Contains(term));
+            }
+
+            var paged = await items.ToPagedListAsync(query, ct);
+            var model = new ProjectListModel(paged.Total, search, query, paged.Items);
+
             if (ctx.IsHtmxTarget("projects-list"))
             {
                 return Result.Fragment(_ProjectsList.Create(model)).WithState(search).WithState(query);
@@ -39,8 +61,13 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             return Result.Page(_ListPage.Create(model)).WithState(search).WithState(query);
         });
 
-        group.MapGet("create", async (IAdminStore db, CancellationToken ct) =>
-            Result.Page(_CreatePage.Create(await _content.CreateCreateFormModelAsync(db, ct))));
+        // GET create — read seam for the client/template option lists.
+        group.MapGet("create", async (IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
+        {
+            var model = ProjectForms.CreateCreateFormModel();
+            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            return Result.Page(_CreatePage.Create(model));
+        });
 
         group.MapGet("color-lookup", (string? query) =>
         {
@@ -60,69 +87,92 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
 
         group.MapGet("color-preview", (string? colorRgb, string? colorLabel) =>
         {
-            var model = _content.CreateColorPreviewModel(colorRgb, colorLabel);
+            var model = ProjectForms.CreateColorPreviewModel(colorRgb, colorLabel);
             return Result.Fragment(_ColorPreview.Create(model));
         });
 
+        // POST create — write seam (IAdminStore); form rebuild reads options via IQuery.
         group.MapPost("create", async (
             ProjectUpsertRequest request,
             IValidator<ProjectUpsertRequest> validator,
-            IAdminStore db,
+            IAdminStore store,
+            IQuery<Client> clients,
+            IQuery<InvoiceTemplate> templates,
             CancellationToken ct) =>
         {
-            _content.TrimRequest(request);
+            ProjectForms.TrimRequest(request);
             var validationResult = await validator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
                 request.Errors = validationResult.ToErrorDictionary();
-                await _content.PopulateOptionsAsync(db, request, ct);
+                await ProjectForms.PopulateOptionsAsync(request, clients, templates, ct);
                 return Result.Page(_CreatePage.Create(request));
             }
 
-            await _content.CreateAsync(db, request, ct);
-            return Result.Page(_CreatePage.Create(await _content.CreateCreateFormModelAsync(db, ct))).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
+            store.Projects.Add(ProjectForms.ToEntity(request));
+            await store.SaveChangesAsync(ct);
+
+            var model = ProjectForms.CreateCreateFormModel();
+            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            return Result.Page(_CreatePage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was created.");
         });
 
-        group.MapGet("edit/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // GET edit — read seam (no-tracking find for display).
+        group.MapGet("edit/{id:guid}", async (
+            Guid id,
+            IQuery<Project> projects,
+            IQuery<Client> clients,
+            IQuery<InvoiceTemplate> templates,
+            CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
-            var model = await _content.CreateEditFormModelAsync(db, row, ct);
+
+            var model = ProjectForms.CreateEditFormModel(row);
+            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
             return Result.Page(_EditPage.Create(model));
         });
 
+        // POST edit — write seam (tracked load for mutation); form rebuild reads options via IQuery.
         group.MapPost("edit/{id:guid}", async (
             Guid id,
             ProjectUpsertRequest request,
             IValidator<ProjectUpsertRequest> validator,
-            IAdminStore db,
+            IAdminStore store,
+            IQuery<Client> clients,
+            IQuery<InvoiceTemplate> templates,
             CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await store.Projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
 
-            _content.TrimRequest(request);
+            ProjectForms.TrimRequest(request);
             var validationResult = await validator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
                 request.Errors = validationResult.ToErrorDictionary();
                 request.IsActive = row.IsActive;
-                await _content.PopulateOptionsAsync(db, request, ct);
+                await ProjectForms.PopulateOptionsAsync(request, clients, templates, ct);
                 return Result.Page(_EditPage.Create(request));
             }
 
-            await _content.ApplyAsync(db, row, request, ct);
-            return Result.Page(_EditPage.Create(await _content.CreateEditFormModelAsync(db, row, ct))).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
+            ProjectForms.ApplyToEntity(row, request);
+            await store.SaveChangesAsync(ct);
+
+            var model = ProjectForms.CreateEditFormModel(row);
+            await ProjectForms.PopulateOptionsAsync(model, clients, templates, ct);
+            return Result.Page(_EditPage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
         });
 
-        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore db, CancellationToken ct) =>
+        // POST toggle — write seam (tracked load + mutate).
+        group.MapPost("toggle/{id:guid}", async (Guid id, HttpContext ctx, IAdminStore store, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await store.Projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
 
             row.IsActive = !row.IsActive;
             row.UpdatedAtUtc = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            await store.SaveChangesAsync(ct);
 
             var model = new StatusToggleModel(id, row.IsActive, ctx.Request.Path.Value ?? string.Empty);
             return Result.Fragment(_StatusAction.Create(model))
@@ -131,18 +181,22 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                     title: "Status", tone: row.IsActive ? ToastTone.Success : ToastTone.Warning);
         });
 
-        group.MapGet("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // GET delete — read seam (no-tracking find for the dialog).
+        group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Project> projects, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
-            return Result.ShowDialog(_ProjectDelete.Create(_content.CreateDeleteDialogModel(row)));
+            return Result.ShowDialog(_ProjectDelete.Create(ProjectForms.CreateDeleteDialogModel(row)));
         });
 
-        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore db, CancellationToken ct) =>
+        // POST delete — write seam (tracked load + remove).
+        group.MapPost("delete/{id:guid}", async (Guid id, IAdminStore store, CancellationToken ct) =>
         {
-            var row = await _content.FindByIdAsync(db, id, ct);
+            var row = await store.Projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
-            await _content.DeleteAsync(db, row, ct);
+
+            store.Projects.Remove(row);
+            await store.SaveChangesAsync(ct);
 
             return Result.Page(_Empty.Create())
                 .WithTrigger("Projects.ListRefresh")
@@ -151,4 +205,3 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         });
     }
 }
-

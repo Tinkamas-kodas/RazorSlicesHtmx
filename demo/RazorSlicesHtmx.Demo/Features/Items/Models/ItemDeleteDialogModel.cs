@@ -1,4 +1,4 @@
-using RazorSlicesHtmx.HtmlNames;
+using RazorSlicesHtmx.AspNetCore.Html;
 
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 

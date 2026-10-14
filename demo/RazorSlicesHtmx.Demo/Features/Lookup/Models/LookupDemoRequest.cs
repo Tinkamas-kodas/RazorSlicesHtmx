@@ -1,6 +1,6 @@
 namespace RazorSlicesHtmx.Demo.Features.Lookup.Models;
 
-[RazorSlicesHtmx.HtmlNames.GenerateHtmlNames]
+[RazorSlicesHtmx.AspNetCore.Html.GenerateHtmlNames]
 [GenerateFormBinder]
 public sealed partial class LookupDemoRequest
 {

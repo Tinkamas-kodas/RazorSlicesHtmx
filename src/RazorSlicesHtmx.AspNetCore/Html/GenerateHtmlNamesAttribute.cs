@@ -1,4 +1,4 @@
-namespace RazorSlicesHtmx.HtmlNames;
+namespace RazorSlicesHtmx.AspNetCore.Html;
 
 /// <summary>
 /// Marks a model class or record for <c>HtmlNames</c> generation: the <c>GenerateHtmlNamesGenerator</c>
@@ -6,7 +6,6 @@ namespace RazorSlicesHtmx.HtmlNames;
 /// Declared once in <c>RazorSlicesHtmx.AspNetCore</c> so every consuming assembly shares the same type
 /// instead of each getting its own generated copy.
 /// </summary>
-/// <param name="maxDepth">Nesting depth to walk for owned/complex properties; <c>0</c> (default) means the attribute's own default.</param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
 public sealed class GenerateHtmlNamesAttribute : Attribute
 {

@@ -1,4 +1,4 @@
-using RazorSlicesHtmx.AspNetCore.HtmlNames;
+using RazorSlicesHtmx.AspNetCore.Html;
 
 namespace MyApp.Features.MyFeature.Models;
 

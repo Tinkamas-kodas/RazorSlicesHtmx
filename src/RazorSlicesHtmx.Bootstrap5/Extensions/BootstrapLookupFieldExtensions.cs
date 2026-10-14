@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Html;
 using RazorSlicesHtmx.AspNetCore.Html;
-using RazorSlicesHtmx.AspNetCore.HtmlNames;
 using RazorSlicesHtmx.Bootstrap5.Options;
 
 namespace RazorSlicesHtmx.Bootstrap5.Extensions;

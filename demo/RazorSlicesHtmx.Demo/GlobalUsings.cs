@@ -1,4 +1,6 @@
+global using RazorSlicesHtmx.AspNetCore;
 global using RazorSlicesHtmx.AspNetCore.Features;
+global using RazorSlicesHtmx.AspNetCore.Html;
 global using RazorSlicesHtmx.AspNetCore.Extensions;
 global using RazorSlicesHtmx.AspNetCore.Models;
 global using RazorSlicesHtmx.AspNetCore.Rendering;

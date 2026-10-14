@@ -1,6 +1,4 @@
-using RazorSlicesHtmx.HtmlNames;
-
-namespace RazorSlicesHtmx.AspNetCore.HtmlNames;
+namespace RazorSlicesHtmx.AspNetCore.Html;
 
 /// <summary>
 /// Combines HTML field metadata with the property value and optional validation errors.

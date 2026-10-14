@@ -1,6 +1,6 @@
 namespace RazorSlicesHtmx.Demo.Features.Items.Models;
 
-[RazorSlicesHtmx.HtmlNames.GenerateHtmlNames]
+[RazorSlicesHtmx.AspNetCore.Html.GenerateHtmlNames]
 [GenerateFormBinder]
 public sealed partial class ItemUpsertRequest : IHaveValidationResult
 {

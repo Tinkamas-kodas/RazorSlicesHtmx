@@ -160,7 +160,7 @@ Form field helpers in `RazorSlicesHtmx.Bootstrap5.Extensions` return `FluentTagB
 
 - Use `BootstrapFieldOptions.Floating` (preset with empty `LabelClass`) for floating label layouts.
 - For floating labels: place `Input` **before** `Label`, wrap in `<div class="form-floating">`.
-- `[GenerateHtmlNames]` is declared (not generated) in the `RazorSlicesHtmx.AspNetCore` assembly, namespace `RazorSlicesHtmx.HtmlNames` — one shared type, so every consuming assembly resolves the same attribute. Add `global using RazorSlicesHtmx.HtmlNames;` to use it unqualified.
+- `[GenerateHtmlNames]` is declared (not generated) in the `RazorSlicesHtmx.AspNetCore` assembly, namespace `RazorSlicesHtmx.AspNetCore.Html` — one shared type, so every consuming assembly resolves the same attribute. Add `global using RazorSlicesHtmx.AspNetCore.Html;` to use it unqualified.
 
 ## Common Pitfalls
 

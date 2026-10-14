@@ -146,7 +146,7 @@ The generator creates `FromQuery`, `BindAsync`, and `SortMap`. Use `[SortDisable
 public sealed class ItemUpsertRequest { ... }
 ```
 
-Note: `[GenerateHtmlNames]` is declared in the `RazorSlicesHtmx.AspNetCore` assembly under namespace `RazorSlicesHtmx.HtmlNames` (shared type, not emitted per assembly).
+Note: `[GenerateHtmlNames]` is declared in the `RazorSlicesHtmx.AspNetCore` assembly under namespace `RazorSlicesHtmx.AspNetCore.Html` (shared type, not emitted per assembly).
 
 Use `For.Code.Name`, `For.Code.Id` in Razor for compile-time safe form field references.
 

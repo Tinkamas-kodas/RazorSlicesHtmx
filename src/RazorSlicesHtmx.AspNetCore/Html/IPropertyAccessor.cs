@@ -1,4 +1,4 @@
-namespace RazorSlicesHtmx.HtmlNames;
+namespace RazorSlicesHtmx.AspNetCore.Html;
 
 /// <summary>
 /// Provides access to HTML field metadata (name, path, id) for a model property.

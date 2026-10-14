@@ -1,4 +1,3 @@
-using Apskaita.Data.Migrations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Data;

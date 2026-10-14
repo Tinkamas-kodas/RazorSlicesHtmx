@@ -1,14 +1,12 @@
 using System.Globalization;
-using Apskaita.Entities;
 using Apskaita.Entities.Contracts;
 using Apskaita.Feature.TimeTracking.Models;
 using Apskaita.Feature.TimeTracking.Persistence;
 using Apskaita.Feature.TimeTracking.Slices;
 using Apskaita.Shared.Calendar;
-using Apskaita.Web.Shared;
-using Apskaita.Web.Shared.Calendar;
-using Apskaita.Web.Shared.ProjectColors;
-using Apskaita.Web.Shared.Routing;
+using Apskaita.Shared;
+using Apskaita.Shared.ProjectColors;
+using Apskaita.Shared.Routing;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +14,7 @@ using TimeTrackingEntry = Apskaita.Entities.TimeTracking;
 using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
 namespace Apskaita.Feature.TimeTracking.Endpoints;
+
 
 /// <summary>
 /// Time-tracking feature endpoints. Reads compose over <see cref="IQuery{T}"/> (no-tracking);
@@ -76,7 +75,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
         // return — the existing entry's edit dialog when an entry references the event, otherwise a
         // create dialog prefilled with the event's display-zone start and duration.
         group.MapGet("event", async (
-            HttpContext ctx,
+           
             IFeatureUri uri,
             string provider,
             string account,

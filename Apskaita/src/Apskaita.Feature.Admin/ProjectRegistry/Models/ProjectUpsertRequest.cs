@@ -1,4 +1,4 @@
-using Apskaita.Web.Shared.ProjectColors;
+using Apskaita.Shared.ProjectColors;
 
 namespace Apskaita.Feature.Admin.ProjectRegistry.Models;
 

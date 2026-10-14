@@ -4,7 +4,7 @@ using Apskaita.Feature.Account.UserRegistry.Models;
 using Apskaita.Feature.Account.UserRegistry.Slices;
 using Apskaita.Shared.Ui.Common.Models;
 using Apskaita.Shared.Ui.Common.Slices;
-using Apskaita.Web.Shared;
+using Apskaita.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

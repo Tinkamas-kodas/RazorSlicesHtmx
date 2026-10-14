@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+using Apskaita.Entities;
 using Apskaita.Entities.Mapping;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Entities;
+namespace Apskaita.Web.Data;
 
 /// <summary>
 /// Application database context. Also implements <see cref="IDataProtectionKeyContext"/> so the ASP.NET
@@ -10,6 +12,7 @@ namespace Apskaita.Entities;
 /// local machine — calendar connector tokens survive redeployment and scale-out (see README).
 /// Table/column names follow the snake_case naming convention like the rest of the schema.
 /// </summary>
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> options) : DbContext(options), IDataProtectionKeyContext
 {
     public DbSet<Company> Companies => Set<Company>();

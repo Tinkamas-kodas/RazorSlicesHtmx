@@ -1,6 +1,6 @@
 using Apskaita.Web.Layout.Models;
 using Apskaita.Web.Layout.Slices;
-using Apskaita.Web.Shared;
+using Apskaita.Shared;
 
 namespace Apskaita.Web.Layout.Rendering;
 

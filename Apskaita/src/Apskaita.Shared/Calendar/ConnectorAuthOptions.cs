@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// Calendar-connector consent app (Microsoft Graph delegated scopes). Multi-tenant: authority is always

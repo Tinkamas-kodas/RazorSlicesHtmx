@@ -1,6 +1,6 @@
 using Apskaita.Entities;
 using Apskaita.Feature.Account;
-using Apskaita.Web.Shared.Calendar;
+using Apskaita.Shared.Calendar;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
 using Apskaita.Feature.Account.Persistence;
-using Apskaita.Shared.Calendar;
+using Apskaita.Web.Data;
 
 namespace Apskaita.Tests.Services;
 

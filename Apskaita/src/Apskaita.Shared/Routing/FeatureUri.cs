@@ -1,6 +1,6 @@
 using RazorSlicesHtmx.AspNetCore.Features;
 
-namespace Apskaita.Web.Shared.Routing;
+namespace Apskaita.Shared.Routing;
 
 public interface IFeatureUri
 {

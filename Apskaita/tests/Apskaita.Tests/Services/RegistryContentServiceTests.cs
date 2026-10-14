@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
 using Apskaita.Tests.Endpoints;
+using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Tests.Services;
 
@@ -70,7 +71,7 @@ public sealed class RegistryContentServiceTests
         Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
 
         await using var verify = factory.NewDbContext();
-        var updated = verify.Clients.Single();
+        var updated = verify.Clients.Include(company => company.Info).Single();
         Assert.False(updated.IsActive, "Edit must not change IsActive (the toggle action owns it).");
         Assert.Equal("Renamed", updated.Info.Name);
     }

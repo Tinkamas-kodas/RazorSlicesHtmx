@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Apskaita.Entities;
+namespace Apskaita.Web.Data;
 
 public static class DataAccessServiceCollectionExtensions
 {

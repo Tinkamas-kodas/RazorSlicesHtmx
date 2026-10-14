@@ -1,6 +1,7 @@
 using System.Net;
 using Apskaita.Entities;
-using Apskaita.Web.Shared.Calendar;
+using Apskaita.Shared.Calendar;
+using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Tests.Endpoints;
 
@@ -188,14 +189,12 @@ public sealed class TimeTrackingFromCalendarTests
         var response = await PostCreateAsync(seeded, form);
         Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
 
-        await using (var db = seeded.NewDbContext())
-        {
-            var row = db.TimeTrackings.Single();
-            Assert.NotNull(row.CalendarEvent);
-            Assert.True(row.CalendarEvent!.CalendarProvider == CalendarProvider.Outlook365, "Provider persisted.");
-            Assert.True(row.CalendarEvent.AccountKey == Account, "Account persisted.");
-            Assert.True(row.CalendarEvent.ExternalEventId == EventId, "External id persisted.");
-        }
+        await using var db = seeded.NewDbContext();
+        var row = db.TimeTrackings.Include(timeTracking => timeTracking.CalendarEvent).Single();
+        Assert.NotNull(row.CalendarEvent);
+        Assert.True(row.CalendarEvent!.CalendarProvider == CalendarProvider.Outlook365, "Provider persisted.");
+        Assert.True(row.CalendarEvent.AccountKey == Account, "Account persisted.");
+        Assert.True(row.CalendarEvent.ExternalEventId == EventId, "External id persisted.");
     }
 
     [Fact]
@@ -208,7 +207,7 @@ public sealed class TimeTrackingFromCalendarTests
         Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
 
         await using var db = seeded.NewDbContext();
-        Assert.True(db.TimeTrackings.Single().CalendarEvent is null, "Manual entries carry no reference.");
+        Assert.True(db.TimeTrackings.Include(timeTracking => timeTracking.CalendarEvent).Single().CalendarEvent is null, "Manual entries carry no reference.");
     }
 
     [Fact]
@@ -242,7 +241,7 @@ public sealed class TimeTrackingFromCalendarTests
         Assert.True(response.IsSuccessStatusCode, $"Expected toast response, got {(int)response.StatusCode}.");
         // Toasts arrive through the HX-Trigger header JSON, not the (empty) body.
         Assert.True(response.Headers.TryGetValues("HX-Trigger", out var triggers));
-        Assert.Contains("already logged", string.Join(",", triggers!));
+        Assert.Contains("already logged", string.Join(",", triggers));
 
         await using var checkDb = seeded.NewDbContext();
         Assert.Equal(1, checkDb.TimeTrackings.Count());

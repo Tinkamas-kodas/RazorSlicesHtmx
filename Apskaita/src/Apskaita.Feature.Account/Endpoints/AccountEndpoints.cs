@@ -2,9 +2,9 @@ using System.Security.Claims;
 using Apskaita.Feature.Account.Persistence;
 using Apskaita.Feature.Account.Models;
 using Apskaita.Feature.Account.Slices;
-using Apskaita.Web.Shared;
-using Apskaita.Web.Shared.Calendar;
-using Apskaita.Web.Shared.Routing;
+using Apskaita.Shared;
+using Apskaita.Shared.Calendar;
+using Apskaita.Shared.Routing;
 using Microsoft.AspNetCore.Authentication;
 
 namespace Apskaita.Feature.Account.Endpoints;

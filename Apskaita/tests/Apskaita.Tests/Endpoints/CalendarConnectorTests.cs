@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
-using Apskaita.Web.Shared.Calendar;
+using Apskaita.Shared.Calendar;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 

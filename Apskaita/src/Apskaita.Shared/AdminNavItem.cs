@@ -1,6 +1,6 @@
 using RazorSlicesHtmx.AspNetCore.Models;
 
-namespace Apskaita.Web.Shared;
+namespace Apskaita.Shared;
 
 public sealed record AdminNavItem(
     string Group,

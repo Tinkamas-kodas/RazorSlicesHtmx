@@ -1,4 +1,4 @@
-using Apskaita.Entities;
+using Apskaita.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Tests;

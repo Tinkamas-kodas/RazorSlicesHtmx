@@ -1,6 +1,6 @@
 @inherits RazorSlice<ProjectUpsertRequest>
 @using RazorSlicesHtmx.Bootstrap5.Extensions
-@using Apskaita.Web.Shared.ProjectColors
+@using Apskaita.Shared.ProjectColors
 
 @{ var f = Model.For(); }
 @{ var selectedColorLabel = string.IsNullOrWhiteSpace(Model.ColorLabel) ? ProjectColorCatalog.GetLookupText(Model.ColorRgb) : Model.ColorLabel; }

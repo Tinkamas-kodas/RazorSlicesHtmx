@@ -4,8 +4,8 @@ using Apskaita.Feature.Admin.ProjectRegistry.Slices;
 using Apskaita.Shared.Ui.Common.Models;
 using Apskaita.Shared.Ui.Common.Slices;
 using Apskaita.Feature.Admin.Persistence;
-using Apskaita.Web.Shared;
-using Apskaita.Web.Shared.ProjectColors;
+using Apskaita.Shared;
+using Apskaita.Shared.ProjectColors;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 

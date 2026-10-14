@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Apskaita.Web.Shared.ProjectColors;
+namespace Apskaita.Shared.ProjectColors;
 
 public static class ProjectColorCatalog
 {

@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// A normalized calendar event for display. Mapped from a provider's event model (currently Microsoft

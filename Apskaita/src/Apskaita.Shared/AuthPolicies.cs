@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Shared;
+namespace Apskaita.Shared;
 
 /// <summary>
 /// Authorization policy names shared between the app's authentication wiring (Apskaita.Web) and the

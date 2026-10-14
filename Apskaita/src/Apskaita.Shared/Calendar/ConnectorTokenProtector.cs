@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// Protects calendar OAuth tokens at rest with ASP.NET Core Data Protection (SEC-001). Tokens are stored

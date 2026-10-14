@@ -31,17 +31,6 @@ internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAc
             ? id
             : null;
 
-    public async Task<CalendarConnector?> GetOwnAsync(CalendarProvider provider, CancellationToken ct)
-    {
-        var userId = CurrentUserId;
-        if (userId is null)
-        {
-            return null;
-        }
-
-        return await store.Connectors
-            .FirstOrDefaultAsync(c => c.UserId == userId && c.Provider == provider, ct);
-    }
 
     public async Task<IReadOnlyList<CalendarConnector>> GetOwnAllAsync(CancellationToken ct)
     {
@@ -134,20 +123,6 @@ internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAc
 
         await store.SaveChangesAsync(ct);
         return connector;
-    }
-
-    /// <summary>Deletes the current user's connector for a provider (REQ-003); false when none existed.</summary>
-    public async Task<bool> DisconnectOwnAsync(CalendarProvider provider, CancellationToken ct)
-    {
-        var connector = await GetOwnAsync(provider, ct);
-        if (connector is null)
-        {
-            return false;
-        }
-
-        store.Connectors.Remove(connector);
-        await store.SaveChangesAsync(ct);
-        return true;
     }
 
     /// <summary>

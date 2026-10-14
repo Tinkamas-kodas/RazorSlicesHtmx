@@ -1,6 +1,6 @@
 using Apskaita.Entities;
 
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// A calendar integration provider offered on the account page. Implementations with

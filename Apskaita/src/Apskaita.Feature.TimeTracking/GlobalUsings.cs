@@ -1,16 +1,11 @@
 global using RazorSlices;
 global using RazorSlicesHtmx.HtmlNames;
-global using Microsoft.Extensions.Options;
-global using Microsoft.Extensions.Logging;
-global using Microsoft.Extensions.DependencyInjection;
 global using RazorSlicesHtmx.AspNetCore.Features;
 global using RazorSlicesHtmx.AspNetCore.Extensions;
 global using RazorSlicesHtmx.AspNetCore.Models;
 global using RazorSlicesHtmx.AspNetCore.Results;
 global using RazorSlicesHtmx.AspNetCore.HtmlNames;
 global using RazorSlicesHtmx.AspNetCore.Slices;
-global using RazorSlicesHtmx.Bootstrap5.Extensions;
-global using RazorSlicesHtmx.Bootstrap5.Slices;
 global using RazorSlicesHtmx.FluentValidation.Extensions;
 global using Apskaita.Entities;
 global using Microsoft.AspNetCore.Builder;

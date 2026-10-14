@@ -1,4 +1,4 @@
-using Apskaita.Web.Shared.Calendar;
+using Apskaita.Shared.Calendar;
 
 namespace Apskaita.Feature.Account;
 

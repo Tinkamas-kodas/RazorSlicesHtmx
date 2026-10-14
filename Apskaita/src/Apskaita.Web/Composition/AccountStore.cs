@@ -1,5 +1,6 @@
 using Apskaita.Entities;
 using Apskaita.Feature.Account.Persistence;
+using Apskaita.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Composition;

@@ -1,9 +1,7 @@
-using Apskaita.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-
-namespace Apskaita.Data.Migrations;
+namespace Apskaita.Web.Data;
 
 public sealed class ApskaitaDbContextFactory : IDesignTimeDbContextFactory<ApskaitaDbContext>
 {

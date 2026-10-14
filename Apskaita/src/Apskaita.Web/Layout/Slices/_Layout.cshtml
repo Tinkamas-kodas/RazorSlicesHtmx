@@ -3,7 +3,6 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOptions<RazorSlicesHtmxOptions> HtmxOptionsAccessor
 @inject IWebHostEnvironment HostEnvironment
-@* ReSharper disable once Html.PathError *@
 @{
     var httpContext = HttpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is required to render antiforgery tokens.");
     var antiforgeryToken = httpContext.Items["RequestVerificationToken"] as string ?? string.Empty;
@@ -23,8 +22,9 @@
     <meta name="request-verification-token" content="@antiforgeryToken">
     <title>@Model.Title</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/pulse/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    
+    @* ReSharper disable Html.PathError *@
     <link rel="stylesheet" href="/_content/RazorSlicesHtmx.Bootstrap5/css/rsh-lookup-select.css">
+    @* ReSharper restore Html.PathError *@
     <link rel="stylesheet" href="/css/site.css?v=@Assets.Version">
     <script src="/js/browser-timezone.js?v=20261012-1"></script>
 </head>
@@ -47,8 +47,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js" crossorigin="anonymous"></script>
+@* ReSharper disable Html.PathError *@
     <script src="/_content/RazorSlicesHtmx.Bootstrap5/js/rsh-lookup-select.js"></script>
-    @if (HostEnvironment.IsDevelopment())
+@* ReSharper restore Html.PathError *@
+@if (HostEnvironment.IsDevelopment())
     {
         <script src="/js/htmx-debug.js?v=20260803-1"></script>
     }

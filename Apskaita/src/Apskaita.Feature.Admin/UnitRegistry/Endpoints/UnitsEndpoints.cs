@@ -4,7 +4,7 @@ using Apskaita.Feature.Admin.UnitRegistry.Slices;
 using Apskaita.Shared.Ui.Common.Models;
 using Apskaita.Shared.Ui.Common.Slices;
 using Apskaita.Feature.Admin.Persistence;
-using Apskaita.Web.Shared;
+using Apskaita.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 

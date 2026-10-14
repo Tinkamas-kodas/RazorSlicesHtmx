@@ -82,7 +82,7 @@ Notes:
 
 ### 3.2 `Apskaita.Shared` — infrastructure, provider connectors (NEW project)
 
-Absorbs `Apskaita.Web.Shared` and `Apskaita.Web/Shared/*`, `Apskaita.Web/Logging/*`,
+Absorbs `Apskaita.Shared` and `Apskaita.Web/Shared/*`, `Apskaita.Web/Logging/*`,
 `Apskaita.Web/Features/Account/Authentication/*`.
 
 ```
@@ -210,7 +210,7 @@ Apskaita.Web/
   wwwroot/                   (stays: css/site.css, js/*, icons/)
 ```
 
-**Retired projects:** `Apskaita.Data.Migration` (absorbed into `Web/Data`), `Apskaita.Web.Shared`
+**Retired projects:** `Apskaita.Data.Migration` (absorbed into `Web/Data`), `Apskaita.Shared`
 (merged into `Apskaita.Shared`). `Apskaita.Entities` loses `ApskaitaDbContext`, `Mapping/`, and
 `DataAccessServiceCollectionExtensions`.
 
@@ -265,7 +265,7 @@ Each stage ends green: `dotnet build Apskaita/Apskaita.slnx` + `dotnet test --pr
 | **0. Baseline** | Current tree builds/tests green (done 2026-10-13: 107/107) | — | ✅ done |
 | **8. Test isolation** (added) | Serialize `ApskaitaApiFactory`-based classes via `[Collection("Integration")]` — fixes parallel-host flakiness | repeated green runs | ✅ done (`45fca63`) |
 | **1. Contracts** | Add `Contracts/IQuery.cs` to `Apskaita.Entities` + `Query<T>` impl and open-generic registration in Web. No behavior change. | build + tests | ✅ done (`5191bf5`) |
-| **2. `Apskaita.Shared`** | New project; move `Web.Shared` (FeatureUri, AuthPolicies, AdminNavItem, ProjectColorCatalog), `Web/Shared/*` (Calendar/*, BrowserTimeZone), `Web/Logging/*`, `AccountCookieEvents`. Add `ICalendarConnectorTokenStore`; refactor `Outlook365Connector` to depend on it (keep `CalendarConnectorStore` temporarily in Web as a stop-gap implementation). Delete `Apskaita.Web.Shared`. | build + tests + connector smoke | ✅ done (`3c203b4`) |
+| **2. `Apskaita.Shared`** | New project; move `Web.Shared` (FeatureUri, AuthPolicies, AdminNavItem, ProjectColorCatalog), `Web/Shared/*` (Calendar/*, BrowserTimeZone), `Web/Logging/*`, `AccountCookieEvents`. Add `ICalendarConnectorTokenStore`; refactor `Outlook365Connector` to depend on it (keep `CalendarConnectorStore` temporarily in Web as a stop-gap implementation). Delete `Apskaita.Shared`. | build + tests + connector smoke | ✅ done (`3c203b4`) |
 | **3. Account pilot** | New `Apskaita.Feature.Account`; move `Web/Features/Account/*` + `CalendarConnectorStore` + Admin's `UsersEndpoints` (re-registered under `/admin/users`); declare internal `IAccountStore` + IVT; `AccountStore` adapter + `Query<T>` in Web/Composition; implement `AccountConnectorTokenStore`. Web registers everything. | build + tests + `/account` and `/admin/users` smoke | ✅ done (`b6a4470`; Users completed in 4c) |
 | **4c. Users → Account** (added) | Move `Admin/Common` → `Apskaita.Shared`; relocate `UserRegistry/{Endpoints,Models,Services,Slices}` + `UsersEndpoints` → `Apskaita.Feature.Account` on `IAccountStore.Users`; dissolve `UsersContentService` per converged pattern; convert Users test to endpoint-level | build + tests | ✅ done (`0abd901` Common→Shared, `a58c499` Users→Account) |
 | **4. Admin** | Rename `Apskaita.Feature.Admin` → `Apskaita.Feature.Admin`; declare internal `IAdminStore`; switch all registry endpoints/services from `ApskaitaDbContext` to `IAdminStore`. | build + tests + admin pages smoke | ✅ done (`104f9e5`, `5b8ab2d`; replication `ef201b6`…`6f8bbd7`; `UserRegistry` moved out in 4c) |
@@ -334,7 +334,7 @@ Clients `ef201b6`, Issuers `04f8e6f`, Units `2c2b0c6`, InvoiceTemplates `b1afc14
 **Acceptance criteria — verified mechanically**: zero `ApskaitaDbContext` references in the three
 feature assemblies (and in `Apskaita.Shared` code); all three `IStore`s are `internal` with
 `InternalsVisibleTo("Apskaita.Web")` + `("Apskaita.Tests")`; cross-feature reads go through
-`IQuery<T>`; `Apskaita.Data.Migration` and `Apskaita.Web.Shared` are gone; solution builds
+`IQuery<T>`; `Apskaita.Data.Migration` and `Apskaita.Shared` are gone; solution builds
 0 warnings / 0 errors and the suite is 107/107 (exe) / 126 passed (VS Code runner).
 
 ## 8. Project-reference gotchas (verified in this repo)
@@ -358,4 +358,4 @@ feature assemblies (and in `Apskaita.Shared` code); all three `IStore`s are `int
    no-tracking; no feature writes another feature's tables.
 4. One `DbContext`, one `Migrations` folder, one `MigrateAsync` at startup; zero behavior change
    to routes, HTMX responses, or the 107 tests.
-5. `Apskaita.Data.Migration` and `Apskaita.Web.Shared` no longer exist; solution builds clean.
+5. `Apskaita.Data.Migration` and `Apskaita.Shared` no longer exist; solution builds clean.

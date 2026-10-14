@@ -1,6 +1,6 @@
 using Apskaita.Feature.Account.Models;
 using Apskaita.Feature.Account.Slices;
-using Apskaita.Web.Shared.Routing;
+using Apskaita.Shared.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using RazorSlices;

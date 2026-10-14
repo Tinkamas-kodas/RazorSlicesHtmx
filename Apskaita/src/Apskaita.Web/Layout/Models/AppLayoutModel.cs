@@ -1,4 +1,4 @@
-using Apskaita.Web.Shared;
+using Apskaita.Shared;
 
 namespace Apskaita.Web.Layout.Models;
 

@@ -3,8 +3,6 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
-using Apskaita.Web.Shared;
-using Apskaita.Web.Shared.Calendar;
 
 namespace Apskaita.Shared.Calendar;
 

@@ -2,7 +2,7 @@ using Apskaita.Entities.Contracts;
 using Apskaita.Feature.Admin.Persistence;
 using Apskaita.Feature.Admin.SystemConfig.Models;
 using Apskaita.Feature.Admin.SystemConfig.Slices;
-using Apskaita.Web.Shared;
+using Apskaita.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 

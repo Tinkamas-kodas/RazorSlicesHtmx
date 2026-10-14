@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Shared;
+namespace Apskaita.Shared;
 
 /// <summary>
 /// Browser-reported UTC offset. The client (<c>browser-timezone.js</c>) writes its timezone offset into

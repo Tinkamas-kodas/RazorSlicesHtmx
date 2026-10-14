@@ -1,5 +1,3 @@
 namespace Apskaita.Entities;
 
-public class Client : Company
-{
-}
+public class Client : Company;

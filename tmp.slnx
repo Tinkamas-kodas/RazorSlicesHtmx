@@ -5,7 +5,7 @@
     <Project Path="Apskaita/src/Apskaita.Entities/Apskaita.Entities.csproj" />
     <Project Path="Apskaita/src/Apskaita.Web/Apskaita.Web.csproj" />
     <Project Path="Apskaita/src/Apskaita.Feature.Admin/Apskaita.Feature.Admin.csproj" />
-    <Project Path="Apskaita/src/Apskaita.Web.Shared/Apskaita.Web.Shared.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Shared/Apskaita.Shared.csproj" />
     <Project Path="Apskaita/tests/Apskaita.Tests/Apskaita.Tests.csproj" />
   </Folder>
   <Folder Name="/RazorSlicesHtmx/">

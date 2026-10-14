@@ -1,5 +1,3 @@
 namespace Apskaita.Entities;
 
-public class Issuer : Company
-{
-}
+public class Issuer : Company;

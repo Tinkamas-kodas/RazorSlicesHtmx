@@ -1,4 +1,4 @@
-namespace Apskaita.Feature.Admin.UserRegistry.Models;
+namespace Apskaita.Feature.Account.UserRegistry.Models;
 
 public sealed record UserViewModel(
     Guid Id,

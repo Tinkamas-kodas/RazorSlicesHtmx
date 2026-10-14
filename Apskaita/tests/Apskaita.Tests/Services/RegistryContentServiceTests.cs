@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
 using Apskaita.Tests.Endpoints;
-using Apskaita.Feature.Admin.UserRegistry.Services;
 
 namespace Apskaita.Tests.Services;
 
@@ -154,23 +153,48 @@ public sealed class RegistryContentServiceTests
         Assert.DoesNotContain("Alpha", content);
     }
 
-    // ---- Users ----
+    // ---- Users (endpoint-level) ----
 
     [Fact]
     public async Task Users_ToggleActive_FlipsState()
     {
-        await using var db = TestDb.New();
-        var service = new UsersContentService();
-        var user = new User { Id = Guid.NewGuid(), DisplayName = "Test", Email = "test@example.com", Provider = "entra", SubjectId = "oid", IsActive = true };
-        db.Set<User>().Add(user);
-        await db.SaveChangesAsync(Ct);
+        await using var factory = new ApskaitaApiFactory();
 
-        var loaded = await service.FindByIdAsync(db, user.Id, Ct);
-        await service.ToggleActiveAsync(db, loaded!, Ct);
-        Assert.False(user.IsActive);
+        Guid userId;
+        await using (var db = factory.NewDbContext())
+        {
+            var user = new User { Id = Guid.NewGuid(), DisplayName = "Test", Email = "test@example.com", Provider = "entra", SubjectId = "oid", IsActive = true };
+            db.Set<User>().Add(user);
+            await db.SaveChangesAsync(Ct);
+            userId = user.Id;
+        }
 
-        loaded = await service.FindByIdAsync(db, user.Id, Ct);
-        await service.ToggleActiveAsync(db, loaded!, Ct);
-        Assert.True(user.IsActive);
+        var http = factory.CreateClient();
+        var listPage = await http.GetStringAsync("/admin/users/list");
+        var token = Regex.Match(listPage, "request-verification-token\"\\s+content=\"([^\"]+)\"").Groups[1].Value;
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/toggle/{userId}");
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using (var verify = factory.NewDbContext())
+        {
+            Assert.False(verify.Users.Single().IsActive, "First toggle should deactivate.");
+        }
+
+        var second = new HttpRequestMessage(HttpMethod.Post, $"/admin/users/toggle/{userId}");
+        second.Headers.TryAddWithoutValidation("HX-Request", "true");
+        second.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+
+        response = await http.SendAsync(second);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        await using (var verify = factory.NewDbContext())
+        {
+            Assert.True(verify.Users.Single().IsActive, "Second toggle should restore active.");
+        }
     }
 }

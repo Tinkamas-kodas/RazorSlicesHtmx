@@ -8,7 +8,7 @@ using Apskaita.Feature.Admin.UnitRegistry.Endpoints;
 using Apskaita.Feature.Admin.ProjectRegistry.Endpoints;
 using Apskaita.Feature.Admin.InvoiceTemplateRegistry.Endpoints;
 using Apskaita.Feature.Admin.SystemConfig.Endpoints;
-using Apskaita.Feature.Admin.UserRegistry.Endpoints;
+using Apskaita.Feature.Account.UserRegistry.Endpoints;
 using Apskaita.Web.Shared.Calendar;
 using FluentValidation;
 using Apskaita.Entities;

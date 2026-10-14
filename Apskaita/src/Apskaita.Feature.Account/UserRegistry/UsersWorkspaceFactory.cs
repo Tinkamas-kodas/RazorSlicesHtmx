@@ -1,6 +1,6 @@
-using Apskaita.Feature.Admin.UserRegistry.Slices;
+using Apskaita.Feature.Account.UserRegistry.Slices;
 
-namespace Apskaita.Feature.Admin.UserRegistry;
+namespace Apskaita.Feature.Account.UserRegistry;
 
 public sealed class UserRegistryWorkspaceFactory : BaseWorkspaceFactory
 {

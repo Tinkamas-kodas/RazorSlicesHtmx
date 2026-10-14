@@ -163,10 +163,12 @@ public sealed class TimeTrackingFromCalendarTests
     private static async Task<HttpResponseMessage> PostCreateAsync(ApskaitaApiFactory factory, Dictionary<string, string> form)
     {
         var http = factory.CreateClient();
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)
         };
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
         request.Headers.TryAddWithoutValidation("HX-Request", "true");
         request.Headers.TryAddWithoutValidation("HX-Target", "dialog-host");
         return await http.SendAsync(request);

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 using Apskaita.Entities;
 using Apskaita.Feature.Account;
 using Microsoft.AspNetCore.Authentication;
@@ -66,5 +67,25 @@ public static class TestPrincipal
         }
 
         return new ClaimsPrincipal(identity);
+    }
+}
+
+/// <summary>
+/// Antiforgery helper for integration tests: the layout emits the token as a
+/// <c>&lt;meta name="request-verification-token"&gt;</c> tag and the client-side htmx hook sends it as
+/// the <c>RequestVerificationToken</c> header. Tests POSTing forms emulate the browser by scraping the
+/// token from a rendered page.
+/// </summary>
+public static class TestAntiforgery
+{
+    private static readonly Regex TokenRegex = new("request-verification-token\"\\s+content=\"([^\"]+)\"", RegexOptions.Compiled);
+
+    /// <summary>Scrapes the antiforgery token from the given page (full-page GET) of the running app.</summary>
+    public static async Task<string> GetTokenAsync(HttpClient http, string pageUrl, CancellationToken ct = default)
+    {
+        var html = await http.GetStringAsync(pageUrl, ct);
+        var match = TokenRegex.Match(html);
+        Assert.True(match.Success, $"Antiforgery token should be present on {pageUrl}.");
+        return match.Groups[1].Value;
     }
 }

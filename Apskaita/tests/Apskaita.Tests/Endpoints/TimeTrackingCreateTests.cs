@@ -4,7 +4,8 @@ namespace Apskaita.Tests.Endpoints;
 
 /// <summary>
 /// P4: integration test for the time-tracking create endpoint's weekly-recurrence batch insert.
-/// The create route disables antiforgery, so no token is required.
+/// The create route requires antiforgery (the client-side htmx hook sends the token header), so the
+/// test scrapes it from the list page like the browser does.
 /// </summary>
 [Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class TimeTrackingCreateTests
@@ -46,10 +47,12 @@ public sealed class TimeTrackingCreateTests
         };
 
         var http = factory.CreateClient();
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)
         };
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
         request.Headers.TryAddWithoutValidation("HX-Request", "true");
         request.Headers.TryAddWithoutValidation("HX-Target", "dialog-host");
 
@@ -81,10 +84,12 @@ public sealed class TimeTrackingCreateTests
         };
 
         var http = factory.CreateClient();
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)
         };
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
         request.Headers.TryAddWithoutValidation("HX-Request", "true");
         request.Headers.TryAddWithoutValidation("HX-Target", "dialog-host");
 

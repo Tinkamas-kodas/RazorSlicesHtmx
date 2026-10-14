@@ -224,7 +224,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
                 .WithToast(request.CreateSavedMessage(projectData.Label, rows.Length), title: "Time entry", tone: ToastTone.Success);
-        }).DisableAntiforgery();
+        });
 
         group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>
         {
@@ -296,7 +296,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
                 .WithToast($"Updated time entry for '{projectData.Label}'.", title: "Time entry", tone: ToastTone.Success);
-        }).DisableAntiforgery();
+        });
 
         group.MapGet("delete/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>
         {
@@ -321,7 +321,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
                 .WithToast("Time entry was deleted.", title: "Time entry", tone: ToastTone.Warning);
-        }).DisableAntiforgery();
+        });
 
         group.MapPost("move/{id:guid}", async (
             Guid id,
@@ -350,7 +350,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             return Result.Fragment(_Empty.Create())
                 .WithTrigger("time-tracking-list-refresh")
                 .WithToast("Moved time entry.", title: "Time entry", tone: ToastTone.Success);
-        }).DisableAntiforgery();
+        });
 
         group.MapGet("project-lookup", async (
             string? query,

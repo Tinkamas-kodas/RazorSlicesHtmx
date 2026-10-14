@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Apskaita.Data.Migration/Apskaita.Data.Migration.csproj" />
     <Project Path="src/Apskaita.Entities/Apskaita.Entities.csproj" />
     <Project Path="src/Apskaita.Feature.Account/Apskaita.Feature.Account.csproj" />
     <Project Path="src/Apskaita.Feature.Admin/Apskaita.Feature.Admin.csproj" />

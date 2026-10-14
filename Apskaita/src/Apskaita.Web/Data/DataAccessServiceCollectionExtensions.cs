@@ -11,7 +11,7 @@ public static class DataAccessServiceCollectionExtensions
 
         services.AddDbContext<ApskaitaDbContext>(options => options
             .UseSnakeCaseNamingConvention()
-            .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Data.Migration")));
+            .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), sql => sql.MigrationsAssembly("Apskaita.Web")));
         return services;
     }
 }

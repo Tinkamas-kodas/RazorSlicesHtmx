@@ -1,5 +1,16 @@
 using Apskaita.Web;
+using Apskaita.Web.Data;
 using Serilog;
+
+// Migration runner mode (replaces the retired Apskaita.Data.Migration project): applies pending
+// EF Core migrations against MySQL and exits without starting the host, e.g.
+//   dotnet run --project src/Apskaita.Web -- --migrate --connection=...
+// The web host itself never migrates on startup, so in-process test hosts are unaffected.
+if (args.Any(a => a.Equals("--migrate", StringComparison.OrdinalIgnoreCase)))
+{
+    await MigrationRunner.RunAsync(args);
+    return;
+}
 
 // Startup configuration is decomposed into the Setup class (see Setup.cs); this file is intentionally a
 // thin orchestrator so the composition and ordering are obvious at a glance.

@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="RazorSlices" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\RazorSlicesHtmx.AspNetCore\RazorSlicesHtmx.AspNetCore.csproj" />

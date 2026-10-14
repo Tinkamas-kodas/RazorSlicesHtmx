@@ -1,22 +1,11 @@
 using Apskaita.Entities.Contracts;
 using FluentValidation;
-using Apskaita.Feature.TimeTracking.Models;
 using Microsoft.EntityFrameworkCore;
+using Apskaita.Feature.TimeTracking.Models;
 using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
 namespace Apskaita.Feature.TimeTracking.Validators;
 
-public static class TimeTrackingValidationContextExtensions
-{
-    public static void SetProjectLabel (this ValidationContext<TimeTrackingModel> context, string? label)
-    {
-        context.RootContextData["ProjectLabel"] = label;
-    }
-    public static string? GetProjectLabel(this ValidationContext<TimeTrackingModel> context)
-    {
-        return (string?)context.RootContextData["ProjectLabel"];
-    }
-}
 public sealed class TimeTrackingModelValidator : AbstractValidator<TimeTrackingModel>
 {
     public TimeTrackingModelValidator(IQuery<Project> projects)
@@ -29,18 +18,9 @@ public sealed class TimeTrackingModelValidator : AbstractValidator<TimeTrackingM
             .NotNull()
             .WithMessage("Project is required.");
         
-        RuleFor(x=>x.ProjectId)
-            .MustAsync(async (_, projectId,ctx, cancellationToken) =>
-            {
-                var label =await projects
-                    .All()
-                    .Where(p => p.Id == projectId)
-                    .Select(p=>p.Code == null ? p.Name : $"{p.Name} ({p.Code})")
-                    .FirstOrDefaultAsync(cancellationToken);
-                
-                ctx.SetProjectLabel(label);
-                return label!=null;
-            })
+        RuleFor(x => x.ProjectId)
+            .MustAsync(async (projectId, cancellationToken) =>
+                await projects.All().AnyAsync(p => p.Id == projectId, cancellationToken))
             .WithMessage("Project must exist.")
             .When(model => model.ProjectId.HasValue);
 

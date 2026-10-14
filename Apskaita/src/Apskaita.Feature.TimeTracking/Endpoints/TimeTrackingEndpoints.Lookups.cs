@@ -1,4 +1,3 @@
-using Apskaita.Entities;
 using Apskaita.Entities.Contracts;
 using Apskaita.Feature.TimeTracking.Slices;
 using Microsoft.EntityFrameworkCore;

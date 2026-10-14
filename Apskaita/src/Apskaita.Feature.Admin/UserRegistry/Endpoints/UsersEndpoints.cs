@@ -1,8 +1,8 @@
 using Apskaita.Feature.Admin.UserRegistry.Models;
 using Apskaita.Feature.Admin.UserRegistry.Services;
 using Apskaita.Feature.Admin.UserRegistry.Slices;
-using Apskaita.Feature.Admin.Common.Models;
-using Apskaita.Feature.Admin.Common.Slices;
+using Apskaita.Shared.Ui.Common.Models;
+using Apskaita.Shared.Ui.Common.Slices;
 using Apskaita.Web.Shared;
 using Microsoft.AspNetCore.Mvc;
 

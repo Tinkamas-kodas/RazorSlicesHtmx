@@ -1,4 +1,4 @@
-namespace Apskaita.Feature.Admin.Common.Models;
+namespace Apskaita.Shared.Ui.Common.Models;
 
 /// <summary>
 /// Model for the shared activate/deactivate action component.

@@ -6,6 +6,7 @@ namespace Apskaita.Tests.Endpoints;
 /// P4: integration test for the time-tracking create endpoint's weekly-recurrence batch insert.
 /// The create route disables antiforgery, so no token is required.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class TimeTrackingCreateTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

@@ -10,6 +10,7 @@ namespace Apskaita.Tests.Services;
 /// invariants: create always yields an active record, edit (ApplyAsync) never changes IsActive
 /// (the toggle action owns it), the user toggle flips state, and list search filters.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class RegistryContentServiceTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

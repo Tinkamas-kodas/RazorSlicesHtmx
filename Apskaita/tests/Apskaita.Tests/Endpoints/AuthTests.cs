@@ -10,6 +10,7 @@ namespace Apskaita.Tests.Endpoints;
 /// provider challenges, HTMX-aware login redirect, role-based access, roleless pending landing, and
 /// admin role assignment. Uses the stub authentication principal from <see cref="ApskaitaApiFactory"/>.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class AuthTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

@@ -8,6 +8,7 @@ namespace Apskaita.Tests.Endpoints;
 /// feature-time-tracking-from-calendar-1: the single <c>GET event</c> URI (server decides create vs
 /// edit dialog), reference validation, and reference persistence/dedupe on create.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class TimeTrackingFromCalendarTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

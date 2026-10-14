@@ -42,6 +42,7 @@ public sealed class StubCalendarEventReader : ICalendarEventReader
 /// Integration tests for the calendar connector feature (feature-calendar-connectors-1): Account page
 /// states, connect guard, disconnect, and the time tracking calendar panel with a stubbed reader.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class CalendarConnectorTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

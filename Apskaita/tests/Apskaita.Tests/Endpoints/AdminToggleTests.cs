@@ -8,6 +8,7 @@ namespace Apskaita.Tests.Endpoints;
 /// response contract (self-targeted action fragment + OOB badge + toast, no form re-render) and that
 /// the persisted IsActive flag flips.
 /// </summary>
+[Collection("Integration")] // in-process hosts must not run concurrently (ApskaitaApiFactory race)
 public sealed class AdminToggleTests
 {
     private static readonly CancellationToken Ct = CancellationToken.None;

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Feature.Admin;
+namespace Apskaita.Feature.Admin.Persistence;
 
 /// <summary>
 /// Admin's private write store over the shared <c>DbContext</c>: the classifier/registry tables

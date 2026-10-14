@@ -1,6 +1,6 @@
 using Apskaita.Entities;
 
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// The narrow persistence surface the Graph connector needs from the calendar-connector store: load the

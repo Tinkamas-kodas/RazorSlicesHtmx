@@ -1,5 +1,5 @@
 using Apskaita.Entities;
-using Apskaita.Feature.Admin;
+using Apskaita.Feature.Admin.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Tests;
@@ -11,19 +11,17 @@ namespace Apskaita.Tests;
 /// </summary>
 internal sealed class TestAdminStore(ApskaitaDbContext db) : IAdminStore
 {
-    private readonly ApskaitaDbContext _db = db;
+    public DbSet<Client> Clients => db.Set<Client>();
 
-    public DbSet<Client> Clients => _db.Set<Client>();
+    public DbSet<Issuer> Issuers => db.Set<Issuer>();
 
-    public DbSet<Issuer> Issuers => _db.Set<Issuer>();
+    public DbSet<Unit> Units => db.Set<Unit>();
 
-    public DbSet<Unit> Units => _db.Set<Unit>();
+    public DbSet<Project> Projects => db.Set<Project>();
 
-    public DbSet<Project> Projects => _db.Set<Project>();
+    public DbSet<InvoiceTemplate> InvoiceTemplates => db.Set<InvoiceTemplate>();
 
-    public DbSet<InvoiceTemplate> InvoiceTemplates => _db.Set<InvoiceTemplate>();
+    public DbSet<SystemSettings> SystemSettings => db.Set<SystemSettings>();
 
-    public DbSet<SystemSettings> SystemSettings => _db.Set<SystemSettings>();
-
-    public Task<int> SaveChangesAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
+    public Task<int> SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }

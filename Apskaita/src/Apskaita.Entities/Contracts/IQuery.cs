@@ -15,7 +15,7 @@ namespace Apskaita.Entities.Contracts;
 /// <c>SaveChanges</c>. See <c>Apskaita.Web.Composition.Query&lt;&gt;</c>.
 /// </para>
 /// </summary>
-public interface IQuery<TEntity> where TEntity : class
+public interface IQuery<out TEntity> where TEntity : class
 {
     /// <summary>Returns a composable, no-tracking <see cref="IQueryable{T}"/> over the table.</summary>
     IQueryable<TEntity> All();

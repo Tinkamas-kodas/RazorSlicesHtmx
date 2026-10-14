@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
 using Apskaita.Feature.Account.Persistence;
+using Apskaita.Shared.Calendar;
 
 namespace Apskaita.Tests.Services;
 
@@ -130,7 +131,7 @@ public sealed class Outlook365ConnectorTests
     public async Task AccessToken_RefreshFailure_RecordsError_AndReturnsNull()
     {
         var (connector, protector, db, handler) = Build();
-        db.CalendarConnectors.Add(Connector(protector, null, null));
+        db.CalendarConnectors.Add(Connector(protector));
         await db.SaveChangesAsync();
         var row = db.CalendarConnectors.Single();
 

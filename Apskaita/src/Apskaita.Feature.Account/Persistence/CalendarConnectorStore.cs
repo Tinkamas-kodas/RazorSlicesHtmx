@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Apskaita.Web.Shared.Calendar;
+using Apskaita.Shared.Calendar;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Feature.Account.Persistence;

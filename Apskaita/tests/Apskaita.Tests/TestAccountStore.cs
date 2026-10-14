@@ -13,11 +13,9 @@ namespace Apskaita.Tests;
 /// </summary>
 internal sealed class TestAccountStore(ApskaitaDbContext db) : IAccountStore
 {
-    private readonly ApskaitaDbContext _db = db;
+    public DbSet<User> Users => db.Set<User>();
 
-    public DbSet<User> Users => _db.Set<User>();
+    public DbSet<CalendarConnector> Connectors => db.Set<CalendarConnector>();
 
-    public DbSet<CalendarConnector> Connectors => _db.Set<CalendarConnector>();
-
-    public Task<int> SaveChangesAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
+    public Task<int> SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }

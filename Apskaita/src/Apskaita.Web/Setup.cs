@@ -2,7 +2,6 @@ using Apskaita.Web.Layout.Rendering;
 using Apskaita.Feature.Account;
 using Apskaita.Feature.Account.Authentication;
 using Apskaita.Feature.Account.Endpoints;
-using Apskaita.Feature.Admin;
 using Apskaita.Feature.Admin.ClientsRegistry.Endpoints;
 using Apskaita.Feature.Admin.IssuerRegistry.Endpoints;
 using Apskaita.Feature.Admin.UnitRegistry.Endpoints;
@@ -31,6 +30,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Apskaita.Entities.Contracts;
 using Apskaita.Feature.Account.Persistence;
 using Apskaita.Feature.Account.Services;
+using Apskaita.Feature.Admin.Persistence;
+using Apskaita.Shared.Calendar;
 using AdminFeatureType = Apskaita.Feature.Admin.ClientsRegistry.Models.ClientListQuery;
 
 namespace Apskaita.Web;

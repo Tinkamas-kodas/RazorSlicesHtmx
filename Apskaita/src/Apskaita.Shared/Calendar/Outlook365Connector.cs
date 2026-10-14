@@ -3,8 +3,10 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
+using Apskaita.Web.Shared;
+using Apskaita.Web.Shared.Calendar;
 
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Shared.Calendar;
 
 /// <summary>
 /// Outlook 365 connector: delegated Microsoft Graph access (SEC-004). Refreshes the cached access token
@@ -288,7 +290,7 @@ public sealed class Outlook365Connector(
                 organizer,
                 ProviderKey,
                 connector.AccountKey,
-                externalId!));
+                externalId));
         }
 
         return result;

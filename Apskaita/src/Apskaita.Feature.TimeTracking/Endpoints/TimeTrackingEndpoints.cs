@@ -23,7 +23,7 @@ namespace Apskaita.Feature.TimeTracking.Endpoints;
 /// validated against Account's connectors via <see cref="ICalendarEventReferenceResolver"/> — the
 /// feature never touches another feature's tables directly.
 /// </summary>
-public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
+public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder, ILogger<TimeTrackingEndpoints> logger) : BaseFeatureModule(resultBuilder)
 {
     private const int SlotMinutes = 30;
     private const double SlotHeightPx = 34d;
@@ -111,7 +111,6 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             [FromForm] TimeTrackingModel request,
             [FromServices] IValidator<TimeTrackingModel> validator,
             ITimeTrackingStore store,
-            IQuery<Project> projects,
             IQuery<TimeTrackingEntry> entries,
             ICalendarEventReferenceResolver eventResolver,
             CancellationToken ct) =>
@@ -124,26 +123,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 return Result.Fragment(_CreateDialog.Create(invalidModel));
             }
 
-            var projectData = await projects.All()
-                .Where(project => project.Id == request.ProjectId)
-                .Select(project => new
-                {
-                    Label = project.Code == null ? project.Name : $"{project.Name} ({project.Code})"
-                })
-                .FirstOrDefaultAsync(ct);
-
-            if (projectData is null)
-            {
-                var invalidModel = TimeTrackingModel.FromRequest(request,
-                    new Dictionary<string, (string errorCode, string errorMessage)[]>
-                    {
-                        [nameof(TimeTrackingModel.ProjectId)] =
-                        [
-                            ("not_found", "Selected project was not found.")
-                        ]
-                    });
-                return Result.Fragment(_CreateDialog.Create(invalidModel));
-            }
+           
 
             var now = DateTime.UtcNow;
             var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
@@ -213,6 +193,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             }
             catch (DbUpdateException)
             {
+                logger.LogWarning("Unique index race: the calendar event was already logged.");
                 // Unique index race: the event was logged (here or in another tab) since the panel rendered.
                 return Result.Fragment(_Empty.Create())
                     .ClearDialog()
@@ -223,7 +204,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             return Result.Fragment(_Empty.Create())
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
-                .WithToast(request.CreateSavedMessage(projectData.Label, rows.Length), title: "Time entry", tone: ToastTone.Success);
+                .WithToast(request.CreateSavedMessage(request.ProjectLabel??"", rows.Length), title: "Time entry", tone: ToastTone.Success);
         });
 
         group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>
@@ -245,7 +226,6 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             [FromForm] TimeTrackingModel request,
             [FromServices] IValidator<TimeTrackingModel> validator,
             ITimeTrackingStore store,
-            IQuery<Project> projects,
             CancellationToken ct) =>
         {
             var row = await store.TimeTrackings.FindAsync([id], ct);
@@ -262,21 +242,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
                 return Result.Fragment(_EditDialog.Create(invalidModel));
             }
 
-            // The validator guarantees the project exists; this read resolves its label for the toast.
-            var projectLabel = await projects.All()
-                .Where(project => project.Id == request.ProjectId)
-                .Select(project => project.Code == null ? project.Name : $"{project.Name} ({project.Code})")
-                .FirstOrDefaultAsync(ct);
-
-            if (projectLabel is null)
-            {
-                var invalidModel = TimeTrackingModel.FromRequest(request,
-                    new Dictionary<string, (string errorCode, string errorMessage)[]>
-                    {
-                        [nameof(TimeTrackingModel.ProjectId)] = [("not_found", "Selected project was not found.")]
-                    });
-                return Result.Fragment(_EditDialog.Create(invalidModel));
-            }
+            
 
             row.ProjectId = request.ProjectId!.Value;
             row.StartedAtUtc = BrowserTimeZone.WallToUtc(request.ResolveStartedAtLocal(), BrowserTimeZone.GetDisplayOffset(ctx));
@@ -290,7 +256,7 @@ public sealed class TimeTrackingEndpoints(FeatureResultBuilder resultBuilder) : 
             return Result.Fragment(_Empty.Create())
                 .ClearDialog()
                 .WithTrigger("time-tracking-list-refresh")
-                .WithToast($"Updated time entry for '{projectLabel}'.", title: "Time entry", tone: ToastTone.Success);
+                .WithToast($"Updated time entry for '{request.ProjectLabel}'.", title: "Time entry", tone: ToastTone.Success);
         });
 
         group.MapGet("delete/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>

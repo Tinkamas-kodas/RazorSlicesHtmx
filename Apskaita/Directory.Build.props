@@ -1,0 +1,21 @@
+<Project>
+  <!-- A Directory.Build.props in this folder shadows the repo-root one for the Apskaita subtree,
+       so import it explicitly to keep the shared metadata (Version, authors, package URLs). -->
+  <Import Project="..\Directory.Build.props" />
+
+  <!--
+    Guard against output-directory recursion: external tooling (ReSharper/dotnet test hosts) snapshots
+    the build output into $(OutDir)artifacts\build-temp\..., and because that folder lives inside the
+    output directory each snapshot copies the previous one into itself (bin\Debug\net10.0\artifacts\
+    build-temp\Debug\net10.0\bin\... recursing dozens of levels). Removing the nested copies before
+    every build breaks the loop; the top-level build-temp snapshot is left alone.
+  -->
+  <Target Name="RemoveRecursiveArtifactsTemp" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <_RecursiveArtifactsTemp Include="$(OutDir)artifacts" />
+      <_RecursiveArtifactsTemp Include="$(ProjectDir)artifacts\build-temp\**\bin" />
+      <_RecursiveArtifactsTemp Include="$(ProjectDir)artifacts\build-temp\**\obj" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_RecursiveArtifactsTemp)" />
+  </Target>
+</Project>

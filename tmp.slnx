@@ -1,10 +1,11 @@
 
 <Solution>
   <Folder Name="/Apskaita/">
-    <Project Path="Apskaita/src/Apskaita.Data.Migration/Apskaita.Data.Migration.csproj" />
     <Project Path="Apskaita/src/Apskaita.Entities/Apskaita.Entities.csproj" />
     <Project Path="Apskaita/src/Apskaita.Web/Apskaita.Web.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Feature.Account/Apskaita.Feature.Account.csproj" />
     <Project Path="Apskaita/src/Apskaita.Feature.Admin/Apskaita.Feature.Admin.csproj" />
+    <Project Path="Apskaita/src/Apskaita.Feature.TimeTracking/Apskaita.Feature.TimeTracking.csproj" />
     <Project Path="Apskaita/src/Apskaita.Shared/Apskaita.Shared.csproj" />
     <Project Path="Apskaita/tests/Apskaita.Tests/Apskaita.Tests.csproj" />
   </Folder>

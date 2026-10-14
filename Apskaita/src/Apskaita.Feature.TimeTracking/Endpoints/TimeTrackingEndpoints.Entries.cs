@@ -55,7 +55,7 @@ public sealed partial class TimeTrackingEndpoints
                 CalendarEventReference? calendarEvent = null;
                 if (hasAnyEventField)
                 {
-                    calendarEvent = await TimeTrackingEndpoints.ValidateEventReferenceAsync(
+                    calendarEvent = await ValidateEventReferenceAsync(
                         eventResolver, request.EventProviderKey, request.EventAccountKey, request.EventId, ct);
                     if (calendarEvent is null)
                     {
@@ -78,7 +78,7 @@ public sealed partial class TimeTrackingEndpoints
                     }
 
                     // App-level dedupe (the unique index remains the race backstop): one entry per event.
-                    if (await TimeTrackingEndpoints.FindTrackedEntryIdAsync(entries, calendarEvent, ct) is not null)
+                    if (await FindTrackedEntryIdAsync(entries, calendarEvent, ct) is not null)
                     {
                         return owner.Result.Fragment(_Empty.Create())
                             .ClearDialog()

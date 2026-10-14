@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### `RazorSlicesHtmx.AspNetCore`
+
+- `BaseFeatureModule` composition surface for large features: `protected FeatureResultBuilder ResultBuilder`, `protected static RouteGroupBuilder MapSubgroup(RouteGroupBuilder, string)`, and `ModuleResultFacade` promoted from a protected nested type to a public one so route sections can be top-level collaborator classes rather than nested types (additive, non-breaking)
+
 ## 1.0.0
 
 Initial public package split and documentation baseline.

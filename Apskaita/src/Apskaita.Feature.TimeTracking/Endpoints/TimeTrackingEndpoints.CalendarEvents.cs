@@ -32,13 +32,13 @@ public sealed partial class TimeTrackingEndpoints
                 ICalendarEventReferenceResolver eventResolver,
                 CancellationToken ct) =>
             {
-                var reference = await TimeTrackingEndpoints.ValidateEventReferenceAsync(eventResolver, provider, account, eventId, ct);
+                var reference = await ValidateEventReferenceAsync(eventResolver, provider, account, eventId, ct);
                 if (reference is null)
                 {
                     return Results.NotFound();
                 }
 
-                var trackedId = await TimeTrackingEndpoints.FindTrackedEntryIdAsync(entries, reference, ct);
+                var trackedId = await FindTrackedEntryIdAsync(entries, reference, ct);
                 if (trackedId is not null)
                 {
                     // Reuse the edit route (route id is authoritative for the dialog's targets).

@@ -55,6 +55,46 @@ public sealed class ItemsEndpoints(FeatureResultBuilder resultBuilder)
 
 In workspace features, use `Result.Page(...)` for feature-level screens and `Result.Fragment(...)` for inner targets (such as list/table refreshes).
 
+## Composing large features
+
+A module that grows beyond a few routes can be composed from collaborator classes instead of one large
+`MapEndpoints`. `BaseFeatureModule` exposes the pieces needed:
+
+| Member | Purpose |
+|--------|---------|
+| `Result` | The `ModuleResultFacade` (public type) — pass it to a section so it can build pages/fragments/dialogs |
+| `ResultBuilder` | The underlying `FeatureResultBuilder`, when a collaborator wants the full builder |
+| `MapSubgroup(group, name)` | Creates a nested route group under the feature's prefix; inherits the parent's policies |
+
+```csharp
+public sealed partial class ItemsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModule(resultBuilder)
+{
+    public override IReadOnlyList<NavigationItem> NavigationItems =>
+    [
+        new("items", "Items", "list", Order: 100)
+    ];
+
+    public override void MapEndpoints(RouteGroupBuilder group)
+    {
+        group.RequireAuthorization(AppPolicies.Operational);
+
+        new ListSection(Result).Map(group);                       // /items/list
+        new DialogSection(Result).Map(MapSubgroup(group, "dialog")); // /items/dialog/...
+    }
+}
+
+// A section is a plain class holding the facade — no inheritance, no nesting required.
+public sealed class ListSection(BaseFeatureModule.ModuleResultFacade result)
+{
+    public void Map(RouteGroupBuilder group) =>
+        group.MapGet("list", () => result.Fragment(_List.Create(model)));
+}
+```
+
+Keep one navigation item per feature: register a single module per prefix and let its sections share it.
+A module with no `NavigationItems` cannot produce `Result.Page(...)` or `Result.Fragment(...)` — the
+facade needs a route item to resolve the page shell.
+
 ## Navigation tree
 
 `NavigationItems` returns a list of `NavigationItem` nodes. Two concrete types exist:

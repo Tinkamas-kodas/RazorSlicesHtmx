@@ -8,6 +8,16 @@ namespace RazorSlicesHtmx.AspNetCore.Features;
 
 public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IFeatureModule
 {
+    /// <summary>The injected HTMX result builder — pass it to section collaborators that compose results themselves.</summary>
+    protected FeatureResultBuilder ResultBuilder => resultBuilder;
+
+    /// <summary>
+    /// Creates a nested route group under this feature's route group (e.g. for a feature mounted at
+    /// <c>/items</c>, <c>MapSubgroup(group, "events")</c> yields routes under <c>/items/events/...</c>).
+    /// The subgroup inherits the parent's authorization and conventions.
+    /// </summary>
+    protected static RouteGroupBuilder MapSubgroup(RouteGroupBuilder group, string name) => group.MapGroup(name);
+
     protected ModuleResultFacade Result => new(
         resultBuilder,
         NavigationItems,
@@ -17,7 +27,11 @@ public abstract class BaseFeatureModule(FeatureResultBuilder resultBuilder) : IF
 
     public abstract void MapEndpoints(RouteGroupBuilder group);
 
-    protected sealed class ModuleResultFacade(
+    /// <summary>
+    /// The <c>Result</c> facade of <see cref="BaseFeatureModule"/>. Public so a feature can hand it to
+    /// collaborator classes (route sections) instead of nesting them inside the module type.
+    /// </summary>
+    public sealed class ModuleResultFacade(
         FeatureResultBuilder resultBuilder,
         IReadOnlyList<NavigationItem> items,
         (Type WorkspaceFactoryType, string FeatureDivId)? workspace)

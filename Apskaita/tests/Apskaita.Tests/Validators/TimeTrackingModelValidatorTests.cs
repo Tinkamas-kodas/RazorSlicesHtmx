@@ -96,7 +96,7 @@ public sealed class TimeTrackingModelValidatorTests : IDisposable
         var result = await Validate(model);
 
         Assert.False(result.IsValid);
-        Assert.True(HasMessage(result, "Project must exist"));
+        Assert.True(HasMessage(result, "Project not found"));
     }
 
     [Theory]

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Apskaita.Entities.Contracts;
 using Apskaita.Web.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,4 +18,7 @@ namespace Apskaita.Web.Composition;
 public sealed class Query<TEntity>(ApskaitaDbContext db) : IQuery<TEntity> where TEntity : class
 {
     public IQueryable<TEntity> All() => db.Set<TEntity>().AsNoTracking();
+
+    public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct) =>
+        db.Set<TEntity>().AsNoTracking().AnyAsync(predicate, ct);
 }

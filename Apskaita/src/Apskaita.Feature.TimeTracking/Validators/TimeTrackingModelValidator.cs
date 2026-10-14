@@ -1,6 +1,5 @@
 using Apskaita.Entities.Contracts;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Apskaita.Feature.TimeTracking.Models;
 using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
@@ -19,9 +18,9 @@ public sealed class TimeTrackingModelValidator : AbstractValidator<TimeTrackingM
             .WithMessage("Project is required.");
         
         RuleFor(x => x.ProjectId)
-            .MustAsync(async (projectId, cancellationToken) =>
-                await projects.All().AnyAsync(p => p.Id == projectId, cancellationToken))
-            .WithMessage("Project must exist.")
+            .MustAsync((projectId, cancellationToken) =>
+                projects.ExistsAsync(p => p.Id == projectId, cancellationToken))
+            .WithMessage("Project not found.")
             .When(model => model.ProjectId.HasValue);
 
         RuleFor(x => x.HourlyRate)

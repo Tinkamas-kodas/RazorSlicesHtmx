@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace Apskaita.Entities.Contracts;
 
 /// <summary>
@@ -14,9 +16,20 @@ namespace Apskaita.Entities.Contracts;
 /// handed across a feature line could be silently persisted by the owning feature's next
 /// <c>SaveChanges</c>. See <c>Apskaita.Web.Composition.Query&lt;&gt;</c>.
 /// </para>
+/// <para>
+/// The interface is invariant (not <c>out TEntity</c>) because <see cref="ExistsAsync"/> takes a
+/// predicate over <typeparamref name="TEntity"/> — an input position.
+/// </para>
 /// </summary>
-public interface IQuery<out TEntity> where TEntity : class
+public interface IQuery<TEntity> where TEntity : class
 {
     /// <summary>Returns a composable, no-tracking <see cref="IQueryable{T}"/> over the table.</summary>
     IQueryable<TEntity> All();
+
+    /// <summary>
+    /// True when at least one row matches <paramref name="predicate"/>, evaluated server-side (one
+    /// <c>SELECT 1 ... LIMIT</c> round trip, no entities materialized). Use it instead of
+    /// <c>All().AnyAsync(...)</c> so callers need no database-provider dependency.
+    /// </summary>
+    Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct);
 }

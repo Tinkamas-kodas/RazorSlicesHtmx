@@ -7,6 +7,7 @@ global using RazorSlicesHtmx.AspNetCore.Results;
 global using RazorSlicesHtmx.AspNetCore.Slices;
 global using RazorSlicesHtmx.FluentValidation.Extensions;
 global using Apskaita.Entities;
+global using Microsoft.Extensions.Logging;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Routing;

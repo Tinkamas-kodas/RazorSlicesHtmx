@@ -296,12 +296,15 @@ shape for 4c/5 as well):
 Clients `ef201b6`, Issuers `04f8e6f`, Units `2c2b0c6`, InvoiceTemplates `b1afc14`, SystemConfig
 `6f8bbd7` · naming `7af968d`/`0abeac3` · test isolation `45fca63`.
 
-**Open caveats (operational, not code):**
+**Caveats — both closed (2026-10-14):**
 
-- Migration `AddProjectClientTemplateForeignKeys` is NOT applied to live MySQL — check orphan
-  `projects.client_id` / `invoice_template_id` first, then apply with
-  `dotnet run --project src/Apskaita.Web -- --migrate` (fails on FK violations).
-- `/admin/projects/list` nav-projection SQL is compile-verified only — needs runtime smoke.
+- Migration `AddProjectClientTemplateForeignKeys` is applied to live MySQL —
+  `dotnet run --project src/Apskaita.Web -- --migrate` now reports `Migrations applied.` with no
+  FK violations, so the schema is up-to-date.
+- `/admin/projects/list` nav-projection SQL is runtime-smoked by `ProjectsListTests`
+  (endpoint level, `ApskaitaApiFactory` + `[Collection("Integration")]`): the full page renders the
+  joined `ClientName`/`TemplateName` columns, an HTMX GET returns the fragment without the page
+  shell, and `?Search=` filters the projected rows server-side.
 
 **Next in order**: none — all stages implemented (see completion log below).
 
@@ -336,6 +339,26 @@ feature assemblies (and in `Apskaita.Shared` code); all three `IStore`s are `int
 `InternalsVisibleTo("Apskaita.Web")` + `("Apskaita.Tests")`; cross-feature reads go through
 `IQuery<T>`; `Apskaita.Data.Migration` and `Apskaita.Shared` are gone; solution builds
 0 warnings / 0 errors and the suite is 107/107 (exe) / 126 passed (VS Code runner).
+
+### Follow-ups after plan completion (2026-10-14, HEAD `851231b`)
+
+TimeTracking slice hygiene continued on top of the completed plan — no stage-0–8 rework, all
+changes stay inside the seams the plan defines:
+
+- `IQuery<T>.ExistsAsync(Expression<Func<TEntity,bool>>, ct)` added to the read seam (server-side
+  `SELECT 1`, no materialization) and `IQuery<T>` made invariant — a predicate is an input position
+  (`b1e07e7`).
+- The TimeTracking validator's project-existence rule uses that seam instead of EF `AnyAsync`, so
+  the feature needs no provider dependency (`4bf9cfd`).
+- `TimeTrackingEndpoints` split into a `partial` module shell plus one nested section per file
+  (Week / Entries / CalendarEvents / Lookups) — same routes, same behavior (`542dc14`).
+- Pure grid geometry extracted into `Models/` (`TimeTrackingGridGeometry`, `WeekOf`, `WorkSlots`,
+  `EntryViewModel.From`, `CalendarEventViewModel.From`, `TimeTrackingEntryRow`) with 13 unit tests
+  (`1e10ca4`).
+- `BaseFeatureModule` gained `ResultBuilder` + `MapSubgroup` so section collaborators compose
+  inside one module and share one result facade (`851231b`).
+- `ProjectsListTests` closes the projects-list runtime-smoke caveat (above); the exe suite is now
+  124/124, still 0 warnings / 0 errors.
 
 ## 8. Project-reference gotchas (verified in this repo)
 

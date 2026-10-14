@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Apskaita.Web.Features.Admin.UnitRegistry.Models;
+namespace Apskaita.Feature.Admin.UnitRegistry.Models;
 
 public sealed partial class UnitListQuery : ListRequest<UnitRowModel>
 {

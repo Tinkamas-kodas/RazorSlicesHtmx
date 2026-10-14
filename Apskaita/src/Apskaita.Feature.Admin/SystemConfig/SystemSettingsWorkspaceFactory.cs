@@ -1,6 +1,6 @@
-using Apskaita.Web.Features.Admin.SystemConfig.Slices;
+using Apskaita.Feature.Admin.SystemConfig.Slices;
 
-namespace Apskaita.Web.Features.Admin.SystemConfig;
+namespace Apskaita.Feature.Admin.SystemConfig;
 
 public sealed class SystemConfigWorkspaceFactory : BaseWorkspaceFactory
 {

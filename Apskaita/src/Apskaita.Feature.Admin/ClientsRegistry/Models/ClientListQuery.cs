@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Apskaita.Web.Features.Admin.ClientsRegistry.Models;
+namespace Apskaita.Feature.Admin.ClientsRegistry.Models;
 
 public sealed partial class ClientListQuery : ListRequest<ClientRowModel>
 {

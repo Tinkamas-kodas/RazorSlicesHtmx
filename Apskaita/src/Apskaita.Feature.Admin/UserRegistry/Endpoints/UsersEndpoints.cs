@@ -1,12 +1,12 @@
-using Apskaita.Web.Features.Admin.UserRegistry.Models;
-using Apskaita.Web.Features.Admin.UserRegistry.Services;
-using Apskaita.Web.Features.Admin.UserRegistry.Slices;
-using Apskaita.Web.Features.Admin.Common.Models;
-using Apskaita.Web.Features.Admin.Common.Slices;
+using Apskaita.Feature.Admin.UserRegistry.Models;
+using Apskaita.Feature.Admin.UserRegistry.Services;
+using Apskaita.Feature.Admin.UserRegistry.Slices;
+using Apskaita.Feature.Admin.Common.Models;
+using Apskaita.Feature.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Apskaita.Web.Features.Admin.UserRegistry.Endpoints;
+namespace Apskaita.Feature.Admin.UserRegistry.Endpoints;
 
 public sealed class UsersEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<UserRegistryWorkspaceFactory>(resultBuilder)
 {

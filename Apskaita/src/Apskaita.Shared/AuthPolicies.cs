@@ -2,7 +2,7 @@ namespace Apskaita.Web.Shared;
 
 /// <summary>
 /// Authorization policy names shared between the app's authentication wiring (Apskaita.Web) and the
-/// feature assemblies (Apskaita.Web.Features.Admin, Apskaita.Web). Values must match the policies
+/// feature assemblies (Apskaita.Feature.Admin, Apskaita.Web). Values must match the policies
 /// registered in <c>Program.cs</c>.
 /// </summary>
 public static class AuthPolicies

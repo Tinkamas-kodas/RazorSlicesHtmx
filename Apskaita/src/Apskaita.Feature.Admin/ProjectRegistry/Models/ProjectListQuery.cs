@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Apskaita.Web.Features.Admin.ProjectRegistry.Models;
+namespace Apskaita.Feature.Admin.ProjectRegistry.Models;
 
 public sealed partial class ProjectListQuery : ListRequest<ProjectRowModel>
 {

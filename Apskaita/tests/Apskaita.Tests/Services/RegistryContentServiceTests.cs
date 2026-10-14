@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Apskaita.Entities;
 using Apskaita.Tests.Endpoints;
-using Apskaita.Web.Features.Admin.UserRegistry.Services;
+using Apskaita.Feature.Admin.UserRegistry.Services;
 
 namespace Apskaita.Tests.Services;
 

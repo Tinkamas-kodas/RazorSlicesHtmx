@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
+using Apskaita.Feature.Admin.ProjectRegistry.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.ProjectRegistry.Validators;
+namespace Apskaita.Feature.Admin.ProjectRegistry.Validators;
 
 public sealed class ProjectUpsertRequestValidator : AbstractValidator<ProjectUpsertRequest>
 {

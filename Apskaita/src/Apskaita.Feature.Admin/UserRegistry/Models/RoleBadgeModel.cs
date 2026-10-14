@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Admin.UserRegistry.Models;
+namespace Apskaita.Feature.Admin.UserRegistry.Models;
 
 /// <summary>
 /// Model for the role badge component shown in the users list and detail view.

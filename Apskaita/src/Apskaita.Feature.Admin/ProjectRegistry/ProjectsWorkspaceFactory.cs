@@ -1,6 +1,6 @@
-using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
+using Apskaita.Feature.Admin.ProjectRegistry.Slices;
 
-namespace Apskaita.Web.Features.Admin.ProjectRegistry;
+namespace Apskaita.Feature.Admin.ProjectRegistry;
 
 public sealed class ProjectRegistryWorkspaceFactory : BaseWorkspaceFactory
 {

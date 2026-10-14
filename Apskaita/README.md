@@ -5,7 +5,7 @@ ASP.NET Core (net10.0) accounting app built on the RazorSlicesHtmx libraries in 
 ## Projects
 
 - `src/Apskaita.Web` — app: features (time tracking, account, settings), layout, auth wiring.
-- `src/Apskaita.Web.Features.Admin` — admin registries (clients, issuers, units, projects, invoice templates, users, system settings).
+- `src/Apskaita.Feature.Admin` — admin registries (clients, issuers, units, projects, invoice templates, users, system settings).
 - `src/Apskaita.Web.Shared` — shared contracts (nav items, policies, feature URI, calendar reader).
 - `src/Apskaita.Entities` — EF Core entities + mappings (MySQL, snake_case naming).
 - `src/Apskaita.Data.Migration` — design-time factory + EF migrations.

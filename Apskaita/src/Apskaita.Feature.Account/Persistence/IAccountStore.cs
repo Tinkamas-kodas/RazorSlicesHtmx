@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Account;
+namespace Apskaita.Feature.Account.Persistence;
 
 /// <summary>
 /// Account's private write store over the shared <c>DbContext</c>: the <c>users</c> and

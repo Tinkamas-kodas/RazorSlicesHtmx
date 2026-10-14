@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Account;
+namespace Apskaita.Feature.Account;
 
 /// <summary>
 /// Scheme, policy, and claim-type constants for the authentication stack.

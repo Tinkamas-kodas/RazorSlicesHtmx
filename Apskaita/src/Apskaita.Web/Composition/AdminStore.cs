@@ -1,5 +1,5 @@
 using Apskaita.Entities;
-using Apskaita.Web.Features.Admin;
+using Apskaita.Feature.Admin;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Composition;

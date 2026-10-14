@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Account.Models;
+namespace Apskaita.Feature.Account.Models;
 
 /// <summary>
 /// View model for the account page: one card per known calendar provider plus an optional notice from the

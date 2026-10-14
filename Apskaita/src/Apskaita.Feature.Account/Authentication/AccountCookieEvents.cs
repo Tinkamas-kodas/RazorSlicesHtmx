@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using Apskaita.Web.Features.Account.Services;
+using Apskaita.Feature.Account.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Primitives;
 
-namespace Apskaita.Web.Features.Account.Authentication;
+namespace Apskaita.Feature.Account.Authentication;
 
 /// <summary>
 /// Cookie-scheme events implementing the shared sign-in hook (GUD-002): provider-agnostic provisioning via

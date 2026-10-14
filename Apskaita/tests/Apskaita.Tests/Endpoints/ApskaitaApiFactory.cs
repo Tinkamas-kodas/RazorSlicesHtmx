@@ -1,5 +1,5 @@
 using Apskaita.Entities;
-using Apskaita.Web.Features.Account;
+using Apskaita.Feature.Account;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

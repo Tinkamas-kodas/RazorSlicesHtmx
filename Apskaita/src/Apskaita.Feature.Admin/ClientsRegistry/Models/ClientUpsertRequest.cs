@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Admin.ClientsRegistry.Models;
+namespace Apskaita.Feature.Admin.ClientsRegistry.Models;
 
 [GenerateHtmlNames]
 public sealed partial class ClientUpsertRequest : IHaveValidationResult

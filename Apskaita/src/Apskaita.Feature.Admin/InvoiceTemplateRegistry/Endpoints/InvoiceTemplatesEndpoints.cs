@@ -1,12 +1,13 @@
-using Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Models;
-using Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Slices;
-using Apskaita.Web.Features.Admin.Common.Models;
-using Apskaita.Web.Features.Admin.Common.Slices;
+using Apskaita.Entities.Contracts;
+using Apskaita.Feature.Admin.InvoiceTemplateRegistry.Models;
+using Apskaita.Feature.Admin.InvoiceTemplateRegistry.Slices;
+using Apskaita.Feature.Admin.Common.Models;
+using Apskaita.Feature.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Endpoints;
+namespace Apskaita.Feature.Admin.InvoiceTemplateRegistry.Endpoints;
 
 public sealed class InvoiceTemplatesEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<InvoiceTemplateRegistryWorkspaceFactory>(resultBuilder)
 {

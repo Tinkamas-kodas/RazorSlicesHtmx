@@ -1,12 +1,13 @@
 using System.Security.Claims;
-using Apskaita.Web.Features.Account.Models;
-using Apskaita.Web.Features.Account.Slices;
+using Apskaita.Feature.Account.Persistence;
+using Apskaita.Feature.Account.Models;
+using Apskaita.Feature.Account.Slices;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.Calendar;
 using Apskaita.Web.Shared.Routing;
 using Microsoft.AspNetCore.Authentication;
 
-namespace Apskaita.Web.Features.Account.Endpoints;
+namespace Apskaita.Feature.Account.Endpoints;
 
 /// <summary>
 /// Account feature: login page, provider challenges, cookie sign-out, the pending-access landing page for

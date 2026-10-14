@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Apskaita.Web.Features.Account;
+using Apskaita.Feature.Account;
 using Apskaita.Web.Layout;
 using Apskaita.Web.Layout.Models;
 using Apskaita.Web.Layout.Slices;

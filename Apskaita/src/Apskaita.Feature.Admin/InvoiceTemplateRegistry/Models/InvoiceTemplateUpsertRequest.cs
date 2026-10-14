@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Models;
+namespace Apskaita.Feature.Admin.InvoiceTemplateRegistry.Models;
 
 [GenerateHtmlNames]
 public sealed partial class InvoiceTemplateUpsertRequest : IHaveValidationResult

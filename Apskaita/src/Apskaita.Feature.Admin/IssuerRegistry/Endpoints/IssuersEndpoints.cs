@@ -1,12 +1,13 @@
-using Apskaita.Web.Features.Admin.IssuerRegistry.Models;
-using Apskaita.Web.Features.Admin.IssuerRegistry.Slices;
-using Apskaita.Web.Features.Admin.Common.Models;
-using Apskaita.Web.Features.Admin.Common.Slices;
+using Apskaita.Entities.Contracts;
+using Apskaita.Feature.Admin.IssuerRegistry.Models;
+using Apskaita.Feature.Admin.IssuerRegistry.Slices;
+using Apskaita.Feature.Admin.Common.Models;
+using Apskaita.Feature.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.IssuerRegistry.Endpoints;
+namespace Apskaita.Feature.Admin.IssuerRegistry.Endpoints;
 
 public sealed class IssuersEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<IssuerRegistryWorkspaceFactory>(resultBuilder)
 {

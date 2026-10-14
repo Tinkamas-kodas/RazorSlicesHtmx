@@ -1,6 +1,7 @@
+using Apskaita.Feature.Account.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Account.Services;
+namespace Apskaita.Feature.Account.Services;
 
 /// <summary>
 /// Outcome of provisioning a user during sign-in: whether access is allowed, the resulting role, and the

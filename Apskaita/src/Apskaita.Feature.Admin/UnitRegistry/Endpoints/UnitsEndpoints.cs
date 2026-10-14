@@ -1,12 +1,13 @@
-using Apskaita.Web.Features.Admin.UnitRegistry.Models;
-using Apskaita.Web.Features.Admin.UnitRegistry.Slices;
-using Apskaita.Web.Features.Admin.Common.Models;
-using Apskaita.Web.Features.Admin.Common.Slices;
+using Apskaita.Entities.Contracts;
+using Apskaita.Feature.Admin.UnitRegistry.Models;
+using Apskaita.Feature.Admin.UnitRegistry.Slices;
+using Apskaita.Feature.Admin.Common.Models;
+using Apskaita.Feature.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.UnitRegistry.Endpoints;
+namespace Apskaita.Feature.Admin.UnitRegistry.Endpoints;
 
 public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<UnitRegistryWorkspaceFactory>(resultBuilder)
 {

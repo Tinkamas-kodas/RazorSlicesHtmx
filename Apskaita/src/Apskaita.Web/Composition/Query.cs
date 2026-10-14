@@ -1,4 +1,5 @@
 using Apskaita.Entities;
+using Apskaita.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Apskaita.Web.Composition;

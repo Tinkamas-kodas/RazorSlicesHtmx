@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Models;
+using Apskaita.Feature.Admin.InvoiceTemplateRegistry.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Validators;
+namespace Apskaita.Feature.Admin.InvoiceTemplateRegistry.Validators;
 
 public sealed class InvoiceTemplateUpsertRequestValidator : AbstractValidator<InvoiceTemplateUpsertRequest>
 {

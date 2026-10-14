@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.UnitRegistry.Models;
+using Apskaita.Feature.Admin.UnitRegistry.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.UnitRegistry.Validators;
+namespace Apskaita.Feature.Admin.UnitRegistry.Validators;
 
 public sealed class UnitUpsertRequestValidator : AbstractValidator<UnitUpsertRequest>
 {

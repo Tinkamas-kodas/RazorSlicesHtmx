@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Admin.ClientsRegistry;
+namespace Apskaita.Feature.Admin.ClientsRegistry;
 
 public sealed class ClientsWorkspaceFactory : BaseWorkspaceFactory
 {

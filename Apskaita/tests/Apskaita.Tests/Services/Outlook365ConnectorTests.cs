@@ -1,5 +1,5 @@
 using Apskaita.Entities;
-using Apskaita.Web.Features.Account;
+using Apskaita.Feature.Account;
 using Apskaita.Web.Shared.Calendar;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
+using Apskaita.Feature.Account.Persistence;
 
 namespace Apskaita.Tests.Services;
 

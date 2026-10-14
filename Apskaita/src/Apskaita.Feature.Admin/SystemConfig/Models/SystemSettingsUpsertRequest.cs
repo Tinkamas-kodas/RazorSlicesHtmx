@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Admin.SystemConfig.Models;
+namespace Apskaita.Feature.Admin.SystemConfig.Models;
 
 [GenerateHtmlNames]
 public sealed partial class SystemSettingsUpsertRequest : IHaveValidationResult

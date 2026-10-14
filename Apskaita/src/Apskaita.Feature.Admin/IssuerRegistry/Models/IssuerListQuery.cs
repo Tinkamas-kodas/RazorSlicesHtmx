@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Apskaita.Web.Features.Admin.IssuerRegistry.Models;
+namespace Apskaita.Feature.Admin.IssuerRegistry.Models;
 
 public sealed partial class IssuerListQuery : ListRequest<IssuerRowModel>
 {

@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.Account.Models;
+namespace Apskaita.Feature.Account.Models;
 
 /// <summary>
 /// View model for the pending-access page shown to authenticated users whose role has not been assigned yet.

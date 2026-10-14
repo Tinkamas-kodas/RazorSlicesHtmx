@@ -1,6 +1,6 @@
-using Apskaita.Web.Features.Admin.IssuerRegistry.Slices;
+using Apskaita.Feature.Admin.IssuerRegistry.Slices;
 
-namespace Apskaita.Web.Features.Admin.IssuerRegistry;
+namespace Apskaita.Feature.Admin.IssuerRegistry;
 
 public sealed class IssuerRegistryWorkspaceFactory : BaseWorkspaceFactory
 {

@@ -1,4 +1,4 @@
-namespace Apskaita.Entities;
+namespace Apskaita.Entities.Contracts;
 
 /// <summary>
 /// Read-only, composable access to a table. This is the ONLY cross-feature data-access surface:

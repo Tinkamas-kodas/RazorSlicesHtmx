@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.IssuerRegistry.Models;
+using Apskaita.Feature.Admin.IssuerRegistry.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.IssuerRegistry.Validators;
+namespace Apskaita.Feature.Admin.IssuerRegistry.Validators;
 
 public sealed class IssuerUpsertRequestValidator : AbstractValidator<IssuerUpsertRequest>
 {

@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.ClientsRegistry.Models;
+using Apskaita.Feature.Admin.ClientsRegistry.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.ClientsRegistry.Validators;
+namespace Apskaita.Feature.Admin.ClientsRegistry.Validators;
 
 public sealed class ClientUpsertRequestValidator : AbstractValidator<ClientUpsertRequest>
 {

@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Apskaita.Web.Features.Account;
+using Apskaita.Web.Shared.Calendar;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Shared.Calendar;
+namespace Apskaita.Feature.Account.Persistence;
 
 /// <summary>
 /// Per-user connector persistence (SEC-002): the owner is always resolved from the session principal's

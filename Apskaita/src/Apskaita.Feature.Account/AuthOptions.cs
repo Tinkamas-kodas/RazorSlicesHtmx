@@ -1,6 +1,6 @@
 using Apskaita.Web.Shared.Calendar;
 
-namespace Apskaita.Web.Features.Account;
+namespace Apskaita.Feature.Account;
 
 /// <summary>
 /// Strongly typed binding for the <c>Auth</c> configuration section: external provider credentials and the

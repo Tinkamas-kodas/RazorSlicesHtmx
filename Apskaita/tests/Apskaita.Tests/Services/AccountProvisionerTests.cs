@@ -1,6 +1,6 @@
 using Apskaita.Entities;
-using Apskaita.Web.Features.Account;
-using Apskaita.Web.Features.Account.Services;
+using Apskaita.Feature.Account.Services;
+using Apskaita.Feature.Account;
 
 namespace Apskaita.Tests.Services;
 

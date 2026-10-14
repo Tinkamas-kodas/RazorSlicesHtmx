@@ -1,13 +1,14 @@
-using Apskaita.Web.Features.Admin.ProjectRegistry.Models;
-using Apskaita.Web.Features.Admin.ProjectRegistry.Slices;
-using Apskaita.Web.Features.Admin.Common.Models;
-using Apskaita.Web.Features.Admin.Common.Slices;
+using Apskaita.Entities.Contracts;
+using Apskaita.Feature.Admin.ProjectRegistry.Models;
+using Apskaita.Feature.Admin.ProjectRegistry.Slices;
+using Apskaita.Feature.Admin.Common.Models;
+using Apskaita.Feature.Admin.Common.Slices;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.ProjectColors;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.ProjectRegistry.Endpoints;
+namespace Apskaita.Feature.Admin.ProjectRegistry.Endpoints;
 
 public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<ProjectRegistryWorkspaceFactory>(resultBuilder)
 {

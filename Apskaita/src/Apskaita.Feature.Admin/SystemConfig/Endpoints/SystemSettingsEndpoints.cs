@@ -1,11 +1,11 @@
-using Apskaita.Entities;
-using Apskaita.Web.Features.Admin.SystemConfig.Models;
-using Apskaita.Web.Features.Admin.SystemConfig.Slices;
+using Apskaita.Entities.Contracts;
+using Apskaita.Feature.Admin.SystemConfig.Models;
+using Apskaita.Feature.Admin.SystemConfig.Slices;
 using Apskaita.Web.Shared;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.SystemConfig.Endpoints;
+namespace Apskaita.Feature.Admin.SystemConfig.Endpoints;
 
 public sealed class SystemSettingsEndpoints(FeatureResultBuilder resultBuilder) : BaseFeatureModuleWithWorkspace<SystemConfigWorkspaceFactory>(resultBuilder)
 {

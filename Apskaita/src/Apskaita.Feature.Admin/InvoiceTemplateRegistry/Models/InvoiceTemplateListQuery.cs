@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Models;
+namespace Apskaita.Feature.Admin.InvoiceTemplateRegistry.Models;
 
 public sealed partial class InvoiceTemplateListQuery : ListRequest<InvoiceTemplateRowModel>
 {

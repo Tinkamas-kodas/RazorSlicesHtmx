@@ -117,7 +117,7 @@
 
     @if (HttpContext?.User?.Identity?.IsAuthenticated == true)
     {
-        var displayName = HttpContext.User.FindFirst(Apskaita.Web.Features.Account.AuthConstants.DisplayNameClaim)?.Value;
+        var displayName = HttpContext.User.FindFirst(Apskaita.Feature.Account.AuthConstants.DisplayNameClaim)?.Value;
         var email = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         var userName = string.IsNullOrWhiteSpace(displayName) ? email : displayName;
         var settingsUrl = ResolveIconUrl("settings");

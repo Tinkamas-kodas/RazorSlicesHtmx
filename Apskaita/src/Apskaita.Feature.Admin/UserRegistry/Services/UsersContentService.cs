@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.UserRegistry.Models;
+using Apskaita.Feature.Admin.UserRegistry.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Apskaita.Web.Features.Admin.UserRegistry.Services;
+namespace Apskaita.Feature.Admin.UserRegistry.Services;
 
 public sealed class UsersContentService
 {

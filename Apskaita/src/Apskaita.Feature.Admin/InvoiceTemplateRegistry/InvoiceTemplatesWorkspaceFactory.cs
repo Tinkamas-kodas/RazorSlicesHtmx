@@ -1,6 +1,6 @@
-using Apskaita.Web.Features.Admin.InvoiceTemplateRegistry.Slices;
+using Apskaita.Feature.Admin.InvoiceTemplateRegistry.Slices;
 
-namespace Apskaita.Web.Features.Admin.InvoiceTemplateRegistry;
+namespace Apskaita.Feature.Admin.InvoiceTemplateRegistry;
 
 public sealed class InvoiceTemplateRegistryWorkspaceFactory : BaseWorkspaceFactory
 {

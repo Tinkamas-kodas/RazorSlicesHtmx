@@ -1,7 +1,7 @@
-using Apskaita.Web.Features.Admin.SystemConfig.Models;
+using Apskaita.Feature.Admin.SystemConfig.Models;
 using FluentValidation;
 
-namespace Apskaita.Web.Features.Admin.SystemConfig.Validators;
+namespace Apskaita.Feature.Admin.SystemConfig.Validators;
 
 public sealed class SystemSettingsUpsertRequestValidator : AbstractValidator<SystemSettingsUpsertRequest>
 {

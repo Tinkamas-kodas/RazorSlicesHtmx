@@ -14,23 +14,9 @@ public sealed class GenerateHtmlNamesGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static postInitContext =>
-        {
-            postInitContext.AddSource("GenerateHtmlNamesAttribute.g.cs", SourceText.From("""
-namespace RazorSlicesHtmx.HtmlNames;
-
-[global::System.AttributeUsage(global::System.AttributeTargets.Class | global::System.AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
-internal sealed class GenerateHtmlNamesAttribute : global::System.Attribute
-{
-    public GenerateHtmlNamesAttribute(int maxDepth = 0)
-    {
-        MaxDepth = maxDepth < 0 ? 0 : maxDepth;
-    }
-
-    public int MaxDepth { get; }
-}
-""", Encoding.UTF8));
-        });
+        // The attribute is NOT emitted here: RazorSlicesHtmx.AspNetCore declares
+        // RazorSlicesHtmx.HtmlNames.GenerateHtmlNamesAttribute once, so every consuming assembly shares
+        // the same type instead of getting a duplicate internal copy (which caused CS0436 ambiguity).
 
         var targets = context.SyntaxProvider.ForAttributeWithMetadataName(
             AttributeMetadataName,

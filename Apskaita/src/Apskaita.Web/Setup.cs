@@ -12,8 +12,8 @@ using Apskaita.Feature.Account.UserRegistry.Endpoints;
 using Apskaita.Web.Shared.Calendar;
 using FluentValidation;
 using Apskaita.Entities;
-using Apskaita.Web.Features.TimeTracking.Endpoints;
-using Apskaita.Web.Features.TimeTracking.Validators;
+using Apskaita.Feature.TimeTracking.Endpoints;
+using Apskaita.Feature.TimeTracking.Validators;
 using Apskaita.Web.Shared;
 using Apskaita.Web.Shared.Routing;
 using Apskaita.Web.Logging;
@@ -31,6 +31,7 @@ using Apskaita.Entities.Contracts;
 using Apskaita.Feature.Account.Persistence;
 using Apskaita.Feature.Account.Services;
 using Apskaita.Feature.Admin.Persistence;
+using Apskaita.Feature.TimeTracking.Persistence;
 using Apskaita.Shared.Calendar;
 using AdminFeatureType = Apskaita.Feature.Admin.ClientsRegistry.Models.ClientListQuery;
 
@@ -81,6 +82,8 @@ public static class Setup
     {
         services.AddSingleton<ConnectorTokenProtector>();
         services.AddScoped<CalendarConnectorStore>();
+        // Cross-feature read seam for calendar event-reference validation (TimeTracking → Account).
+        services.AddScoped<ICalendarEventReferenceResolver>(sp => sp.GetRequiredService<CalendarConnectorStore>());
         services.AddScoped<Outlook365Connector>(sp => new Outlook365Connector(
             sp.GetRequiredService<CalendarConnectorStore>(),
             sp.GetRequiredService<ConnectorTokenProtector>(),
@@ -120,6 +123,7 @@ public static class Setup
         // feature's internal store interface (visible via InternalsVisibleTo).
         services.AddScoped<IAccountStore, AccountStore>();
         services.AddScoped<IAdminStore, AdminStore>();
+        services.AddScoped<ITimeTrackingStore, TimeTrackingStore>();
     }
 
     /// <summary>

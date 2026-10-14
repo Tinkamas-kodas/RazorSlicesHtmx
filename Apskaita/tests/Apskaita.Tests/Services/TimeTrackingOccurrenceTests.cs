@@ -1,12 +1,13 @@
-using Apskaita.Web.Features.TimeTracking.Models;
-using Apskaita.Web.Features.TimeTracking.Services;
+using Apskaita.Feature.TimeTracking.Models;
 
 namespace Apskaita.Tests.Services;
 
+/// <summary>
+/// Recurrence generation is pure request behavior on <see cref="TimeTrackingModel"/> (the content
+/// service is dissolved): these lock the occurrence sequence invariants.
+/// </summary>
 public sealed class TimeTrackingOccurrenceTests
 {
-    private readonly TimeTrackingContentService _service = new();
-
     private static readonly DateOnly BaseDate = new(2026, 10, 5);
     private static readonly TimeOnly BaseTime = new(13, 0);
 
@@ -25,7 +26,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void NonRepeating_ReturnsSingleBaseOccurrence()
     {
-        var occurrences = _service.CreateOccurrences(Request(false, null, null));
+        var occurrences = Request(false, null, null).CreateOccurrences();
 
         Assert.Single(occurrences);
         Assert.Equal(BaseDate.ToDateTime(BaseTime), occurrences[0]);
@@ -34,7 +35,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void Repeating_Weekly_UntilThreeWeeksLater_ProducesFour()
     {
-        var occurrences = _service.CreateOccurrences(Request(true, 1, BaseDate.AddDays(21)));
+        var occurrences = Request(true, 1, BaseDate.AddDays(21)).CreateOccurrences();
 
         Assert.Equal(4, occurrences.Count);
         Assert.Equal(BaseDate, DateOnly.FromDateTime(occurrences[0]));
@@ -44,7 +45,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void Repeating_BiWeekly_UntilThirtyDaysLater_ProducesThree()
     {
-        var occurrences = _service.CreateOccurrences(Request(true, 2, BaseDate.AddDays(30)));
+        var occurrences = Request(true, 2, BaseDate.AddDays(30)).CreateOccurrences();
 
         Assert.Equal(3, occurrences.Count);
         Assert.Equal(BaseDate.AddDays(14), DateOnly.FromDateTime(occurrences[1]));
@@ -54,7 +55,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void Repeating_MissingUntil_GuardReturnsSingle()
     {
-        var occurrences = _service.CreateOccurrences(Request(true, 1, null));
+        var occurrences = Request(true, 1, null).CreateOccurrences();
 
         Assert.Single(occurrences);
     }
@@ -62,7 +63,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void Repeating_MaxSpan_ProducesMaxOccurrences()
     {
-        var occurrences = _service.CreateOccurrences(Request(true, 1, BaseDate.AddDays(TimeTrackingLimits.MaxRepeatSpanDays)));
+        var occurrences = Request(true, 1, BaseDate.AddDays(TimeTrackingLimits.MaxRepeatSpanDays)).CreateOccurrences();
 
         Assert.Equal(TimeTrackingLimits.MaxOccurrences, occurrences.Count);
         Assert.Equal(BaseDate.AddDays(728), DateOnly.FromDateTime(occurrences[^1]));
@@ -71,7 +72,7 @@ public sealed class TimeTrackingOccurrenceTests
     [Fact]
     public void Repeating_PreservesTimeOfDay()
     {
-        var occurrences = _service.CreateOccurrences(Request(true, 1, BaseDate.AddDays(21)));
+        var occurrences = Request(true, 1, BaseDate.AddDays(21)).CreateOccurrences();
 
         foreach (var o in occurrences)
         {

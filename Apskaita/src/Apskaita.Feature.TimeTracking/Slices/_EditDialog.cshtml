@@ -1,4 +1,4 @@
-@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingModel>
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
@@ -14,7 +14,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
+        @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._TimeTrackingForm.Create(Model))
 
         <div class="modal-footer justify-content-between">
             <button type="button"

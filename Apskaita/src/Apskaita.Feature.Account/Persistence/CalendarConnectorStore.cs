@@ -10,7 +10,7 @@ namespace Apskaita.Feature.Account.Persistence;
 /// never from a route or form value. Used by the account endpoints, the connect callback, and the Graph
 /// connector for token-cache updates.
 /// </summary>
-internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAccessor httpContextAccessor) : ICalendarConnectorTokenStore
+internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAccessor httpContextAccessor) : ICalendarConnectorTokenStore, ICalendarEventReferenceResolver
 {
     /// <summary>Normalized email of the current session user, or null when unauthenticated.</summary>
     public string? CurrentEmail
@@ -70,6 +70,16 @@ internal sealed class CalendarConnectorStore(IAccountStore store, IHttpContextAc
             .Where(c => c.UserId == userId && c.Provider == provider)
             .OrderBy(c => c.AccountEmail)
             .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// <see cref="ICalendarEventReferenceResolver"/>: does the current session user own a connected
+    /// account for this provider? Backs TimeTracking's calendar-event-reference validation (REQ-004).
+    /// </summary>
+    public async Task<bool> OwnsAccountAsync(CalendarProvider provider, string accountKey, CancellationToken ct)
+    {
+        var connectors = await GetOwnByProviderAsync(provider, ct);
+        return connectors.Any(c => string.Equals(c.AccountKey, accountKey, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

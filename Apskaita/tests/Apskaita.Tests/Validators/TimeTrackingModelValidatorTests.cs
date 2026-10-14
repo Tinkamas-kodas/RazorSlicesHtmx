@@ -1,5 +1,5 @@
-using Apskaita.Web.Features.TimeTracking.Models;
-using Apskaita.Web.Features.TimeTracking.Validators;
+using Apskaita.Feature.TimeTracking.Models;
+using Apskaita.Feature.TimeTracking.Validators;
 using FluentValidation;
 using FluentValidation.Results;
 

@@ -1,4 +1,4 @@
-@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel>
+@inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingModel>
 @using RazorSlicesHtmx.Bootstrap5.Extensions
 
 @{ var f = Model.For(); }
@@ -10,7 +10,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._TimeTrackingForm.Create(Model))
+        @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._TimeTrackingForm.Create(Model))
 
         @if (Model.FromCalendarEvent)
         {

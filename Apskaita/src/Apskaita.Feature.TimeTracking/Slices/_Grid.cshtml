@@ -1,4 +1,4 @@
-@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
+@inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingPageModel>
 @using System.Linq
 @* Drag-to-move: long-press an entry to pick it up; left-click drops, right-click cancels. *@
 
@@ -87,6 +87,6 @@
         </div>
     </div>
 
-    @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._CalendarPanel.Create(Model))
+    @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._CalendarPanel.Create(Model))
     </div>
 </div>

@@ -1,4 +1,4 @@
-@inherits RazorSlice<Apskaita.Web.Features.TimeTracking.Models.TimeTrackingPageModel>
+@inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingPageModel>
 <article class="section-panel">
     <div class="tt-controls-sticky">
         <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
@@ -40,5 +40,5 @@
         </div>
     </div>
 
-    @await RenderPartialAsync(Apskaita.Web.Features.TimeTracking.Slices._Grid.Create(Model))
+    @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._Grid.Create(Model))
 </article>

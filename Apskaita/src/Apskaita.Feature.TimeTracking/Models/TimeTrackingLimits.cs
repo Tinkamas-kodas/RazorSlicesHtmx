@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.TimeTracking.Models;
+namespace Apskaita.Feature.TimeTracking.Models;
 
 /// <summary>
 /// Shared limits for the time-tracking feature. This is the single source of truth used by both

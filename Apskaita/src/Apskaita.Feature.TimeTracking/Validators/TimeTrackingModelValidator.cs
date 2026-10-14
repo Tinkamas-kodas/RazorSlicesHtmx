@@ -1,8 +1,8 @@
 using FluentValidation;
-using Apskaita.Web.Features.TimeTracking.Models;
-using TimeTrackingModel = Apskaita.Web.Features.TimeTracking.Models.TimeTrackingModel;
+using Apskaita.Feature.TimeTracking.Models;
+using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
-namespace Apskaita.Web.Features.TimeTracking.Validators;
+namespace Apskaita.Feature.TimeTracking.Validators;
 
 public sealed class TimeTrackingModelValidator : AbstractValidator<TimeTrackingModel>
 {

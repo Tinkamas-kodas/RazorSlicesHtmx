@@ -1,4 +1,4 @@
-namespace Apskaita.Web.Features.TimeTracking.Models;
+namespace Apskaita.Feature.TimeTracking.Models;
 
 public sealed record TimeTrackingPageModel(
     DateOnly WeekStart,

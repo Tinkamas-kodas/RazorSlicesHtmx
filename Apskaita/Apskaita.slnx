@@ -4,6 +4,7 @@
     <Project Path="src/Apskaita.Entities/Apskaita.Entities.csproj" />
     <Project Path="src/Apskaita.Feature.Account/Apskaita.Feature.Account.csproj" />
     <Project Path="src/Apskaita.Feature.Admin/Apskaita.Feature.Admin.csproj" />
+    <Project Path="src/Apskaita.Feature.TimeTracking/Apskaita.Feature.TimeTracking.csproj" />
     <Project Path="src/Apskaita.Shared/Apskaita.Shared.csproj" />
     <Project Path="src/Apskaita.Web/Apskaita.Web.csproj" />
   </Folder>

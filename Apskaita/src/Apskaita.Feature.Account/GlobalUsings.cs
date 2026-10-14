@@ -1,9 +1,9 @@
 global using RazorSlices;
-global using RazorSlicesHtmx.HtmlNames;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.DependencyInjection;
 global using RazorSlicesHtmx.AspNetCore.Features;
+global using RazorSlicesHtmx.AspNetCore.Html;
 global using RazorSlicesHtmx.AspNetCore.Extensions;
 global using RazorSlicesHtmx.AspNetCore.Models;
 global using RazorSlicesHtmx.AspNetCore.Results;

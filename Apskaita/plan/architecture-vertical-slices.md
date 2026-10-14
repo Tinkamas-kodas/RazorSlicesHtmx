@@ -1,6 +1,6 @@
 # Architecture: Vertical Slices with a Shared Data Core
 
-Status: IN PROGRESS — stages 0–2 done, 3–4 mostly done (Users relocation pending), 5–7 pending
+Status: IMPLEMENTED (stages 0–8 complete, 2026-10-14) — see progress log below
 Date: 2026-10-13 · refreshed 2026-10-14
 Owner: Apskaita
 
@@ -266,12 +266,12 @@ Each stage ends green: `dotnet build Apskaita/Apskaita.slnx` + `dotnet test --pr
 | **8. Test isolation** (added) | Serialize `ApskaitaApiFactory`-based classes via `[Collection("Integration")]` — fixes parallel-host flakiness | repeated green runs | ✅ done (`45fca63`) |
 | **1. Contracts** | Add `Contracts/IQuery.cs` to `Apskaita.Entities` + `Query<T>` impl and open-generic registration in Web. No behavior change. | build + tests | ✅ done (`5191bf5`) |
 | **2. `Apskaita.Shared`** | New project; move `Web.Shared` (FeatureUri, AuthPolicies, AdminNavItem, ProjectColorCatalog), `Web/Shared/*` (Calendar/*, BrowserTimeZone), `Web/Logging/*`, `AccountCookieEvents`. Add `ICalendarConnectorTokenStore`; refactor `Outlook365Connector` to depend on it (keep `CalendarConnectorStore` temporarily in Web as a stop-gap implementation). Delete `Apskaita.Web.Shared`. | build + tests + connector smoke | ✅ done (`3c203b4`) |
-| **3. Account pilot** | New `Apskaita.Feature.Account`; move `Web/Features/Account/*` + `CalendarConnectorStore` + Admin's `UsersEndpoints` (re-registered under `/admin/users`); declare internal `IAccountStore` + IVT; `AccountStore` adapter + `Query<T>` in Web/Composition; implement `AccountConnectorTokenStore`. Web registers everything. | build + tests + `/account` and `/admin/users` smoke | 🔶 pilot done (`b6a4470`); `UsersEndpoints` move + `CalendarConnectorStore` relocation pending |
-| **4c. Users → Account** (added) | Move `Admin/Common` → `Apskaita.Shared`; relocate `UserRegistry/{Endpoints,Models,Services,Slices}` + `UsersEndpoints` → `Apskaita.Feature.Account` on `IAccountStore.Users`; dissolve `UsersContentService` per converged pattern; convert Users test to endpoint-level | build + tests | ⏳ pending |
-| **4. Admin** | Rename `Apskaita.Feature.Admin` → `Apskaita.Feature.Admin`; declare internal `IAdminStore`; switch all registry endpoints/services from `ApskaitaDbContext` to `IAdminStore`. | build + tests + admin pages smoke | 🔶 done except `UserRegistry` (`104f9e5`, `5b8ab2d`; replication `ef201b6`…`6f8bbd7`) |
-| **5. TimeTracking** | New `Apskaita.Feature.TimeTracking`; move feature; internal `ITimeTrackingStore`; switch lookups to `IQuery<Project>`/`IQuery<User>`. | build + tests + grid/dialog smoke | ⏳ pending — still in `Web/Features/TimeTracking` (~36 `db.*` sites) |
-| **6. Data move** | Move `ApskaitaDbContext`, `Mapping/`, `Migrations/`, design-time factory into `Web/Data`; retire `Apskaita.Data.Migration`; strip `Entities` to POCOs+contracts; regenerate migrations if namespace churn requires. | build + tests + fresh-DB `MigrateAsync` run | ⏳ pending |
-| **7. Hardening (optional)** | Remove the four `DisableAntiforgery()` calls in TimeTracking endpoints (header hook fixed 2026-10-13); clean recursive `artifacts/build-temp` output loops in Web + Admin. | tests + POST smoke | ⏳ pending (4 calls remain) |
+| **3. Account pilot** | New `Apskaita.Feature.Account`; move `Web/Features/Account/*` + `CalendarConnectorStore` + Admin's `UsersEndpoints` (re-registered under `/admin/users`); declare internal `IAccountStore` + IVT; `AccountStore` adapter + `Query<T>` in Web/Composition; implement `AccountConnectorTokenStore`. Web registers everything. | build + tests + `/account` and `/admin/users` smoke | ✅ done (`b6a4470`; Users completed in 4c) |
+| **4c. Users → Account** (added) | Move `Admin/Common` → `Apskaita.Shared`; relocate `UserRegistry/{Endpoints,Models,Services,Slices}` + `UsersEndpoints` → `Apskaita.Feature.Account` on `IAccountStore.Users`; dissolve `UsersContentService` per converged pattern; convert Users test to endpoint-level | build + tests | ✅ done (`0abd901` Common→Shared, `a58c499` Users→Account) |
+| **4. Admin** | Rename `Apskaita.Feature.Admin` → `Apskaita.Feature.Admin`; declare internal `IAdminStore`; switch all registry endpoints/services from `ApskaitaDbContext` to `IAdminStore`. | build + tests + admin pages smoke | ✅ done (`104f9e5`, `5b8ab2d`; replication `ef201b6`…`6f8bbd7`; `UserRegistry` moved out in 4c) |
+| **5. TimeTracking** | New `Apskaita.Feature.TimeTracking`; move feature; internal `ITimeTrackingStore`; switch lookups to `IQuery<Project>`/`IQuery<User>`. | build + tests + grid/dialog smoke | ✅ done (`c11cfe8`) |
+| **6. Data move** | Move `ApskaitaDbContext`, `Mapping/`, `Migrations/`, design-time factory into `Web/Data`; retire `Apskaita.Data.Migration`; strip `Entities` to POCOs+contracts; regenerate migrations if namespace churn requires. | build + tests + fresh-DB `MigrateAsync` run | ✅ done (`b70aefa`) — fresh-DB run pending (see caveats) |
+| **7. Hardening (optional)** | Remove the four `DisableAntiforgery()` calls in TimeTracking endpoints (header hook fixed 2026-10-13); clean recursive `artifacts/build-temp` output loops in Web + Admin. | tests + POST smoke | ✅ done (`3189339` antiforgery, `68f26ef` output guard) |
 
 Stage 3 is the pilot: if the pattern proves out on Account, stages 4–5 are mechanical.
 
@@ -299,11 +299,43 @@ Clients `ef201b6`, Issuers `04f8e6f`, Units `2c2b0c6`, InvoiceTemplates `b1afc14
 **Open caveats (operational, not code):**
 
 - Migration `AddProjectClientTemplateForeignKeys` is NOT applied to live MySQL — check orphan
-  `projects.client_id` / `invoice_template_id` before running the app (startup `MigrateAsync`
-  will fail on violations).
+  `projects.client_id` / `invoice_template_id` first, then apply with
+  `dotnet run --project src/Apskaita.Web -- --migrate` (fails on FK violations).
 - `/admin/projects/list` nav-projection SQL is compile-verified only — needs runtime smoke.
 
-**Next in order**: 4c Users → Account → 5 TimeTracking → 6 Data move → 7 Hardening.
+**Next in order**: none — all stages implemented (see completion log below).
+
+### Completion log (2026-10-14, HEAD `68f26ef`)
+
+- **4c** (`0abd901`, `a58c499`): status-toggle `Common` moved to `Apskaita.Shared/Ui/Common`
+  (Shared converted to `Sdk.Razor` + `RazorSlices`); `UserRegistry` moved to
+  `Apskaita.Feature.Account` and `UsersContentService` dissolved — GET via `IQuery<User>`,
+  POST via `IAccountStore` (tracked toggle / set-role); Users toggle test converted to
+  endpoint level.
+- **5** (`c11cfe8`): `Apskaita.Feature.TimeTracking` extracted; `TimeTrackingContentService`
+  dissolved — GET via `IQuery<TimeTracking>`/`IQuery<Project>`, POST via `ITimeTrackingStore`;
+  pure dialog behavior moved onto the `TimeTrackingModel` partial (`CreateDefault`,
+  `FromRequest`, `CreateFromEvent`, `CreateOccurrences`, `CreateSavedMessage`); the
+  calendar-event ownership check now crosses the feature line through the public
+  `ICalendarEventReferenceResolver` seam (Shared, implemented by Account's
+  `CalendarConnectorStore`).
+- **6** (`b70aefa`): `ApskaitaDbContext` + `Mapping/` + `Migrations/` + design-time factory
+  moved into `Apskaita.Web/Data/` (namespaces kept); `MigrationsAssembly` retargeted to
+  `Apskaita.Web`; `Apskaita.Data.Migration` retired — migrations are applied with
+  `dotnet run --project src/Apskaita.Web -- --migrate [--connection=...]` (single
+  `MigrateAsync` call site in `MigrationRunner`; the web host never migrates, so in-process
+  test hosts are unaffected); `Apskaita.Entities` stripped to POCOs + `Contracts/` with zero
+  EF references — features can no longer even see the context.
+- **7** (`3189339`, `68f26ef`): the four `DisableAntiforgery()` calls removed (time-tracking
+  POSTs now validated through the htmx antiforgery header hook; tests scrape the token via the
+  shared `TestAntiforgery` helper); recursive `artifacts/build-temp` output trees deleted and an
+  `Apskaita/Directory.Build.props` guard target removes nested output copies before every build.
+
+**Acceptance criteria — verified mechanically**: zero `ApskaitaDbContext` references in the three
+feature assemblies (and in `Apskaita.Shared` code); all three `IStore`s are `internal` with
+`InternalsVisibleTo("Apskaita.Web")` + `("Apskaita.Tests")`; cross-feature reads go through
+`IQuery<T>`; `Apskaita.Data.Migration` and `Apskaita.Web.Shared` are gone; solution builds
+0 warnings / 0 errors and the suite is 107/107 (exe) / 126 passed (VS Code runner).
 
 ## 8. Project-reference gotchas (verified in this repo)
 

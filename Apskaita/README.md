@@ -4,12 +4,16 @@ ASP.NET Core (net10.0) accounting app built on the RazorSlicesHtmx libraries in 
 
 ## Projects
 
-- `src/Apskaita.Web` — app: features (time tracking, account, settings), layout, auth wiring.
-- `src/Apskaita.Feature.Admin` — admin registries (clients, issuers, units, projects, invoice templates, users, system settings).
-- `src/Apskaita.Web.Shared` — shared contracts (nav items, policies, feature URI, calendar reader).
-- `src/Apskaita.Entities` — EF Core entities + mappings (MySQL, snake_case naming).
-- `src/Apskaita.Data.Migration` — design-time factory + EF migrations.
+- `src/Apskaita.Web` — app host: layout, auth wiring, composition root, and the data layer (`Data/`: `ApskaitaDbContext`, mappings, migrations, design-time factory).
+- `src/Apskaita.Feature.Account` — account, admin user management, calendar connectors (owns `users`, `calendar_connectors` via internal `IAccountStore`).
+- `src/Apskaita.Feature.Admin` — admin registries (clients, issuers, units, projects, invoice templates, system settings; internal `IAdminStore`).
+- `src/Apskaita.Feature.TimeTracking` — time-tracking week grid and dialogs (internal `ITimeTrackingStore`).
+- `src/Apskaita.Shared` — shared infrastructure: nav items, policies, feature URI, calendar connector/reader abstractions, status-toggle UI, logging.
+- `src/Apskaita.Entities` — POCO entities + the `IQuery<T>` cross-feature read contract (no EF dependency).
 - `tests/Apskaita.Tests` — xUnit v3 tests (run via `dotnet test` from `Apskaita/`).
+
+Feature assemblies read other features' tables only through `IQuery<T>`; write access lives in each
+feature's `internal` store, implemented by the composition root (`Apskaita.Web/Composition`).
 
 ## Run
 
@@ -68,6 +72,9 @@ Per-user calendar connections (see `plan/feature-calendar-connectors-1.md`):
 ## Migrations
 
 ```powershell
-dotnet ef migrations add <Name> --project src/Apskaita.Data.Migration
-dotnet ef database update --project src/Apskaita.Data.Migration
+dotnet ef migrations add <Name> --project src/Apskaita.Web   # design-time factory: Web/Data
+dotnet run --project src/Apskaita.Web -- --migrate           # apply pending migrations, then exit
 ```
+
+`--migrate` accepts `--connection=<conn-string>` (defaults to the local dev MySQL). The web host itself
+never migrates on startup, so in-process `WebApplicationFactory` tests are unaffected.

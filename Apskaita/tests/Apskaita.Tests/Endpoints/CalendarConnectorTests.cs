@@ -99,7 +99,24 @@ public sealed class CalendarConnectorTests
     }
 
     [Fact]
-    public async Task TimeTrackingRoot_RedirectsToAbsoluteListPath()
+    public async Task TimeTrackingRoot_RendersListPageWithGridPlaceholder()
+    {
+        await using var factory = new ApskaitaApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var html = await factory.CreateClient().GetStringAsync("/time-tracking");
+
+        // The page renders controls plus an empty placeholder; the grid arrives from its own hx-get.
+        Assert.Contains("hx-get=\"/time-tracking/list?weekStart=", html);
+        Assert.Contains("hx-trigger=\"load, time-tracking-list-refresh from:document\"", html);
+        Assert.Contains("Loading week", html);
+        Assert.DoesNotContain("tt-week-grid", html);
+        Assert.DoesNotContain("tt-calendar-panel", html);
+    }
+
+    [Fact]
+    public async Task TimeTrackingList_NonHtmx_RedirectsToRoot()
     {
         await using var factory = new ApskaitaApiFactory();
         factory.SetPrincipal(UserEmail, UserRole.User);
@@ -110,10 +127,28 @@ public sealed class CalendarConnectorTests
             AllowAutoRedirect = false
         });
 
-        var response = await client.GetAsync("/time-tracking");
+        var response = await client.GetAsync("/time-tracking/list?weekStart=2026-10-05");
 
         Assert.True(response.StatusCode == HttpStatusCode.Redirect, $"Expected 302, got {(int)response.StatusCode}.");
-        Assert.Equal("/time-tracking/list", response.Headers.Location!.ToString());
+        Assert.Equal("/time-tracking?weekStart=2026-10-05", response.Headers.Location!.ToString());
+    }
+
+    [Fact]
+    public async Task TimeTrackingGridFragment_CarriesRefreshTriggerForItsOwnWeek()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list?weekStart=2026-10-05", "time-tracking-grid");
+
+        // The outerHTML swap replaces the placeholder, so the incoming grid must own the refresh wiring
+        // for its own week; "load" stays on the page placeholder (otherwise it would re-fire forever).
+        Assert.Contains("id=\"time-tracking-grid\"", html);
+        Assert.Contains("hx-get=\"/time-tracking/list?weekStart=2026-10-05\"", html);
+        Assert.Contains("hx-trigger=\"time-tracking-list-refresh from:document\"", html);
+        Assert.Contains("data-move-url=\"/time-tracking/move\"", html);
+        Assert.DoesNotContain("load,", html);
     }
 
     [Fact]
@@ -277,7 +312,7 @@ public sealed class CalendarConnectorTests
                 "Organizer Person")
         ], null);
 
-        var html = await factory.CreateClient().GetStringAsync("/time-tracking/list");
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         Assert.Contains("Calendar", html);
         Assert.Contains("Sprint planning", html);
@@ -292,7 +327,7 @@ public sealed class CalendarConnectorTests
         factory.SetPrincipal(UserEmail, UserRole.User);
         await SeedUserAsync(factory);
 
-        var html = await factory.CreateClient().GetStringAsync("/time-tracking/list");
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         Assert.Contains("No calendar connected.", html);
         Assert.Contains("/account", html);
@@ -307,10 +342,8 @@ public sealed class CalendarConnectorTests
 
         factory.Reader.Result = new CalendarReadResult(true, [], "Calendar unavailable: Graph 500");
 
-        var response = await factory.CreateClient().GetAsync("/time-tracking/list");
-        Assert.True(response.IsSuccessStatusCode, $"Expected 200, got {(int)response.StatusCode}.");
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
-        var html = await response.Content.ReadAsStringAsync();
         Assert.Contains("Calendar unavailable: Graph 500", html);
     }
 
@@ -332,7 +365,7 @@ public sealed class CalendarConnectorTests
                 null)
         ], null);
 
-        var html = await factory.CreateClient().GetStringAsync("/time-tracking/list");
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         Assert.Contains("Standup", html);
         Assert.Contains("Online", html);

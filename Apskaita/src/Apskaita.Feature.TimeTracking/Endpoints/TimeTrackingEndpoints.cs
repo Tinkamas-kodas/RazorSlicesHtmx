@@ -19,7 +19,8 @@ public sealed partial class TimeTrackingEndpoints(FeatureResultBuilder resultBui
 {
     public override IReadOnlyList<AdminNavItem> NavigationItems =>
     [
-        new("MAIN", "time-tracking", "Time tracking", "list", Order: 1, AuthorizationPolicy: AuthPolicies.Operational)
+        // The page lives at the group root ("/time-tracking"); "list" is the grid fragment it loads.
+        new("MAIN", "time-tracking", "Time tracking", "", Order: 1, AuthorizationPolicy: AuthPolicies.Operational)
     ];
 
     public override void MapEndpoints(RouteGroupBuilder group)

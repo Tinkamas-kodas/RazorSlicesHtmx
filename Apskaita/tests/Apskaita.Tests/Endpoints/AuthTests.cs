@@ -91,7 +91,7 @@ public sealed class AuthTests
 
         var http = factory.CreateClient();
 
-        var operational = await http.GetAsync("/time-tracking/list");
+        var operational = await http.GetAsync("/time-tracking");
         Assert.True(operational.IsSuccessStatusCode, $"Operational feature should be accessible, got {(int)operational.StatusCode}.");
 
         var admin = await NoRedirectClient(factory).GetAsync("/admin/clients/list");

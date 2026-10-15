@@ -1,12 +1,14 @@
 @inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingPageModel>
 @using System.Linq
-@* Drag-to-move: long-press an entry to pick it up; left-click drops, right-click cancels. *@
+@* Drag-to-move: long-press an entry to pick it up; left-click drops, right-click cancels.
+   The root carries the refresh trigger (no "load" — that belongs to the _ListPage placeholder only):
+   the outerHTML swap replaces itself, so the incoming grid re-registers the trigger for its own week. *@
 
 <div id="time-tracking-grid"
      data-move-url="@FeatureUri.Uri("move")"
      hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
-    hx-trigger="time-tracking-list-refresh from:document"
-     hx-target="#time-tracking-grid"
+     hx-trigger="time-tracking-list-refresh from:document"
+     hx-target="this"
      hx-swap="outerHTML">
     <div class="tt-week-layout">
     <div class="card border-0 shadow-sm tt-week-main">

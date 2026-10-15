@@ -89,3 +89,29 @@ public static class TestAntiforgery
         return match.Groups[1].Value;
     }
 }
+
+/// <summary>
+/// HTMX request helper: fragment endpoints answer HTMX requests only, so tests fetch them the way the
+/// browser does (<c>HX-Request</c> plus the optional <c>HX-Target</c> the element would send).
+/// </summary>
+public static class TestHtmx
+{
+    /// <summary>GETs a URL as an HTMX request and returns the response body (asserts 2xx).</summary>
+    public static async Task<string> GetHtmlAsync(HttpClient http, string url, string? target = null, string? currentUrl = null, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        if (target is not null)
+        {
+            request.Headers.TryAddWithoutValidation("HX-Target", target);
+        }
+
+        // htmx always reports the browser URL; the nav OOB strategy uses it to skip navigation for
+        // same-feature fragment requests (as it does in the live app).
+        request.Headers.TryAddWithoutValidation("HX-Current-URL", currentUrl ?? "http://localhost" + url);
+
+        var response = await http.SendAsync(request, ct);
+        Assert.True(response.IsSuccessStatusCode, $"Expected 200 for {url}, got {(int)response.StatusCode}.");
+        return await response.Content.ReadAsStringAsync(ct);
+    }
+}

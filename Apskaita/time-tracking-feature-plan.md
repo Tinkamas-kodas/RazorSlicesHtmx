@@ -89,7 +89,8 @@ Sukurti naują Time-tracking modulį, kuris atkartoja Clockify tipo laiko pildym
     - nuo 00:00:00 iki pabaigos.
 
 ## 4. API/endpoint planas (MVP)
-- GET /time-tracking/list?weekStart=yyyy-MM-dd
+- GET /time-tracking — sąrašo puslapis (_ListPage: valdikliai + tuščias _Grid placeholder, `hx-trigger="load, time-tracking-list-refresh from:document"`)
+- GET /time-tracking/list?weekStart=yyyy-MM-dd — savaitės _Grid fragmentas (tik HTMX; ne HTMX užklausa → 302 į /time-tracking su query)
 - GET /time-tracking/create?date=...&time=...
 - POST /time-tracking/create
 - GET /time-tracking/edit/{id}

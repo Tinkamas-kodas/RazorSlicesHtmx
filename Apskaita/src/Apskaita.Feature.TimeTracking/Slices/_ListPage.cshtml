@@ -11,24 +11,24 @@
                 <button class="btn btn-outline-secondary tt-week-nav-btn"
                         type="button"
                         hx-get="@FeatureUri.Uri($"list?weekStart={Model.PreviousWeekStart:yyyy-MM-dd}")"
-                        hx-target="#details-pane"
-                        hx-swap="innerHTML"
+                        hx-target="#time-tracking-grid"
+                        hx-swap="outerHTML"
                         hx-push-url="true">
                     Previous week
                 </button>
                 <button class="btn btn-outline-dark tt-week-nav-btn"
                         type="button"
                         hx-get="@FeatureUri.Uri($"list?weekStart={DateOnly.FromDateTime(DateTime.Now):yyyy-MM-dd}")"
-                        hx-target="#details-pane"
-                        hx-swap="innerHTML"
+                        hx-target="#time-tracking-grid"
+                        hx-swap="outerHTML"
                         hx-push-url="true">
                     This week
                 </button>
                 <button class="btn btn-outline-secondary tt-week-nav-btn"
                         type="button"
                         hx-get="@FeatureUri.Uri($"list?weekStart={Model.NextWeekStart:yyyy-MM-dd}")"
-                        hx-target="#details-pane"
-                        hx-swap="innerHTML"
+                        hx-target="#time-tracking-grid"
+                        hx-swap="outerHTML"
                         hx-push-url="true">
                     Next week
                 </button>
@@ -40,5 +40,15 @@
         </div>
     </div>
 
-    @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._Grid.Create(Model))
+    @* Grid placeholder: the grid fragment arrives from `list` on load and on every refresh trigger.
+       _Grid's root carries the same attributes (minus "load", which must fire once) so the outerHTML
+       swap hands the refresh wiring to the incoming grid and week changes never leave a stale URL. *@
+    <div id="time-tracking-grid"
+         data-move-url="@FeatureUri.Uri("move")"
+         hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
+         hx-trigger="load, time-tracking-list-refresh from:document"
+         hx-target="this"
+         hx-swap="outerHTML">
+        <div class="p-3 text-muted" role="status">Loading week…</div>
+    </div>
 </article>

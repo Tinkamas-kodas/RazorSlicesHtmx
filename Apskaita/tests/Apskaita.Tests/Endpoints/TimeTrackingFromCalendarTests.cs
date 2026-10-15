@@ -197,7 +197,7 @@ public sealed class TimeTrackingFromCalendarTests
     private static async Task<HttpResponseMessage> PostCreateAsync(ApskaitaApiFactory factory, Dictionary<string, string> form)
     {
         var http = factory.CreateClient();
-        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)
@@ -305,7 +305,7 @@ public sealed class TimeTrackingFromCalendarTests
         await SetupAsync(factory);
         factory.Reader.Result = new CalendarReadResult(true, [Standup()], null);
 
-        var html = await factory.CreateClient().GetStringAsync("/time-tracking/list");
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         var panelStart = html.IndexOf("tt-calendar-panel", StringComparison.Ordinal);
         Assert.True(panelStart >= 0, "Calendar panel should be rendered.");
@@ -340,7 +340,7 @@ public sealed class TimeTrackingFromCalendarTests
             await db.SaveChangesAsync(Ct);
         }
 
-        var html = await seeded.CreateClient().GetStringAsync("/time-tracking/list");
+        var html = await TestHtmx.GetHtmlAsync(seeded.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         Assert.Contains("tt-event-tracked-badge", html);
         Assert.Contains("Logged", html);

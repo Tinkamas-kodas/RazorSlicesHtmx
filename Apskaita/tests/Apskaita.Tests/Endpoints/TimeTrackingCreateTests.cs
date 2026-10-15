@@ -47,7 +47,7 @@ public sealed class TimeTrackingCreateTests
         };
 
         var http = factory.CreateClient();
-        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)
@@ -84,7 +84,7 @@ public sealed class TimeTrackingCreateTests
         };
 
         var http = factory.CreateClient();
-        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking/list");
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking");
         var request = new HttpRequestMessage(HttpMethod.Post, "/time-tracking/create")
         {
             Content = new FormUrlEncodedContent(form)

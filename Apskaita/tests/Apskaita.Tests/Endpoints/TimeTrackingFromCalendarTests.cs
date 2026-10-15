@@ -2,6 +2,7 @@ using System.Net;
 using Apskaita.Entities;
 using Apskaita.Shared.Calendar;
 using Microsoft.EntityFrameworkCore;
+using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
 namespace Apskaita.Tests.Endpoints;
 
@@ -95,6 +96,38 @@ public sealed class TimeTrackingFromCalendarTests
         Assert.Contains("value=\"45\"", html);
         // REQ-008: recurrence is suppressed for event-derived entries.
         Assert.DoesNotContain("tt-repeat-toggle", html);
+    }
+
+    [Fact]
+    public async Task Event_Untracked_PrefillsDescriptionFromEventSubject()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        await SetupAsync(factory);
+
+        var html = await factory.CreateClient().GetStringAsync(EventUrl("&subject=FDMS%20standup"));
+
+        Assert.Contains(">FDMS standup</textarea>", html);
+    }
+
+    [Fact]
+    public async Task Event_Untracked_WithoutSubject_LeavesDescriptionEmpty()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        await SetupAsync(factory);
+
+        var html = await factory.CreateClient().GetStringAsync(EventUrl());
+
+        Assert.Contains("></textarea>", html);
+    }
+
+    [Fact]
+    public void CreateFromEvent_ClampsSubjectToDescriptionMaxLength()
+    {
+        var model = TimeTrackingModel.CreateFromEvent("2026-10-13", "09:45", 45, "2026-10-12", "outlook365", Account, EventId, new string('x', 3000));
+        Assert.Equal(FieldLengths.TimeTracking.Description, model.Description!.Length);
+
+        var blank = TimeTrackingModel.CreateFromEvent("2026-10-13", "09:45", 45, "2026-10-12", "outlook365", Account, EventId, "   ");
+        Assert.Null(blank.Description);
     }
 
     [Fact]
@@ -278,6 +311,7 @@ public sealed class TimeTrackingFromCalendarTests
         Assert.True(panelStart >= 0, "Calendar panel should be rendered.");
         var panel = html[panelStart..];
         Assert.Contains("hx-get=\"/time-tracking/event?", panel);
+        Assert.Contains("subject=FDMS%20standup", panel);
         Assert.Contains("#dialog-host", panel);
         Assert.DoesNotContain("hx-post", panel);
         Assert.DoesNotContain("tt-event-tracked-badge", panel);

@@ -13,7 +13,7 @@ public sealed partial class TimeTrackingEndpoints
     /// <summary>
     /// Calendar-event entry point (REQ-001): one URI for every event click. The server decides which
     /// dialog to return — the existing entry's edit dialog when an entry references the event, otherwise
-    /// a create dialog prefilled with the event's display-zone start and duration.
+    /// a create dialog prefilled with the event's display-zone start, duration, and subject (description).
     /// </summary>
     private sealed class CalendarEventSection(TimeTrackingEndpoints owner)
     {
@@ -28,6 +28,7 @@ public sealed partial class TimeTrackingEndpoints
                 string? time,
                 int? duration,
                 string? weekStart,
+                string? subject,
                 IQuery<TimeTrackingEntry> entries,
                 ICalendarEventReferenceResolver eventResolver,
                 CancellationToken ct) =>
@@ -45,7 +46,7 @@ public sealed partial class TimeTrackingEndpoints
                     return Results.Redirect(uri.Uri($"edit/{trackedId.Value}"));
                 }
 
-                var model = TimeTrackingModel.CreateFromEvent(date, time, duration, weekStart, reference.ProviderKey, reference.AccountKey, reference.ExternalEventId);
+                var model = TimeTrackingModel.CreateFromEvent(date, time, duration, weekStart, reference.ProviderKey, reference.AccountKey, reference.ExternalEventId, subject);
                 return owner.Result.ShowDialog(_CreateDialog.Create(model));
             });
         }

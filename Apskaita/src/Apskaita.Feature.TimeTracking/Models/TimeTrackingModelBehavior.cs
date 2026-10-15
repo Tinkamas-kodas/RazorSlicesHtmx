@@ -86,7 +86,8 @@ public sealed partial class TimeTrackingModel
 
     /// <summary>
     /// Create-dialog model for the <c>event</c> endpoint's miss path: prefilled with the event's
-    /// display-zone start and duration plus the identity triple carried as hidden fields.
+    /// display-zone start, duration, and subject (as the description, trimmed and clamped to the
+    /// column maximum) plus the identity triple carried as hidden fields.
     /// </summary>
     public static TimeTrackingModel CreateFromEvent(
         string? dateRaw,
@@ -95,11 +96,23 @@ public sealed partial class TimeTrackingModel
         string? weekStartRaw,
         string providerKey,
         string accountKey,
-        string eventId)
+        string eventId,
+        string? subject = null)
     {
         var weekStart = GetWeekStart(ResolveAnchorDate(weekStartRaw));
         var selectedDate = DateOnly.TryParse(dateRaw, out var date) ? date : weekStart;
         var start = TimeOnly.TryParse(timeRaw, out var parsedStart) ? parsedStart : DefaultSlotStart;
+
+        // The event subject prefills the description; the user edits it before submitting.
+        var description = subject?.Trim();
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            description = null;
+        }
+        else if (description.Length > FieldLengths.TimeTracking.Description)
+        {
+            description = description[..FieldLengths.TimeTracking.Description];
+        }
 
         return new TimeTrackingModel
         {
@@ -109,7 +122,7 @@ public sealed partial class TimeTrackingModel
             HourlyRate = null,
             ProjectId = null,
             ProjectLabel = null,
-            Description = null,
+            Description = description,
             Repeat = false,
             EventProviderKey = providerKey,
             EventAccountKey = accountKey,

@@ -86,7 +86,7 @@ public static class FieldLengths
 
     public static class TimeTracking
     {
-        public const int Description = 1000;
+        public const int Description = 2000;
         public const int AccountKey = 255;
         public const int ExternalEventId = 255;
     }

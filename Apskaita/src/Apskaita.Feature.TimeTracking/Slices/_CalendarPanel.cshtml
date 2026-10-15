@@ -2,7 +2,8 @@
 @inject FeatureRegistry FeatureRegistry
 
 @* Calendar side panel (Clockify-like): every event card requests the single `event` URI with the
-   identity triple + display-zone start/duration; the server decides create vs edit dialog.
+   identity triple + display-zone start/duration + subject (prefills the entry description); the
+   server decides create vs edit dialog.
    The connect link follows the account feature's registered route group — no hardcoded prefix. *@
 
 @{
@@ -59,7 +60,7 @@
                     {
                         var hasIdentity = !string.IsNullOrEmpty(evt.ProviderKey) && !string.IsNullOrEmpty(evt.EventId);
                         var eventUrl = hasIdentity
-                            ? FeatureUri.Uri($"event?date={evt.DayDate:yyyy-MM-dd}&time={evt.Start:HH\\:mm}&duration={evt.DurationMinutes}&weekStart={Model.WeekStart:yyyy-MM-dd}&provider={evt.ProviderKey}&account={Uri.EscapeDataString(evt.AccountKey)}&eventId={Uri.EscapeDataString(evt.EventId)}")
+                            ? FeatureUri.Uri($"event?date={evt.DayDate:yyyy-MM-dd}&time={evt.Start:HH\\:mm}&duration={evt.DurationMinutes}&weekStart={Model.WeekStart:yyyy-MM-dd}&provider={evt.ProviderKey}&account={Uri.EscapeDataString(evt.AccountKey)}&eventId={Uri.EscapeDataString(evt.EventId)}&subject={Uri.EscapeDataString(evt.Subject)}")
                             : null;
                         <div class="tt-calendar-event @(eventUrl is not null ? "tt-calendar-event-clickable" : null)"
                             hx-get="@eventUrl"

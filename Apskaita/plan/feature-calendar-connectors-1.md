@@ -1,11 +1,11 @@
 ---
-goal: Connect User Mailboxes to Calendar Providers (Outlook 365 First) and Show the Week's Events on the Time Tracking Page
-version: 1.0
+goal: Connect User Mailboxes to Calendar Providers (Outlook 365 First), Import .ics Calendars, and Show the Week's Events on the Time Tracking Page
+version: 1.2
 date_created: 2026-10-11
-last_updated: 2026-10-11
+last_updated: 2026-10-16
 owner: Apskaita
-status: 'Implemented'
-tags: [feature, calendar, outlook365, microsoft-graph, oauth, settings, time-tracking]
+status: 'Implemented (1.0–1.1); Planned (1.2 ICS import)'
+tags: [feature, calendar, outlook365, microsoft-graph, oauth, ics-import, settings, time-tracking]
 ---
 
 # Introduction
@@ -18,6 +18,15 @@ Calendar (and others) can be added later. The connected account is stored as a *
 to the `User`. The time tracking week page then shows that user's calendar events for the displayed week
 in a Clockify-style side panel. **Display only** — no interaction with events, no import, no entry
 creation from events in this iteration.
+
+**Revision 1.2 (planned, §6)** adds a second, credential-free source for the same panel: importing an exported
+**.ics (RFC 5545) file** as a local calendar connection. It replaces the Outlook add-in bridge
+(`feature-outlook-addin-bridge-1.md`, removed): an add-in must be installed at the account/mailbox level and
+needs delegated Microsoft Graph calendar rights — i.e. exactly what the Outlook 365 connector already does —
+so it added install friction without new capability. `.ics` import instead covers calendars that cannot be
+connected via OAuth (Google Calendar without client credentials, restricted tenants, read-only shared
+calendars, Apple/iCloud export). §6.2 records the storage decision: **parse on upload and store in EF Core
+with a 30-day retention sweep — nothing is kept in the browser**.
 
 ## 0. Shared Language
 
@@ -130,33 +139,142 @@ creation from events in this iteration.
 - **AC-006**: No event element carries `hx-get`/`hx-post` or opens a dialog (display-only).
 - **AC-007**: All existing tests (73) plus new tests pass; `dotnet build` clean.
 
-## 4. Out of Scope (next iterations)
 
-- Creating/updating time entries from calendar events; import persistence; two-way sync.
-- Google Calendar connector implementation (registry slot reserved).
-- Admin view of other users' connectors; token re-use for write scopes (`Calendars.ReadWrite`).
-- Background/precomputed sync jobs and caching layers beyond the access-token cache.
+## 4. Revision 1.2 — Import `.ics` calendars (planned, 2026-10-16)
 
-## 5. Revision 1.1 — corrected requirements (2026-10-12)
+![Status: Planned](https://img.shields.io/badge/status-Planned-yellow)
 
-The first implementation assumed one connector per (user, provider) and reused the sign-in Entra app.
-Both were wrong:
+*(Routes below use the current `/account/...` prefix — the Settings feature was merged into Account, so the
+`/settings` paths in §2/§5 now live under `/account/me`.)*
 
-- **REQ-010**: a user can connect **many accounts of the same provider** (e.g. two organizations' mailboxes).
-  Connector rows are keyed by `AccountKey` (normalized account email); unique index is
-  `(user_id, provider, account_key)` (migration `CalendarConnectorMultiAccount`). Reconnecting the same
-  mailbox updates its row; a different mailbox adds a new one.
-- **REQ-011**: connectors use a **dedicated multi-tenant app registration** (`Apskaita Connectors`,
-  audience `AzureADMultipleOrgs`, authority `common`, own `Auth:Connectors:*` credentials) — never the
-  sign-in app. Delegated `Calendars.Read` is user-consentable, so no admin action is required in the
-  other organization under default policy.
-- **REQ-012**: every connect challenge sends `prompt=select_account`, so creating a new connection always
-  authenticates the mailbox rather than silently reusing an existing Microsoft SSO session.
-- **REQ-013**: when the other tenant blocks user consent (`AADSTS90093/90094`), the callback redirects to
-  `/settings?connectError=admin-consent`, which renders the admin consent URL
-  (`login.microsoftonline.com/common/adminconsent?client_id=…`) for that organization's admin.
-- **REQ-004 updated**: the time tracking panel merges events from **all** of the user's connectors, sorted
-  by local start; per-account failures are isolated (one dead token does not blank the panel).
-- **UI**: the provider card lists connections (display name, email, last sync, error) with per-connection
-  `POST /settings/disconnect/{id:guid}` (ownership verified against the session user) and a single
-  "Connect account" action.
+
+
+### 4.1 Shared Language (additions)
+
+| Term | Definition |
+|---|---|
+| **ICS import** | The user uploads an exported `.ics` (RFC 5545 `VCALENDAR`) file; the server parses `VEVENT`s into stored rows in the same request. No live sync — refreshing means uploading the file again. |
+| **Imported calendar** | A `calendar_connectors` row with `Provider = Ics` plus its parsed events; it behaves like any other connection in the connections table and in the week panel. |
+| **Import date** | The time the file was parsed and stored (`ConnectedAtUtc`, reset by "Replace file"). It is the retention anchor — **event dates never affect retention**. |
+| **Snapshot** | The parsed `VEVENT` rows for one imported calendar; replaced wholesale on "Replace file" and deleted by the retention sweep 30 days after the import date. |
+
+### 4.2 Storage decision (decided 2026-10-16: EF Core + retention sweep)
+
+The uploaded file must live somewhere between "user picked the file" and "the events appear in the panel and
+the calendar appears in the connections table". Options considered:
+
+| # | Where the payload lives | Survives reload | Survives new tab / other device | Connections table can list it server-side | Panel request ships the payload | Verdict |
+|---|---|---|---|---|---|---|
+| A | Browser `sessionStorage` (raw `.ics` text) | yes (same tab) | **no** — tab-scoped | no | **yes, every request** | Rejected as the store |
+| B | `localStorage` / IndexedDB (raw `.ics` text) | yes | yes (same browser only) | no | yes | Rejected as the store |
+| C | Server staging (`IMemoryCache`, TTL) → permanent parsed rows | yes | yes | yes | no | Rejected — an extra confirm round-trip buys nothing once the upload stores directly |
+| D | **Parse on upload → parsed rows in MySQL (EF Core) + retention sweep (30 days from the import date)** | yes | yes | yes | no | **Chosen** |
+
+**Decision: parse on upload and store in EF Core — nothing is kept in the browser.**
+
+1. **Upload → parse → store.** `POST /account/import` (multipart, antiforgery via the global
+   `htmx-antiforgery.js` header) validates the file, parses it with `Ical.Net` (§6.4), and writes the
+   `Provider = Ics` connector row plus its parsed event rows in one transaction. The response is the
+   standard toast + `#connectors-table` OOB update (GUD-003/005) with a short summary fragment: calendar
+   name (`X-WR-CALNAME`, fallback file name), event count, covered date range, and parse warnings. No
+   preview/confirm round-trip, no staging cache, no hidden `importId`, no browser storage.
+2. **Retention (snapshot with an expiry).** A background sweep deletes `Ics` imports whose **import date**
+   is older than **30 days** — measured from the import/replace time (`ConnectedAtUtc`), **never from event
+   dates** — cascading to their event rows. "Replace file" resets the clock, and the connections table shows
+   each imported calendar's expiry date so users know when to refresh. `TimeTracking` rows that reference a
+   cleaned-up event keep their stored `CalendarEventReference` (no cascade into `time_trackings`); the panel
+   simply stops showing that event.
+
+Why **not** browser storage (`sessionStorage` / `localStorage` / IndexedDB):
+
+- The week panel and the connections table are **server-rendered**; a client-only store means the server can
+  neither list the connection nor merge its events unless the whole `.ics` rides along on every request (an
+  `hx-include` hidden textarea carrying megabytes of text per panel render).
+- `sessionStorage` is tab-scoped and shares a ~5 MB per-origin quota; a year of exported events routinely
+  exceeds it, and opening a new tab silently loses the calendar. There is also no `LastSyncAtUtc`, no
+  per-user limits, and no cross-device continuity.
+- The create-from-event flow (`CalendarEventReference`, `feature-time-tracking-from-calendar-1.md`) needs a
+  stable server-side `AccountKey` per calendar, and neither retention nor the per-user caps can be enforced
+  client-side.
+
+Why the raw `.ics` text is **not** persisted: only the normalized events are needed for display and for the
+event→entry link; storing the raw export would keep untrusted third-party data (other attendees,
+descriptions, email addresses) far longer than necessary. The parsed rows are the only copy, and the 30-day
+retention is their privacy bound.
+
+### 4.3 Requirements & constraints (revision 1.2)
+
+- **REQ-014**: `CalendarProvider` gains `Ics`; `Setup.CalendarConnectors` gains `CalendarProviderInfo("ics", "Imported calendar (.ics)", CalendarProvider.Ics, Implemented: true)`. The `ics` provider row in `_ConnectorsTable` renders an **upload form** instead of the OAuth "Connect account" link.
+- **REQ-015**: `POST /account/import` accepts one `IFormFile` (`multipart/form-data`, antiforgery, `AuthPolicies.Operational`): extension `.ics` **and** `BEGIN:VCALENDAR` on the first non-empty line are required; size ≤ **2 MB**. Otherwise a danger toast/alert fragment names the reason and nothing is stored.
+- **REQ-016**: The upload stores directly — no preview/confirm round-trip, no staging cache, and nothing kept in the browser (§6.2). The response carries a summary fragment (name, event count, covered date range, warnings) so the user sees what was imported.
+- **REQ-017**: Upload creates (or updates) one `calendar_connectors` row: `Provider = Ics`, `AccountKey = "ics:" + SHA256(calendar name + first import's UID)` hex-truncated (stable per calendar+owner, so re-importing the same calendar updates rather than duplicates — the REQ-010 rule), `AccountEmail`/`DisplayName` = calendar name, `RefreshTokenProtected = ""`, `Scopes = "ics-file-import"` (no tokens), `ConnectedAtUtc` = import time (**also the retention anchor, REQ-024**), `LastSyncAtUtc` = import time, `LastSyncError` = parse-warning summary or NULL.
+- **REQ-018**: Parsed events are stored in a new table `calendar_imported_events` (`id`, `connector_id` FK cascade, `external_event_id` (UID, ≤255), `start_utc`, `end_utc`, `subject`, `location`, `organizer_name`, `is_online`, audit columns; index `(connector_id, start_utc)`). `POST /account/ics/{id:guid}/replace` re-parses and replaces the rows in one transaction and resets the retention clock (REQ-024); the raw `.ics` text is **not** persisted.
+- **REQ-019**: At most **5** imported calendars per user and **500** stored events per calendar (truncate + warning) so a huge export cannot grow unbounded.
+- **REQ-020**: `IcsEventReader : ICalendarEventReader` maps stored rows for `fromLocal..toLocal` into `CalendarEventInfo` (`ProviderKey = "ics"`, `AccountKey = connector.AccountKey`, `EventId = external_event_id`) — imported events are clickable in the panel and link time entries exactly like Graph events (`ICalendarEventReferenceResolver.OwnsAccountAsync` already returns true for owned `Ics` rows).
+- **REQ-021**: The week endpoint keeps injecting a single `ICalendarEventReader`. A `CompositeCalendarEventReader` (registered as that service, resolving both readers) merges, sorts by local start, reports `HasConnector` when **any** provider has a connection, and isolates failures per provider (REQ-006 / REQ-004-updated semantics unchanged). `Outlook365Connector` stays a reader but is no longer the registered `ICalendarEventReader`.
+- **REQ-022**: Disconnect (`POST /account/disconnect/{id:guid}`) works unchanged for `Ics` rows — delete the connector, cascade removes its events, and the panel drops those events on the next render.
+- **REQ-023**: Every imported string (`SUMMARY`, `LOCATION`, `ORGANIZER` `CN`) is untrusted input: render through Razor encoding only (never `RawHtml`), strip control characters at parse time, and never turn ICS text into links or images.
+- **REQ-024**: `IcsImportCleanupWorker : BackgroundService` (in `src/Apskaita.Web/Jobs/`) sweeps hourly and deletes `calendar_connectors` rows with `Provider = Ics` whose `ConnectedAtUtc` is older than `CalendarImports:RetentionDays` (**default 30 days**) — measured from the **import/replace time, never from event dates** — cascading to `calendar_imported_events`. It opens its own `IServiceScope` per sweep (`ApskaitaDbContext` is scoped via `AddDbContext`), logs counts at `Information`, is idempotent, and never touches `time_trackings` (entries keep their stored reference). `CalendarImports:Enabled` (default true) turns the sweep off in tests/dev.
+- **REQ-025**: Each imported calendar row in the connections table shows its event count and expiry date (`ConnectedAtUtc + RetentionDays`, local date) with the hint "Re-upload to keep it"; OAuth-connected rows are unchanged.
+- **SEC-005**: The uploaded file is parsed in memory and never written to disk or to a staging store; the raw text is discarded once the rows are saved. Imported rows are visible only to their owner (SEC-002 unchanged), never logged, and the parsed summary is the only thing returned to the client.
+- **SEC-006**: No URL or `webcal:` fetching in this iteration (a remote feed is an SSRF surface); only an uploaded file is parsed.
+- **CON-006 (amended 2026-10-16)**: A parser package is approved for this revision, overriding CON-003's no-new-packages rule: **`Ical.Net` 5.2.3** (RFC 5545 library, MIT license, `net8.0` asset resolves for both `net8.0` and `net10.0`, transitive `NodaTime` 3.2.2). The version is pinned centrally in `Apskaita/Directory.Packages.props` (`<PackageVersion Include="Ical.Net" Version="5.2.3" />`) and referenced only from `src/Apskaita.Shared/Apskaita.Shared.csproj`.
+- **CON-007**: Adding `Ics` to the `CalendarProvider` enum requires a migration to widen the MySQL `enum` column `calendar_connectors.provider` — purely additive, no data conversion.
+- **GUD-005**: Upload and replace reuse the existing HTMX patterns: `hx-encoding="multipart/form-data"` form, fragment response with `#connectors-table` OOB + toast; no new JS file and no `hx-*` beyond what the connectors table already uses.
+
+### 4.4 Parsing with `Ical.Net` (what the library does and what Apskaita caps)
+
+`Ical.Net` handles the RFC 5545 mechanics, so the hand-written subset from the first draft of this revision is
+dropped: line unfolding, quoted-parameter escaping, `VTIMEZONE` (`STANDARD`/`DAYLIGHT` with DST transitions),
+`RRULE` expansion (`FREQ`, `INTERVAL`, `UNTIL`, `COUNT`, `BYDAY`, `BYMONTH`, `BYSETPOS`, …), `EXDATE`/`RDATE`,
+`RECURRENCE-ID` overrides, and `VALUE=DATE` / floating / `Z` / `TZID` datetimes.
+
+What Apskaita does on top of the library:
+
+| Concern | Rule |
+|---|---|
+| Calendar name | `X-WR-CALNAME` (`CalendarCollection.Name`), fallback: file name without extension |
+| Event fields used | `UID`, `SUMMARY`, `LOCATION`, `ORGANIZER.CN`; `DESCRIPTION` and attendees are ignored (REQ-023) |
+| Recurrence expansion horizon | `GetOccurrences` bounded to **today .. today + 90 days** at import time, so a `RRULE` with no `UNTIL`/`COUNT` cannot generate rows forever; later occurrences appear after the next re-upload |
+| All-day events | Stored as the existing panel's date-only range |
+| Online hint | `IsOnline` is false for imported events — an `.ics` export has no reliable online-meeting flag equivalent to Graph's `isOnlineMeeting` |
+| Unsupported components | `VTODO`, `VJOURNAL`, `VFREEBUSY` and scheduling metadata (`METHOD`, `SEQUENCE`) are ignored |
+| Caps | 2 MB upload, 5 calendars per user, 500 stored rows per calendar (truncate + warning), parse exceptions → danger toast |
+
+### 4.5 Implementation phases (revision 1.2)
+
+- GOAL-007: An uploaded `.ics` becomes a per-user imported calendar whose events appear in the connections table and the week panel.
+
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-020 | `Apskaita/Directory.Packages.props`: `<PackageVersion Include="Ical.Net" Version="5.2.3" />`; `src/Apskaita.Shared/Apskaita.Shared.csproj` gains the `PackageReference` (no inline version — central management). `dotnet restore` + `dotnet build` clean. | | |
+| TASK-021 | `CalendarProvider.Ics` + `FieldLengths.CalendarImportedEvent` additions; `ConfigureCalendarConnector` enum widening; migration `CalendarProviderIcs` (additive `enum` change) applied to local MySQL. | | |
+| TASK-022 | `CalendarImportedEvent` entity (`Id`, `ConnectorId`, `ExternalEventId`, `StartUtc`, `EndUtc`, `Subject`, `Location`, `OrganizerName`, `IsOnline`) + mapping (snake_case, `connector_id` FK cascade, `(connector_id, start_utc)` index), `DbSet CalendarImportedEvents`, migration `CalendarImportedEvents`. | | |
+| TASK-023 | `src/Apskaita.Shared/Calendar/Ics/IcsCalendarImporter.cs`: `CalendarCollection.Load(stream)` → calendar name, `GetOccurrences` bounded to today..today+90d, `CalendarEventInfo`-shaped DTO + warnings; enforces the 2 MB / 500-row caps and strips control characters (REQ-015/019/023). | | |
+| TASK-024 | `IcsConnectorStore` (in `Apskaita.Feature.Account/Persistence/`): `ImportOwnAsync` (upsert the `Ics` connector by `AccountKey`, replace event rows in one transaction, 5-calendars-per-user limit), `ReplaceAsync`, `GetExpiryUtc(connector)`, and `GetExpiredIcsAsync(retentionDays)` for the sweep. | | |
+| TASK-025 | `IcsEventReader : ICalendarEventReader` (stored rows → `CalendarEventInfo` for `fromLocal..toLocal`) + `CompositeCalendarEventReader`; register the composite as `ICalendarEventReader` with both readers as its dependencies (REQ-021). | | |
+| TASK-026 | `AccountEndpoints`: `POST import` (multipart + antiforgery → parse → store → toast + `#connectors-table` OOB + `_IcsImportSummary` fragment) and `POST ics/{id:guid}/replace` (ownership verified against the session user); both `AuthPolicies.Operational`; parse/limit failures → danger toast naming the reason, HTTP 200, nothing stored. | | |
+| TASK-027 | Slices: `_IcsUploadForm.cshtml` (`<input type="file" accept=".ics,text/calendar">`, `hx-encoding="multipart/form-data"`, target `#ics-import-summary`), `_IcsImportSummary.cshtml` (name, event count, date range, warnings), `_ConnectorsTable` branch for `ics` (upload form instead of the connect link; ICS rows show event count + expiry hint (REQ-025) + "Replace file" + the existing Disconnect). | | |
+| TASK-028 | `src/Apskaita.Web/Jobs/IcsImportCleanupWorker.cs`: `BackgroundService` with an hourly `PeriodicTimer`, `IServiceScopeFactory` scope per sweep, bulk delete of expired `Ics` connectors (cascade), `CalendarImports:RetentionDays` (default 30) + `CalendarImports:Enabled` options bound in `Setup` and documented in `appsettings.json`; registered via `AddHostedService` (REQ-024). | | |
+| TASK-029 | `site.css`: upload form + summary styles matching the connectors table; `Assets.Version` bump (GUD-004). | | |
+| TASK-030 | Tests: importer unit tests on fixture `.ics` files (unfolding, all-day, `TZID` + `VTIMEZONE` DST, weekly/monthly `RRULE` inside the horizon, `EXDATE`, `RECURRENCE-ID`, malformed → error, 2 MB cap, 500-row truncation); integration tests (upload → connector + event rows + OOB table + toast; re-uploading the same calendar updates rather than duplicates; replace → rows swapped and `ConnectedAtUtc` resets; replace/disconnect on a foreign id → 404; disconnect → cascade; sweep deletes only imports older than the retention window measured from `ConnectedAtUtc`, keeps newer ones, and never touches `time_trackings`; composite reader merges Outlook + ICS sorted; untrusted text is encoded). | | |
+| TASK-031 | Docs: README `.ics` import section (how to export from Google/Outlook/Apple, limits, snapshot + 30-day expiry semantics — re-upload to refresh); `requirements.md` §Integrations gains "ICS file import (snapshot, 30-day retention)" next to the Outlook 365 integration; `CalendarImports:*` notes in `appsettings`; §4 of this doc updated. | | |
+
+### 4.6 Acceptance criteria (revision 1.2)
+
+- **AC-008**: `GET /account/me` lists an "Imported calendar (.ics)" provider row with a file-upload form, no connected accounts, and no OAuth link for it.
+- **AC-009**: `POST /account/import` with a valid `.ics` stores the `Ics` connector + its event rows in one request, updates the connections table via OOB, shows a success toast and a summary fragment (name, event count, covered date range, warnings). No browser storage is involved.
+- **AC-010**: A non-`.ics` upload, a file without `BEGIN:VCALENDAR`, a > 2 MB file, or a parse exception → danger toast naming the reason, HTTP 200, nothing stored.
+- **AC-011**: `POST /account/ics/{id}/replace` and the existing `POST /account/disconnect/{id}` reject an id the session user does not own → 404 (HTMX error toast).
+- **AC-012**: After an import, `GET /time-tracking/list?weekStart=…` shows the imported events merged with Outlook events and sorted by local start; clicking one opens the create/edit dialog as with Graph events (`provider=ics`).
+- **AC-013**: "Replace file" replaces the snapshot (event count changes, `ConnectedAtUtc`/`LastSyncAtUtc` update, expiry date moves forward); the connections row shows the event count and the expiry date; "Disconnect" removes the calendar and its events (cascade) with the existing toast.
+- **AC-014**: A `.ics` with `<script>` or markup in `SUMMARY`/`LOCATION` renders as escaped text in the panel and the connections table; all existing tests plus the new ones pass and `dotnet build` is clean.
+- **AC-015**: The retention sweep deletes only `Ics` imports whose `ConnectedAtUtc` is older than `CalendarImports:RetentionDays` (default 30 days) — newer imports and all OAuth connectors survive regardless of event dates — and `time_trackings` rows keep their stored `CalendarEventReference` untouched.
+
+### 4.7 Out of scope (revision 1.2)
+
+- Remote `.ics` feed subscription (`https://` / `webcal:` auto-sync) — the natural next step once snapshot import works; it needs its own SSRF, timeout and credential story.
+- Google Calendar OAuth connector (registry placeholder stays).
+- Live sync, diff detection between uploads, incremental merge, and automatic re-upload of a stale snapshot (the expiry hint in the connections table is the affordance instead).
+- Persisting the raw `.ics` text, and any non-event component (`VTODO`, `VJOURNAL`) or attendee/description display.
+- Recurrence beyond the 90-day import horizon (until the next upload), per-calendar show/hide filters in the panel, sharing an imported calendar with other users, and any admin view of imported calendars.

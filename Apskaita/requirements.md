@@ -137,7 +137,8 @@ Prieigos taisyklės:
 ## 7. Integracijos
 1. **Microsoft Entra ID (Azure AD)** autentifikacijai.
 2. **Microsoft Graph (Outlook 365)** – per naudotojo atskirą sutikimą (`Calendars.Read`) savaitės kalendoriaus įvykiams rodyti laiko žvalgymo puslapyje (tik peržiūra, sinchronizavimo nėra).
-3. **Clockify (`app.clockify.me`)** darbo laiko importui.
+3. **`.ics` failo importas** – naudotojas sukuria pavadintą importuotą kalendorių (`/account/me`) ir įkelia eksportuotą `.ics` failą; įvykiai išparsuojami ir saugomi duomenų bazėje (sinchronizavimo nėra – atnaujinimas = pakartotinis įkėlimas, keičiantis tik įvykius, ne patį kalendorių).
+4. **Clockify (`app.clockify.me`)** darbo laiko importui.
 
 ## 8. Pagrindiniai naudotojo scenarijai
 1. Naudotojas prisijungia per Azure AD.

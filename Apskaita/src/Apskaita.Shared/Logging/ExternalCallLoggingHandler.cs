@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Apskaita.Web.Logging;
+namespace Apskaita.Shared.Logging;
 
 /// <summary>
 /// Delegating handler that logs every outbound HTTP call made by the OpenIdConnect backchannel — provider

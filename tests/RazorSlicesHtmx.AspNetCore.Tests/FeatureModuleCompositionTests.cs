@@ -21,6 +21,8 @@ namespace RazorSlicesHtmx.AspNetCore.Tests;
 /// </summary>
 public class FeatureModuleCompositionTests
 {
+    private static readonly HttpClient Http = new();
+
     private static WebApplicationBuilder CreateBuilder()
     {
         var builder = WebApplication.CreateBuilder([]);
@@ -49,13 +51,12 @@ public class FeatureModuleCompositionTests
         try
         {
             var baseUrl = BaseAddress(app);
-            using var http = new HttpClient();
 
             // The section on the feature group and the section on the subgroup both resolve;
             // the subgroup route is NOT reachable under the bare feature prefix.
-            Assert.Equal(HttpStatusCode.OK, (await http.GetAsync($"{baseUrl}/composed/list")).StatusCode);
-            Assert.Equal(HttpStatusCode.OK, (await http.GetAsync($"{baseUrl}/composed/events/click")).StatusCode);
-            Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync($"{baseUrl}/composed/click")).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Http.GetAsync($"{baseUrl}/composed/list")).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Http.GetAsync($"{baseUrl}/composed/events/click")).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await Http.GetAsync($"{baseUrl}/composed/click")).StatusCode);
         }
         finally
         {
@@ -91,7 +92,7 @@ public sealed class ComposedFeature(Results.FeatureResultBuilder resultBuilder) 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
         var listSection = new ProbeSection(Result, "list");
-        FacadeShared = listSection.Facade is not null;
+        FacadeShared = !ReferenceEquals(listSection.Facade, null);
         listSection.Map(group);
 
         new ProbeSection(Result, "click").Map(MapSubgroup(group, "events"));

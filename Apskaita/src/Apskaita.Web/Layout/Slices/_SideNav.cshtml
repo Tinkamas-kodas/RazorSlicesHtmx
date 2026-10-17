@@ -115,7 +115,7 @@
         </section>
     }
 
-    @if (HttpContext?.User?.Identity?.IsAuthenticated == true)
+    @if (HttpContext?.User.Identity?.IsAuthenticated == true)
     {
         var displayName = HttpContext.User.FindFirst(Apskaita.Feature.Account.AuthConstants.DisplayNameClaim)?.Value;
         var email = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
@@ -134,7 +134,7 @@
                hx-push-url="true"
                class="side-nav-link side-nav-settings @(string.Equals(Model.ActiveKey, "account", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                title="@($"{userName} — {email}")"
-               aria-label="@($"{@userName} settings")">
+               aria-label="@($"{userName} settings")">
                 <svg class="side-nav-link-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" focusable="false">
                     <use href="@settingsUrl" />
                 </svg>

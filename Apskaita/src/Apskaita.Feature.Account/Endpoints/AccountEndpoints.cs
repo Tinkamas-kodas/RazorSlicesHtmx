@@ -6,6 +6,7 @@ using Apskaita.Shared;
 using Apskaita.Shared.Calendar;
 using Apskaita.Shared.Routing;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Apskaita.Feature.Account.Endpoints;
 
@@ -27,7 +28,7 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         group.MapGet("login", () => HtmxFragmentResult.Create(_LoginPage.Create()).Build())
             .AllowAnonymous();
 
-        group.MapGet("challenge/{scheme}", async (string scheme, string? returnUrl, HttpContext ctx, IAuthenticationSchemeProvider schemes, ILoggerFactory loggerFactory) =>
+        group.MapGet("challenge/{scheme}", async (string scheme, string? returnUrl, IAuthenticationSchemeProvider schemes, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("Apskaita.Auth.Challenge");
 
@@ -40,7 +41,8 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             // The provider is only registered when its credentials are configured.
             if (await schemes.GetSchemeAsync(scheme) is null)
             {
-                logger.LogWarning("challenge rejected: provider '{Scheme}' is not configured (Auth:{Scheme}:ClientId is empty)", scheme, char.ToUpperInvariant(scheme[0]) + scheme[1..]);
+                var configKey = char.ToUpperInvariant(scheme[0]) + scheme[1..];
+                logger.LogWarning("challenge rejected: provider '{Scheme}' is not configured (Auth:{ConfigKey}:ClientId is empty)", scheme, configKey);
                 return Results.Problem($"Provider '{scheme}' has no ClientId configured in the Auth section.", statusCode: StatusCodes.Status400BadRequest, title: "Provider not configured");
             }
 
@@ -83,9 +85,9 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             Results.Redirect(uri.Uri("me") + ctx.Request.QueryString.Value, permanent: false))
             .RequireAuthorization(AuthPolicies.Operational);
 
-        group.MapGet("me", async (HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IOptions<ConnectorAuthOptions> options, CancellationToken ct) =>
+        group.MapGet("me", async (HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, IOptions<ConnectorAuthOptions> options, CancellationToken ct) =>
         {
-            var model = await CreatePageModelAsync(ctx, uri, registry, store, options, ct);
+            var model = await CreatePageModelAsync(ctx, uri, registry, store, ics, options, ct);
             return Result.Page(_AccountPage.Create(model));
         }).RequireAuthorization(AuthPolicies.Operational);
 
@@ -112,7 +114,7 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             return Results.Challenge(properties: props, authenticationSchemes: [AuthConstants.ConnectEntraScheme]);
         }).RequireAuthorization(AuthPolicies.Operational);
 
-        group.MapPost("disconnect/{id:guid}", async (Guid id, CalendarConnectorRegistry registry, CalendarConnectorStore store, CancellationToken ct) =>
+        group.MapPost("disconnect/{id:guid}", async (Guid id, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, CancellationToken ct) =>
         {
             var provider = await store.DisconnectByIdAsync(id, ct);
             if (provider is null)
@@ -120,17 +122,92 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                 return Results.NotFound();
             }
 
-            var cards = await BuildCardsAsync(registry, store, ct);
+            var cards = await BuildCardsAsync(registry, store, ics, ct);
 
             return Result.Fragment(_Empty.Create())
                 .WithOob("#connectors-table", _ConnectorsTable.Create(cards))
                 .WithToast("Calendar account was disconnected.", title: "Account", tone: ToastTone.Info);
         }).RequireAuthorization(AuthPolicies.Operational);
+
+        // --- Imported (.ics) calendars: a named container the user fills by uploading an .ics export ---
+
+        // Creates an empty named imported calendar. The name is also the account key of the event
+        // references, so it is unique per user and never renamed (disconnect and recreate instead).
+        group.MapPost("ics/create", async ([FromForm] string? name, IcsConnectorStore ics, CalendarConnectorRegistry registry, CalendarConnectorStore store, CancellationToken ct) =>
+        {
+            var (connector, error) = await ics.CreateOwnAsync(name, ct);
+            if (connector is null)
+            {
+                return Result.Fragment(_Empty.Create())
+                    .WithToast(error ?? "The imported calendar could not be created.", title: "Imported calendar", tone: ToastTone.Error);
+            }
+
+            var cards = await BuildCardsAsync(registry, store, ics, ct);
+
+            return Result.Fragment(_Empty.Create())
+                .WithOob("#connectors-table", _ConnectorsTable.Create(cards))
+                .WithToast("Upload an .ics file to load its events.", title: $"\"{connector.DisplayName}\" created", tone: ToastTone.Success);
+        }).RequireAuthorization(AuthPolicies.Operational);
+
+        // Replaces the events of one imported calendar. The connector itself is never cleared — only its
+        // stored event rows are swapped, in one transaction (SEC-005: the raw file is never persisted).
+        group.MapPost("ics/{id:guid}/import", async (
+            Guid id,
+            IFormFile? file,
+            IcsConnectorStore ics,
+            IcsCalendarImporter importer,
+            CalendarConnectorRegistry registry,
+            CalendarConnectorStore store,
+            ILoggerFactory loggerFactory,
+            CancellationToken ct) =>
+        {
+            var connector = await ics.GetOwnByIdAsync(id, ct);
+            if (connector is null)
+            {
+                return Results.NotFound();
+            }
+
+            var logger = loggerFactory.CreateLogger("Apskaita.Calendar.Ics");
+
+            if (file is null || file.Length == 0)
+            {
+                return Result.Fragment(_Empty.Create())
+                    .WithToast("Choose an .ics file to import.", title: connector.DisplayName, tone: ToastTone.Error);
+            }
+
+            if (file.Length > IcsCalendarImporter.MaxUploadBytes)
+            {
+                return Result.Fragment(_Empty.Create())
+                    .WithToast($"The file is larger than {IcsCalendarImporter.MaxUploadBytes / (1024 * 1024)} MB.", title: connector.DisplayName, tone: ToastTone.Error);
+            }
+
+            IcsImportResult outcome;
+            await using (var stream = file.OpenReadStream())
+            {
+                outcome = importer.Import(stream);
+            }
+
+            if (!outcome.Success)
+            {
+                logger.LogWarning("ics import rejected for calendar {Account}: {Error}", connector.AccountKey, outcome.Error);
+                return Result.Fragment(_Empty.Create())
+                    .WithToast(outcome.Error ?? "The calendar file could not be imported.", title: connector.DisplayName, tone: ToastTone.Error);
+            }
+
+            await ics.ImportAsync(connector, outcome.Events, ct);
+            var cards = await BuildCardsAsync(registry, store, ics, ct);
+
+            var message = $"{outcome.Events.Count} event(s) imported." + (outcome.Warning is null ? string.Empty : " " + outcome.Warning);
+
+            return Result.Fragment(_Empty.Create())
+                .WithOob("#connectors-table", _ConnectorsTable.Create(cards))
+                .WithToast(message, title: connector.DisplayName, tone: ToastTone.Success);
+        }).RequireAuthorization(AuthPolicies.Operational);
     }
 
-    private static async Task<AccountPageModel> CreatePageModelAsync(HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IOptions<ConnectorAuthOptions> options, CancellationToken ct)
+    private static async Task<AccountPageModel> CreatePageModelAsync(HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, IOptions<ConnectorAuthOptions> options, CancellationToken ct)
     {
-        var cards = await BuildCardsAsync(registry, store, ct);
+        var cards = await BuildCardsAsync(registry, store, ics, ct);
 
         var connected = ctx.Request.Query["connected"].ToString();
         var connectError = ctx.Request.Query["connectError"].ToString();
@@ -164,9 +241,13 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         return new AccountPageModel(notice, noticeKind, cards, adminConsentUrl);
     }
 
-    private static async Task<List<CalendarConnectorCardModel>> BuildCardsAsync(CalendarConnectorRegistry registry, CalendarConnectorStore store, CancellationToken ct)
+    private static async Task<List<CalendarConnectorCardModel>> BuildCardsAsync(CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, CancellationToken ct)
     {
         var connectors = await store.GetOwnAllAsync(ct);
+
+        // Imported calendars carry statistics (event count + covered range); OAuth rows do not.
+        var icsIds = connectors.Where(c => c.Provider == CalendarProvider.Ics).Select(c => c.Id).ToArray();
+        var stats = await ics.GetStatsAsync(icsIds, ct);
 
         return registry.All.Select(provider =>
         {
@@ -180,7 +261,16 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                 provider.IsImplemented,
                 providerConnectors
                     .OrderBy(c => c.AccountEmail, StringComparer.OrdinalIgnoreCase)
-                    .Select(c => new CalendarConnectionModel(c.Id, c.AccountEmail, c.DisplayName, c.ConnectedAtUtc, c.LastSyncAtUtc, c.LastSyncError))
+                    .Select(c => new CalendarConnectionModel(
+                        c.Id,
+                        c.AccountEmail,
+                        c.DisplayName,
+                        c.ConnectedAtUtc,
+                        c.LastSyncAtUtc,
+                        c.LastSyncError,
+                        c.Provider == CalendarProvider.Ics
+                            ? stats.TryGetValue(c.Id, out var value) ? value : CalendarConnectionStats.Empty
+                            : null))
                     .ToList());
         }).ToList();
     }

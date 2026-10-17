@@ -16,7 +16,7 @@ using Apskaita.Feature.TimeTracking.Endpoints;
 using Apskaita.Feature.TimeTracking.Validators;
 using Apskaita.Shared;
 using Apskaita.Shared.Routing;
-using Apskaita.Web.Logging;
+using Apskaita.Shared.Logging;
 using Apskaita.Web.Composition;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
@@ -93,8 +93,20 @@ public static class Setup
             sp.GetRequiredService<IHttpContextAccessor>()));
         services.AddSingleton<ICalendarProviderConnector>(new CalendarProviderInfo(Outlook365Connector.ProviderKey, "Outlook 365 / Microsoft 365", CalendarProvider.Outlook365, Implemented: true));
         services.AddSingleton<ICalendarProviderConnector>(new CalendarProviderInfo("google", "Google Calendar", null, Implemented: false));
+        services.AddSingleton<ICalendarProviderConnector>(new CalendarProviderInfo(IcsCalendarImporter.ProviderKey, "Imported calendar (.ics)", CalendarProvider.Ics, Implemented: true));
         services.AddSingleton<CalendarConnectorRegistry>();
-        services.AddScoped<ICalendarEventReader>(sp => sp.GetRequiredService<Outlook365Connector>());
+
+        // Imported (.ics) calendars: a named container per user whose events are replaced by every upload.
+        services.AddSingleton<IcsCalendarImporter>();
+        services.AddScoped<IcsConnectorStore>();
+        services.AddScoped<IcsEventReader>();
+
+        // The page injects ONE reader; the composite merges both providers and isolates a failure of either.
+        services.AddScoped<ICalendarEventReader>(sp => new CompositeCalendarEventReader(
+        [
+            sp.GetRequiredService<Outlook365Connector>(),
+            sp.GetRequiredService<IcsEventReader>()
+        ]));
         services.AddHttpClient("Outlook365Token");
         // No Prefer: timezone header — the connector sends UTC (Z) boundaries and converts to local time
         // itself; a Prefer timezone contradicts Z datetimes and makes Graph return timezone-less values.

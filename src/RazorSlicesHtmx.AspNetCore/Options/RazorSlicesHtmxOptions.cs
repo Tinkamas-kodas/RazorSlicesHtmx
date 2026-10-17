@@ -9,12 +9,10 @@ public sealed class RazorSlicesHtmxOptions
     public string DialogHostSelector { get; set; } = "#dialog-host";
 
     public string? DialogClass { get; set; }
-        = null;
 
     public string ToastHostSelector { get; set; } = "#toast-host";
 
     public int? ToastDelayMilliseconds { get; set; }
-        = null;
 
     public string DefaultOobSwap { get; set; } = Hx.Swap.InnerHtml;
 

@@ -3,7 +3,7 @@ namespace RazorSlicesHtmx.AspNetCore.Models;
 /// <summary>
 /// Standard paged lookup response payload consumed by UI renderers.
 /// </summary>
-public sealed record class LookupResponse(
+public sealed record LookupResponse(
     string Path,
     string Query,
     int Page,

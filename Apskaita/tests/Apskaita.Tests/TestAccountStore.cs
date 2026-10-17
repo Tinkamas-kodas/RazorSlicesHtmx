@@ -18,5 +18,7 @@ internal sealed class TestAccountStore(ApskaitaDbContext db) : IAccountStore
 
     public DbSet<CalendarConnector> Connectors => db.Set<CalendarConnector>();
 
+    public DbSet<CalendarImportedEvent> ImportedEvents => db.Set<CalendarImportedEvent>();
+
     public Task<int> SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }

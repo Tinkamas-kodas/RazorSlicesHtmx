@@ -98,5 +98,17 @@ public static class FieldLengths
         public const int DisplayName = 200;
         public const int Scopes = 300;
         public const int LastSyncError = 500;
+
+        /// <summary>User-entered name of an imported (.ics) calendar; also its account key.</summary>
+        public const int IcsName = 100;
+    }
+
+    public static class CalendarImportedEvent
+    {
+        public const int ExternalEventId = 255;
+        public const int GroupId = 255;
+        public const int Subject = 500;
+        public const int Location = 500;
+        public const int OrganizerName = 500;
     }
 }

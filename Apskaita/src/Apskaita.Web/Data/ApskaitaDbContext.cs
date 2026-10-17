@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Apskaita.Entities;
-using Apskaita.Entities.Mapping;
+using Apskaita.Web.Data.Mapping;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +30,7 @@ public sealed class ApskaitaDbContext(DbContextOptions<ApskaitaDbContext> option
     public DbSet<WorkActLine> WorkActLines => Set<WorkActLine>();
     public DbSet<TimeTracking> TimeTrackings => Set<TimeTracking>();
     public DbSet<CalendarConnector> CalendarConnectors => Set<CalendarConnector>();
+    public DbSet<CalendarImportedEvent> CalendarImportedEvents => Set<CalendarImportedEvent>();
 
     /// <summary>Data Protection key ring store entity (required by <c>PersistKeysToDbContext</c>).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();

@@ -91,6 +91,6 @@ public static class AccountCookieEvents
     }
 
     private static bool IsHtmxRequest(StringValues header) =>
-        StringValues.IsNullOrEmpty(header) == false &&
+        !StringValues.IsNullOrEmpty(header) &&
         header.Any(v => string.Equals(v, "true", StringComparison.OrdinalIgnoreCase));
 }

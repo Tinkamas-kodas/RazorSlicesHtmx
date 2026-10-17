@@ -1,4 +1,4 @@
-namespace Apskaita.Entities.Mapping;
+namespace Apskaita.Web.Data.Mapping;
 
 /// <summary>
 /// Helpers for mapping .NET enums to native MySQL <c>enum</c> columns.

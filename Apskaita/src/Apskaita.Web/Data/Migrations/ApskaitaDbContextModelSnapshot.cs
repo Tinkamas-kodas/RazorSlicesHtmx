@@ -78,7 +78,7 @@ namespace Apskaita.Data.Migrations.Migrations
 
                     b.Property<string>("Provider")
                         .IsRequired()
-                        .HasColumnType("enum('Outlook365')")
+                        .HasColumnType("enum('Outlook365', 'Ics')")
                         .HasColumnName("provider");
 
                     b.Property<string>("RefreshTokenProtected")
@@ -112,6 +112,85 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasDatabaseName("ix_calendar_connectors_user_id_provider_account_key");
 
                     b.ToTable("calendar_connectors", (string)null);
+                });
+
+            modelBuilder.Entity("Apskaita.Entities.CalendarImportedEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConnectorId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("connector_id");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime?>("EndUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("end_utc");
+
+                    b.Property<string>("ExternalEventId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("external_event_id");
+
+                    b.Property<string>("GroupId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateTime>("ImportedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("imported_at_utc");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_online");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("location");
+
+                    b.Property<string>("OrganizerName")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("organizer_name");
+
+                    b.Property<DateTime>("StartUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("start_utc");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<Guid>("UpdatedByUserId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("updated_by_user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_calendar_imported_events");
+
+                    b.HasIndex("ConnectorId", "StartUtc")
+                        .HasDatabaseName("ix_calendar_imported_events_connector_id_start_utc");
+
+                    b.ToTable("calendar_imported_events", (string)null);
                 });
 
             modelBuilder.Entity("Apskaita.Entities.Company", b =>
@@ -967,6 +1046,18 @@ namespace Apskaita.Data.Migrations.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Apskaita.Entities.CalendarImportedEvent", b =>
+                {
+                    b.HasOne("Apskaita.Entities.CalendarConnector", "Connector")
+                        .WithMany()
+                        .HasForeignKey("ConnectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_calendar_imported_events_calendar_connectors_connector_id");
+
+                    b.Navigation("Connector");
+                });
+
             modelBuilder.Entity("Apskaita.Entities.Company", b =>
                 {
                     b.OwnsOne("Apskaita.Entities.CompanyInfo", "Info", b1 =>
@@ -1292,7 +1383,7 @@ namespace Apskaita.Data.Migrations.Migrations
 
                             b1.Property<string>("CalendarProvider")
                                 .IsRequired()
-                                .HasColumnType("enum('Outlook365')")
+                                .HasColumnType("enum('Outlook365', 'Ics')")
                                 .HasColumnName("calendar_event_calendar_provider");
 
                             b1.Property<string>("ExternalEventId")

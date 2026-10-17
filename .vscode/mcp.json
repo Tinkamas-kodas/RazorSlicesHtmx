@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "resharper": {
+      "type": "stdio",
+      "command": "resharper-cli-mcp",
+      "env": {
+        "JB_SOLUTION_PATH": "d:\\RazorSlicesHtmx\\RazorSlicesHtmx.slnx"
+      }
+    }
+  }
+}

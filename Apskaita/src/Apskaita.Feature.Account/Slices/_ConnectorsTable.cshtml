@@ -1,8 +1,13 @@
 @inherits RazorSlice<List<CalendarConnectorCardModel>>
+@using Apskaita.Shared.Calendar
 
 @* One row per connected account, grouped under a full-width provider header row. The whole table carries
-   id="connectors-table" so the disconnect flow re-renders it via a single OOB swap (see AccountEndpoints).
-   The table must NOT carry hx-swap-oob itself: it is rendered as primary content on /account/me. *@
+   id="connectors-table" so the connect/disconnect/import flows re-render it via a single OOB swap (see
+   AccountEndpoints). The table must NOT carry hx-swap-oob itself: it is rendered as primary content on
+   /account/me.
+   An imported (.ics) provider differs from an OAuth one: the user first creates a NAMED calendar (header
+   form), then uploads an .ics file into it (row form). An import replaces only the calendar's events, so
+   the row also shows what it currently holds. *@
 <table id="connectors-table" class="table table-borderless align-middle connectors-table mb-0">
     <thead>
         <tr class="text-body-secondary">
@@ -14,11 +19,21 @@
     <tbody>
         @foreach (var card in Model)
         {
+            var isIcs = string.Equals(card.Key, IcsCalendarImporter.ProviderKey, StringComparison.OrdinalIgnoreCase);
+
             <tr class="connector-provider-row">
                 <td colspan="3">
                     <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
                         <span class="fw-semibold">@card.Label</span>
-                        @if (card.IsImplemented)
+                        @if (isIcs)
+                        {
+                            <form class="ics-create-form" hx-post="@FeatureUri.Uri("ics/create")" hx-swap="none">
+                                <input type="text" name="name" class="form-control form-control-sm ics-name-input"
+                                       placeholder="Calendar name" maxlength="@FieldLengths.CalendarConnector.IcsName" required />
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Create calendar</button>
+                            </form>
+                        }
+                        else if (card.IsImplemented)
                         {
                             <a class="btn btn-outline-primary btn-sm" href="@FeatureUri.Uri($"connect/{card.Key}")">Connect account</a>
                         }
@@ -33,18 +48,36 @@
             @if (card.IsImplemented && card.Connections.Count == 0)
             {
                 <tr class="connector-empty-row">
-                    <td colspan="3" class="text-body-secondary">No accounts connected yet.</td>
+                    <td colspan="3" class="text-body-secondary">
+                        @(isIcs ? "No imported calendars yet. Create one above, then upload an .ics file." : "No accounts connected yet.")
+                    </td>
                 </tr>
             }
 
             @foreach (var connection in card.Connections)
             {
-                <tr class="connector-account-row">
+                <tr class="connector-account-row @(isIcs ? "connector-ics-row" : null)">
                     <td>
                         <div class="fw-semibold text-truncate" title="@connection.AccountEmail">
                             @(string.IsNullOrWhiteSpace(connection.DisplayName) ? connection.AccountEmail : connection.DisplayName)
                         </div>
-                        <div class="small text-body-secondary text-truncate">@connection.AccountEmail</div>
+                        @if (connection.Stats is { } stats)
+                        {
+                            <div class="small text-body-secondary ics-stats">
+                                <span>@stats.EventCount event(s)</span>
+                                @if (stats.FirstStartUtc is not null && stats.LastEndUtc is not null)
+                                {
+                                    <span class="ics-coverage">
+                                        from @stats.FirstStartUtc.Value.ToLocalTime().ToString("yyyy-MM-dd")
+                                        to @stats.LastEndUtc.Value.ToLocalTime().ToString("yyyy-MM-dd")
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="small text-body-secondary text-truncate">@connection.AccountEmail</div>
+                        }
                         @if (!string.IsNullOrEmpty(connection.LastSyncError))
                         {
                             <div class="small text-danger">@connection.LastSyncError</div>
@@ -52,6 +85,15 @@
                     </td>
                     <td class="text-body-secondary">@(connection.LastSyncAtUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
                     <td class="text-end">
+                        @if (isIcs)
+                        {
+                            <form class="ics-import-form" hx-post="@FeatureUri.Uri($"ics/{connection.Id}/import")"
+                                  hx-encoding="multipart/form-data" hx-swap="none">
+                                <input type="file" name="file" class="form-control form-control-sm ics-file-input"
+                                       accept=".ics,text/calendar" required />
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Import</button>
+                            </form>
+                        }
                         @if (card.IsImplemented)
                         {
                             <button type="button"

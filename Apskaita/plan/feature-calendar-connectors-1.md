@@ -222,24 +222,48 @@ retention is their privacy bound.
 - **CON-007**: Adding `Ics` to the `CalendarProvider` enum requires a migration to widen the MySQL `enum` column `calendar_connectors.provider` — purely additive, no data conversion.
 - **GUD-005**: Upload and replace reuse the existing HTMX patterns: `hx-encoding="multipart/form-data"` form, fragment response with `#connectors-table` OOB + toast; no new JS file and no `hx-*` beyond what the connectors table already uses.
 
+### 4.3.1 Revision 1.3 (2026-10-16): named imported calendars, no retention sweep
+
+Decided with the user after 1.2 was drafted — the upload-only, auto-named snapshot model was replaced:
+
+| Topic | 1.2 (superseded) | 1.3 (implemented) |
+|---|---|---|
+| Creating a calendar | implicit — the first upload creates the connector and names it from `X-WR-CALNAME` | explicit: the user types a name (e.g. `nrdcompanies`) and creates an empty calendar, then uploads into it |
+| `AccountKey` | `ics:` + SHA256(name + first UID) | the entered name, lower-cased (case-insensitively unique per user, never renamed) |
+| Re-import | replaces the connector row **and** its events | replaces **only** the events; the connector row survives every upload |
+| Retention | 30-day sweep (`IcsImportCleanupWorker`, `CalendarImports:*`) | **no sweep** — events live until the next import or a disconnect; the worker and the options section were dropped |
+| Caps | ≤ 5 calendars per user, ≤ 500 events per calendar | dropped; only the 2 MB upload cap and a 20 000-occurrence safety valve remain |
+| Statistics | expiry date per row | event count + covered range (earliest start → latest end) per row |
+| Event identity | `external_event_id` = the series `UID` (shared by all its occurrences) | `external_event_id` = `UID` for a single event, `<UID>@<utc start>` per occurrence of a series, plus a nullable `group_id` holding the series `UID` (added 2026-10-17: one `UID` cannot address one date, and the time-entry link is keyed on provider + account + event id) |
+
+Requirements changed by this revision: **REQ-017** (name from the user, no hash), **REQ-018** (`POST
+/account/ics/{id}/import` replaces events only; the table also gains a nullable `group_id`), **REQ-019**
+(limits dropped), **REQ-024** (sweep removed —
+`ConnectedAtUtc` is no longer a retention anchor), **REQ-025** (statistics instead of an expiry hint).
+Everything else (REQ-014/015/016/020/021/022/023, SEC-005/006, CON-006/007, GUD-005) is unchanged; the
+upload form is a per-row `hx-encoding="multipart/form-data"` form rather than a single page-level form.
+
 ### 4.4 Parsing with `Ical.Net` (what the library does and what Apskaita caps)
 
 `Ical.Net` handles the RFC 5545 mechanics, so the hand-written subset from the first draft of this revision is
 dropped: line unfolding, quoted-parameter escaping, `VTIMEZONE` (`STANDARD`/`DAYLIGHT` with DST transitions),
 `RRULE` expansion (`FREQ`, `INTERVAL`, `UNTIL`, `COUNT`, `BYDAY`, `BYMONTH`, `BYSETPOS`, …), `EXDATE`/`RDATE`,
-`RECURRENCE-ID` overrides, and `VALUE=DATE` / floating / `Z` / `TZID` datetimes.
+and `VALUE=DATE` / floating / `Z` / `TZID` datetimes. `RECURRENCE-ID` override rows are **not** merged into
+their series by 5.2.3 (the master's `ExceptionInfo` stays empty after `Load`), so they are skipped — an
+occurrence that was moved or renamed in the source calendar is imported with the series' original time and text.
 
 What Apskaita does on top of the library:
 
 | Concern | Rule |
 |---|---|
-| Calendar name | `X-WR-CALNAME` (`CalendarCollection.Name`), fallback: file name without extension |
+| Calendar name | the name the user typed when creating the imported calendar (REQ-017, revision 1.3) — not `X-WR-CALNAME` |
 | Event fields used | `UID`, `SUMMARY`, `LOCATION`, `ORGANIZER.CN`; `DESCRIPTION` and attendees are ignored (REQ-023) |
-| Recurrence expansion horizon | `GetOccurrences` bounded to **today .. today + 90 days** at import time, so a `RRULE` with no `UNTIL`/`COUNT` cannot generate rows forever; later occurrences appear after the next re-upload |
+| Occurrence identity | a single event stores `external_event_id = UID` (`group_id = NULL`); an occurrence of a recurring series stores `external_event_id = <UID>@<utc start>` plus `group_id = UID`, because a series shares one `UID` while the time-entry link (provider + account + event id) must address one date |
+| Recurrence expansion horizon | a rule that bounds itself (`UNTIL`/`COUNT`, or an `RDATE` list) is expanded **completely**; only an **unbounded** `RRULE` is cut at **today + 90 days** (amended 2026-10-17 — the file's own end beats the horizon; the horizon only guards infinite rules) |
 | All-day events | Stored as the existing panel's date-only range |
 | Online hint | `IsOnline` is false for imported events — an `.ics` export has no reliable online-meeting flag equivalent to Graph's `isOnlineMeeting` |
 | Unsupported components | `VTODO`, `VJOURNAL`, `VFREEBUSY` and scheduling metadata (`METHOD`, `SEQUENCE`) are ignored |
-| Caps | 2 MB upload, 5 calendars per user, 500 stored rows per calendar (truncate + warning), parse exceptions → danger toast |
+| Caps | 2 MB upload and a 20 000-occurrence safety valve (truncate + warning); parse exceptions → danger toast (revision 1.3 dropped the per-user and per-calendar row caps) |
 
 ### 4.5 Implementation phases (revision 1.2)
 

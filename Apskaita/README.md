@@ -40,7 +40,7 @@ Entra sign-in app registration must include redirect URIs `http://localhost:5059
 `https://localhost:7272/signin-entra`; the dedicated connector app uses `…/signin-connect-entra` (see below).
 Production hosts replace these with their public URLs.
 
-## Calendar connectors (Outlook 365)
+## Calendar connectors (Outlook 365 + imported .ics)
 
 Per-user calendar connections (see `plan/feature-calendar-connectors-1.md`):
 
@@ -68,6 +68,36 @@ Per-user calendar connections (see `plan/feature-calendar-connectors-1.md`):
     `data_protection_keys` contents access-controlled).
   - Switching from the previous local key ring (or rotating/deleting keys) makes stored refresh tokens
     undecryptable — affected users just reconnect Outlook on `/account/me`.
+
+### Imported calendars (.ics upload)
+
+Any calendar that can export an `.ics` file (Google Calendar, Apple Calendar, Outlook) can be used without
+OAuth. The **Imported calendar (.ics)** card on `/account/me` works in two steps:
+
+1. **Create a named calendar** — type a name (e.g. `nrdcompanies`) and press *Create calendar*. The name is
+   what the row shows and is also the stable *account key* of the events, so it must be unique per user and
+   cannot be renamed later (create another calendar instead).
+2. **Upload an `.ics` file** — each calendar row has a file picker and an *Import* button. Parsing happens
+   in the request (`Ical.Net`): line unfolding, time zones with DST, `RRULE` expansion, `EXDATE`/`RDATE` and
+   `RECURRENCE-ID` overrides. Only `VEVENT` is read; descriptions, attendees and other components are
+   ignored, and the raw file text is never stored.
+
+Notes:
+
+- **Import replaces the events, never the calendar.** Re-uploading swaps the stored rows in one transaction
+  and updates the row's *Last sync*; the connector (its name and any time entries linked to its events)
+  stays.
+- The row shows statistics: stored event count and the covered date range (earliest start → latest end).
+- A recurring series is expanded **fully** when the file bounds it (`RRULE` with `UNTIL` or `COUNT`). A
+  series with no end in the file is expanded to **90 days after the import** — re-upload to extend it.
+  Uploads are capped at **2 MB**.
+- Each occurrence of a recurring series is stored as its own event (`<UID>@<utc start>`, with the shared
+  series `UID` kept in `group_id`), so logging one date of a series does not mark the others as logged.
+  A `RECURRENCE-ID` override in the file is ignored — the series' original time and text win.
+- Events appear in the time tracking week panel exactly like Graph events — clicking one opens the
+  create/edit dialog and links the entry to that event (`provider=ics`).
+- *Disconnect* removes the calendar and cascades to its stored events; time entries keep their reference.
+- No background cleanup job: an imported calendar keeps its events until the next import or disconnect.
 
 ## Migrations
 

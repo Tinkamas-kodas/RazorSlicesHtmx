@@ -1,8 +1,8 @@
-using Apskaita.Web.Data;
+using Apskaita.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Apskaita.Entities.Mapping;
+namespace Apskaita.Web.Data.Mapping;
 
 /// <summary>
 /// Entity property constraints (max lengths, precision, column types). Table, column, and index names are
@@ -28,6 +28,7 @@ public static class ApskaitaEntityModelBuilderExtensions
         ConfigureSystemSettings(modelBuilder);
         ConfigureInvoiceSequenceState(modelBuilder);
         ConfigureCalendarConnector(modelBuilder);
+        ConfigureCalendarImportedEvent(modelBuilder);
     }
 
     private static void ConfigureUser(ModelBuilder modelBuilder)
@@ -224,6 +225,23 @@ public static class ApskaitaEntityModelBuilderExtensions
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(x => new { x.UserId, x.Provider, x.AccountKey }).IsUnique();
+        });
+    }
+
+    private static void ConfigureCalendarImportedEvent(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CalendarImportedEvent>(entity =>
+        {
+            entity.Property(x => x.ExternalEventId).HasMaxLength(FieldLengths.CalendarImportedEvent.ExternalEventId).IsRequired();
+            entity.Property(x => x.GroupId).HasMaxLength(FieldLengths.CalendarImportedEvent.GroupId).IsRequired(false);
+            entity.Property(x => x.Subject).HasMaxLength(FieldLengths.CalendarImportedEvent.Subject).IsRequired();
+            entity.Property(x => x.Location).HasMaxLength(FieldLengths.CalendarImportedEvent.Location).IsRequired(false);
+            entity.Property(x => x.OrganizerName).HasMaxLength(FieldLengths.CalendarImportedEvent.OrganizerName).IsRequired(false);
+            entity.HasOne(x => x.Connector)
+                .WithMany()
+                .HasForeignKey(x => x.ConnectorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(x => new { x.ConnectorId, x.StartUtc });
         });
     }
 

@@ -339,6 +339,37 @@ body.sidebar-collapsed button.side-nav-link {
   text-decoration: none;
 }
 
+/* Account: imported (.ics) calendars - named container plus an upload form per row */
+.connectors-table .ics-create-form,
+.connectors-table .ics-import-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.connectors-table .ics-name-input {
+  width: 14rem;
+}
+
+.connectors-table .ics-file-input {
+  max-width: 15rem;
+}
+
+.connectors-table .ics-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.connectors-table tr.connector-ics-row > td:last-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  white-space: normal;
+}
+
 /* Time tracking: week layout with calendar side panel (Clockify-like) */
 .tt-week-layout {
   display: flex;

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 
-namespace Apskaita.Web.Logging;
+namespace Apskaita.Shared.Logging;
 
 /// <summary>
 /// Logs every request and its outcome: method, path, query, HTMX headers, response status, elapsed time,
@@ -31,7 +31,7 @@ public sealed class RequestLoggingMiddleware(RequestDelegate next, ILoggerFactor
         finally
         {
             var elapsed = Stopwatch.GetElapsedTime(started);
-            var user = context.User?.Identity?.IsAuthenticated == true
+            var user = context.User.Identity?.IsAuthenticated == true
                 ? context.User.FindFirst(ClaimTypes.Name)?.Value ?? "(authenticated)"
                 : "(anonymous)";
             var location = context.Response.Headers["Location"].ToString();

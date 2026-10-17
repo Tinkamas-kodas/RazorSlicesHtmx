@@ -1,6 +1,5 @@
 global using Microsoft.Extensions.Options;
 global using RazorSlices;
-global using RazorSlicesHtmx.AspNetCore.Html;
 global using RazorSlicesHtmx.AspNetCore.Features;
 global using RazorSlicesHtmx.AspNetCore.Extensions;
 global using RazorSlicesHtmx.AspNetCore.Models;

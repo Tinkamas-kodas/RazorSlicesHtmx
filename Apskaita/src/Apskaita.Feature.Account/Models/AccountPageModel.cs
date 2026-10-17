@@ -22,10 +22,21 @@ public sealed record CalendarConnectorCardModel(
     IReadOnlyList<CalendarConnectionModel> Connections);
 
 /// <summary>One connected account of a provider, shown as a row inside the provider card.</summary>
+/// <param name="Stats">Imported-calendar statistics (event count and covered range); null for OAuth accounts.</param>
 public sealed record CalendarConnectionModel(
     Guid Id,
     string AccountEmail,
     string DisplayName,
     DateTime ConnectedAtUtc,
     DateTime? LastSyncAtUtc,
-    string? LastSyncError);
+    string? LastSyncError,
+    CalendarConnectionStats? Stats = null);
+
+/// <summary>
+/// What an imported (.ics) calendar currently holds. The dates are stored UTC instants; the slice renders
+/// them in the server's local zone like the other timestamps on the page.
+/// </summary>
+public sealed record CalendarConnectionStats(int EventCount, DateTime? FirstStartUtc, DateTime? LastEndUtc)
+{
+    public static readonly CalendarConnectionStats Empty = new(0, null, null);
+}

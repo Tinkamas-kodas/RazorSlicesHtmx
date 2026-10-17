@@ -28,7 +28,7 @@ public readonly record struct StateFieldValue(string Name, string Value)
 
         if (value is IFormattable formattable)
         {
-            return formattable.ToString(null, CultureInfo.InvariantCulture) ?? string.Empty;
+            return formattable.ToString(null, CultureInfo.InvariantCulture);
         }
 
         return value.ToString() ?? string.Empty;

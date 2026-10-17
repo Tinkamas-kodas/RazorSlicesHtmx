@@ -7,7 +7,8 @@ namespace Apskaita.Entities;
 /// </summary>
 public enum CalendarProvider
 {
-    Outlook365
+    Outlook365,
+    Ics
 }
 
 /// <summary>

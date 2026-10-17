@@ -10,7 +10,7 @@ Calendar events currently render in a separate side panel next to the time-track
 - **Hide** an event in the grid when a time entry in the **displayed week** references it (the entry already represents it); drop the "Logged" badge.
 - Clicking an event opens the prefilled **create** dialog; if any entry **anywhere** already references that event, return an empty response + "already logged" toast instead of a dialog (the global unique index makes a duplicate create impossible).
 - Remove the redirect-to-edit branch from the event endpoint.
-- Replace the side calendar panel with a **connections dock**: connection status plus connect/disconnect, loaded by its own `hx-get` (not tied to the grid refresh), showing **no** calendar events.
+- Replace the side calendar panel with a **connections dock**: a collapsed rail that expands into one compact row per connection (health dot + action), loaded by its own `hx-get` (not tied to the grid refresh), showing **no** calendar events and **no** statistics.
 
 ## Capabilities
 

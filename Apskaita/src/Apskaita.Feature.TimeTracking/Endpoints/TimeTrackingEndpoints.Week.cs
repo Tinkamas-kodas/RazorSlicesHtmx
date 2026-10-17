@@ -111,7 +111,8 @@ public sealed partial class TimeTrackingEndpoints
                 .ToListAsync(ct);
 
             // References of entries in the displayed week: an event whose identity triple matches is
-            // "tracked" (badge); the unique index guarantees at most one entry per event.
+            // already represented by that entry, so it is hidden from the grid (the unique index guarantees
+            // at most one entry per event). Global correctness is the event endpoint's job, not the grid's.
             var trackedRefs = await (
                 from time in entries.All()
                 where time.CalendarEvent != null && time.StartedAtUtc >= weekStartUtc && time.StartedAtUtc < weekEndExclusiveUtc
@@ -135,9 +136,8 @@ public sealed partial class TimeTrackingEndpoints
                 TimeTrackingSlotModel.WorkSlots(),
                 rows.Select(row => TimeTrackingEntryViewModel.From(row, displayOffset)).ToArray(),
                 (calendar?.Events ?? [])
-                    .Select(e => TimeTrackingCalendarEventViewModel.From(
-                        e,
-                        trackedSet.Contains((e.ProviderKey.ToLowerInvariant(), e.AccountKey, e.EventId))))
+                    .Where(e => !trackedSet.Contains((e.ProviderKey.ToLowerInvariant(), e.AccountKey, e.EventId)))
+                    .Select(TimeTrackingCalendarEventViewModel.From)
                     .ToArray(),
                 calendar?.HasConnector == true,
                 calendar?.Notice);

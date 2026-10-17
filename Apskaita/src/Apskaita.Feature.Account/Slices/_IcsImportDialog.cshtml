@@ -1,0 +1,36 @@
+@inherits RazorSlice<Apskaita.Feature.Account.Models.IcsImportDialogModel>
+
+@* Import dialog for one imported (.ics) calendar, opened from the connections dock. Replaces the
+   calendar's stored events; the calendar (and any entries linked to its events) survives. The hidden
+   "surface" field tells the import endpoint to refresh the dock instead of the account page's table. *@
+
+<div id="ics-import-dialog" class="modal-content border-0 shadow-lg">
+    <form hx-post="@FeatureUri.Uri($"ics/{Model.Id}/import")"
+          hx-encoding="multipart/form-data"
+          hx-target="closest .modal-content"
+          hx-swap="outerHTML">
+        <input type="hidden" name="surface" value="dock" />
+
+        <div class="modal-header">
+            <h5 class="modal-title">Import into "@Model.Name"</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="alert alert-danger py-2 px-3">@Model.Error</div>
+            }
+
+            <label class="form-label" for="ics-import-file">Calendar file (.ics)</label>
+            <input id="ics-import-file" type="file" name="file" class="form-control"
+                   accept=".ics,text/calendar" required />
+            <div class="form-text">Replaces the events this calendar currently holds.</div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-dark">Import</button>
+        </div>
+    </form>
+</div>

@@ -96,7 +96,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         // GET edit — read seam (no-tracking find for display).
         group.MapGet("edit/{id:guid}", async (Guid id, IQuery<Unit> units, CancellationToken ct) =>
         {
-            var row = await units.All().FirstOrDefaultAsync(x => x.Id == id, ct);
+            var row = await units.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.Page(_EditPage.Create(UnitUpsertRequest.FromEntity(row)));
         });
@@ -152,7 +152,7 @@ public sealed class UnitsEndpoints(FeatureResultBuilder resultBuilder) : BaseFea
         // GET delete — read seam (no-tracking find for the dialog).
         group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Unit> units, CancellationToken ct) =>
         {
-            var row = await units.All().FirstOrDefaultAsync(x => x.Id == id, ct);
+            var row = await units.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_UnitDelete.Create(new UnitDeleteDialogModel(row.Id, row.Name)));
         });

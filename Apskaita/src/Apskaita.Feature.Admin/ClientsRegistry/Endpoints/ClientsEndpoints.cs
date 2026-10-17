@@ -102,7 +102,7 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         // GET edit — read seam (no-tracking find for display).
         group.MapGet("edit/{id:guid}", async (Guid id, IQuery<Client> clients, CancellationToken ct) =>
         {
-            var row = await clients.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            var row = await clients.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.Page(_EditPage.Create(ClientUpsertRequest.FromEntity(row)));
         });
@@ -158,7 +158,7 @@ public sealed class ClientsEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         // GET delete — read seam (no-tracking find for the dialog).
         group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Client> clients, CancellationToken ct) =>
         {
-            var row = await clients.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            var row = await clients.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_ClientDelete.Create(new ClientDeleteDialogModel(row.Id, row.Info.Name)));
         });

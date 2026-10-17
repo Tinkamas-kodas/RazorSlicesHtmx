@@ -7,5 +7,5 @@ namespace Apskaita.Web.Layout;
 /// </summary>
 public static class Assets
 {
-    public const string Version = "20261016-1";
+    public const string Version = "20261017-3";
 }

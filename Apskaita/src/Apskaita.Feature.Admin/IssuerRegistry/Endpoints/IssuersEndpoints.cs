@@ -102,7 +102,7 @@ public sealed class IssuersEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         // GET edit — read seam (no-tracking find for display).
         group.MapGet("edit/{id:guid}", async (Guid id, IQuery<Issuer> issuers, CancellationToken ct) =>
         {
-            var row = await issuers.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            var row = await issuers.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.Page(_EditPage.Create(IssuerUpsertRequest.FromEntity(row)));
         });
@@ -158,7 +158,7 @@ public sealed class IssuersEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         // GET delete — read seam (no-tracking find for the dialog).
         group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Issuer> issuers, CancellationToken ct) =>
         {
-            var row = await issuers.All().FirstOrDefaultAsync(c => c.Id == id, ct);
+            var row = await issuers.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_IssuerDelete.Create(new IssuerDeleteDialogModel(row.Id, row.Info.Name)));
         });

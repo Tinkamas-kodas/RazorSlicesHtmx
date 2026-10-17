@@ -127,7 +127,7 @@ public sealed class TimeTrackingGridTests
     // ---- TimeTrackingCalendarEventViewModel.From ----
 
     [Fact]
-    public void CalendarEventViewModel_From_MapsIdentityAndDuration()
+    public void CalendarEventViewModel_From_MapsIdentityDurationAndGeometry()
     {
         var info = new CalendarEventInfo(
             "Standup",
@@ -140,16 +140,21 @@ public sealed class TimeTrackingGridTests
             "a@b.lt",
             "evt-1");
 
-        var vm = TimeTrackingCalendarEventViewModel.From(info, isTracked: true);
+        var vm = TimeTrackingCalendarEventViewModel.From(info);
 
-        Assert.Equal(new DateOnly(2026, 10, 13), vm.DayDate);
+        Assert.Equal(new DateOnly(2026, 10, 13), vm.StartDate);
         Assert.Equal(new TimeOnly(9, 45), vm.Start);
-        Assert.Equal(new TimeOnly(10, 30), vm.End);
+        Assert.Equal(new TimeOnly(10, 30), vm.DisplayEnd);
         Assert.Equal(45, vm.DurationMinutes);
         Assert.Equal("outlook365", vm.ProviderKey);
         Assert.Equal("a@b.lt", vm.AccountKey);
         Assert.Equal("evt-1", vm.EventId);
-        Assert.True(vm.IsTracked);
+        Assert.False(vm.IsAllDay);
+        // 09:45 → slot 19 (585/30), 15 min into it → 17px offset; 45 min → 51px height.
+        Assert.Equal(19, vm.StartSlotIndex);
+        Assert.Equal(17d, vm.OffsetTopPx);
+        Assert.Equal(51d, vm.HeightPx);
+        Assert.Equal(0m, vm.OverflowHours);
     }
 
     [Fact]
@@ -157,8 +162,36 @@ public sealed class TimeTrackingGridTests
     {
         var info = new CalendarEventInfo("X", new DateTime(2026, 10, 13, 9, 0, 0), new DateTime(2026, 10, 13, 9, 0, 10), null, false, null, "outlook365", "a", "e");
 
-        var vm = TimeTrackingCalendarEventViewModel.From(info, isTracked: false);
+        var vm = TimeTrackingCalendarEventViewModel.From(info);
 
         Assert.Equal(1, vm.DurationMinutes);
+        Assert.False(vm.IsAllDay);
+    }
+
+    [Fact]
+    public void CalendarEventViewModel_From_AllDayEventSpansDays()
+    {
+        // Midnight-to-midnight over two days → all-day band covering both day columns.
+        var info = new CalendarEventInfo("Holiday", new DateTime(2026, 10, 13), new DateTime(2026, 10, 15), null, false, null, "outlook365", "a", "e");
+
+        var vm = TimeTrackingCalendarEventViewModel.From(info);
+
+        Assert.True(vm.IsAllDay);
+        Assert.Equal(new DateOnly(2026, 10, 13), vm.AllDayFirstDate);
+        Assert.Equal(new DateOnly(2026, 10, 14), vm.AllDayLastDate);
+    }
+
+    [Fact]
+    public void CalendarEventViewModel_From_CrossMidnightEventClipsAndReportsOverflow()
+    {
+        // 23:30 + 60 min: 30 visible in the day, 30 overflowed → 0.5h (same math as an entry card).
+        var info = new CalendarEventInfo("Late", new DateTime(2026, 10, 13, 23, 30, 0), new DateTime(2026, 10, 14, 0, 30, 0), null, false, null, "outlook365", "a", "e");
+
+        var vm = TimeTrackingCalendarEventViewModel.From(info);
+
+        Assert.False(vm.IsAllDay);
+        Assert.Equal(47, vm.StartSlotIndex);
+        Assert.Equal(34d, vm.HeightPx);
+        Assert.Equal(0.5m, vm.OverflowHours);
     }
 }

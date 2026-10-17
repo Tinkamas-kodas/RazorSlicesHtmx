@@ -32,4 +32,11 @@ public interface IQuery<TEntity> where TEntity : class
     /// <c>All().AnyAsync(...)</c> so callers need no database-provider dependency.
     /// </summary>
     Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct);
+
+    /// <summary>
+    /// The first no-tracking entity matching <paramref name="predicate"/>, or <c>null</c>. The read-seam
+    /// companion to <see cref="ExistsAsync"/>: use it instead of <c>All().FirstOrDefaultAsync(...)</c> so a
+    /// pure read needs no database-provider dependency (the by-id pattern is <c>e =&gt; e.Id == id</c>).
+    /// </summary>
+    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct);
 }

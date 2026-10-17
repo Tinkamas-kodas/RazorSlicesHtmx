@@ -1,8 +1,11 @@
 @inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingPageModel>
 @using System.Linq
-@* Drag-to-move: long-press an entry to pick it up; left-click drops, right-click cancels.
-   The root carries the refresh trigger (no "load" — that belongs to the _ListPage placeholder only):
-   the outerHTML swap replaces itself, so the incoming grid re-registers the trigger for its own week. *@
+@* Week grid: entries (colored, on top) and calendar events (grey, behind) share one day/time layout.
+   A timed event reuses the entry slot/height math; all-day and multi-day events render as bands in a
+   dedicated all-day row (grid row 2). Events referenced by a same-week entry are filtered out server-side,
+   so a logged event never appears here. The root carries the refresh trigger (no "load" — that belongs to
+   the _ListPage placeholder only): the outerHTML swap replaces itself, so the incoming grid re-registers
+   the trigger for its own week. The connections dock lives in the page, outside this fragment. *@
 
 <div id="time-tracking-grid"
      data-move-url="@FeatureUri.Uri("move")"
@@ -10,8 +13,12 @@
      hx-trigger="time-tracking-list-refresh from:document"
      hx-target="this"
      hx-swap="outerHTML">
-    <div class="tt-week-layout">
-    <div class="card border-0 shadow-sm tt-week-main">
+    @if (!string.IsNullOrEmpty(Model.CalendarNotice))
+    {
+        <div class="alert alert-warning py-2 px-3 tt-calendar-notice" role="alert">@Model.CalendarNotice</div>
+    }
+
+    <div class="card border-0 shadow-sm">
         <div class="card-body p-0 tt-week-grid-wrap">
             <div class="tt-week-grid">
                 <div class="tt-grid-time-header"></div>
@@ -20,16 +27,72 @@
                     <div class="tt-grid-day-header @(day.IsToday ? "is-today" : string.Empty)">@day.Label</div>
                 }
 
+                @* All-day row: a grey band per all-day/multi-day event covering the day column. *@
+                <div class="tt-grid-allday-label">All day</div>
                 @for (var dayIndex = 0; dayIndex < Model.Days.Count; dayIndex++)
                 {
                     var day = Model.Days[dayIndex];
+                    var allDayEvents = Model.CalendarEvents
+                        .Where(evt => evt.IsAllDay && evt.AllDayFirstDate <= day.Date && evt.AllDayLastDate >= day.Date)
+                        .OrderBy(evt => evt.Subject)
+                        .ToArray();
+
+                    <div class="tt-grid-allday-cell @(day.IsToday ? "is-today" : string.Empty)"
+                         style="grid-column:@(dayIndex + 2);grid-row:2;">
+                        @foreach (var evt in allDayEvents)
+                        {
+                            var hasIdentity = !string.IsNullOrEmpty(evt.ProviderKey) && !string.IsNullOrEmpty(evt.EventId);
+                            var eventUrl = hasIdentity
+                                ? FeatureUri.Uri($"event?date={day.Date:yyyy-MM-dd}&time={evt.Start:HH\\:mm}&duration={evt.DurationMinutes}&weekStart={Model.WeekStart:yyyy-MM-dd}&provider={evt.ProviderKey}&account={Uri.EscapeDataString(evt.AccountKey)}&eventId={Uri.EscapeDataString(evt.EventId)}&subject={Uri.EscapeDataString(evt.Subject)}")
+                                : null;
+                            <div class="tt-allday-band @(eventUrl is not null ? "tt-event-clickable" : null)"
+                                 hx-get="@eventUrl"
+                                 hx-target="@(eventUrl is not null ? "#dialog-host" : null)"
+                                 tabindex="@(eventUrl is not null ? "0" : null)"
+                                 role="@(eventUrl is not null ? "button" : null)"
+                                 title="@evt.Subject">@evt.Subject</div>
+                        }
+                    </div>
+                }
+
+                @* Day overlays: timed events first (behind), then entry cards (on top). *@
+                @for (var dayIndex = 0; dayIndex < Model.Days.Count; dayIndex++)
+                {
+                    var day = Model.Days[dayIndex];
+                    var dayEvents = Model.CalendarEvents
+                        .Where(evt => !evt.IsAllDay && evt.StartDate == day.Date)
+                        .OrderBy(evt => evt.Start)
+                        .ToArray();
                     var dayEntries = Model.Entries
                         .Where(entry => entry.StartDate == day.Date)
                         .OrderBy(entry => entry.Start)
                         .ToArray();
 
                     <div class="tt-day-overlay"
-                         style="grid-column:@(dayIndex + 2);grid-row:2 / span @Model.Slots.Count;">
+                         style="grid-column:@(dayIndex + 2);grid-row:3 / span @Model.Slots.Count;">
+                        @foreach (var evt in dayEvents)
+                        {
+                            var evtTop = evt.StartSlotIndex * 34d + evt.OffsetTopPx;
+                            var hasIdentity = !string.IsNullOrEmpty(evt.ProviderKey) && !string.IsNullOrEmpty(evt.EventId);
+                            var eventUrl = hasIdentity
+                                ? FeatureUri.Uri($"event?date={evt.StartDate:yyyy-MM-dd}&time={evt.Start:HH\\:mm}&duration={evt.DurationMinutes}&weekStart={Model.WeekStart:yyyy-MM-dd}&provider={evt.ProviderKey}&account={Uri.EscapeDataString(evt.AccountKey)}&eventId={Uri.EscapeDataString(evt.EventId)}&subject={Uri.EscapeDataString(evt.Subject)}")
+                                : null;
+                            <div class="tt-event-card @(eventUrl is not null ? "tt-event-clickable" : null)"
+                                 style="top:@($"{evtTop:0.##}px");height:@($"{evt.HeightPx:0.##}px");"
+                                 hx-get="@eventUrl"
+                                 hx-target="@(eventUrl is not null ? "#dialog-host" : null)"
+                                 tabindex="@(eventUrl is not null ? "0" : null)"
+                                 role="@(eventUrl is not null ? "button" : null)"
+                                 title="@evt.Subject">
+                                <span class="tt-event-time">@evt.Start.ToString("HH:mm") - @evt.DisplayEnd.ToString("HH:mm")</span>
+                                <span class="tt-event-subject">@evt.Subject</span>
+                                @if (evt.OverflowHours > 0)
+                                {
+                                    <span class="tt-event-overflow">+@evt.OverflowHours.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)</span>
+                                }
+                            </div>
+                        }
+
                         @for (var i = 0; i < dayEntries.Length; i++)
                         {
                             var entry = dayEntries[i];
@@ -67,7 +130,7 @@
                 {
                     var slotClass = slot.IsWorkHours ? "is-work-hours" : "is-off-hours";
                     <div class="tt-grid-time-cell @slotClass"
-                         style="grid-column:1;grid-row:@(slot.Index + 2);"
+                         style="grid-column:1;grid-row:@(slot.Index + 3);"
                          data-time="@slot.Start.ToString("HH:mm")">@slot.Start.ToString("HH:mm")</div>
 
                     @for (var dayIndex = 0; dayIndex < Model.Days.Count; dayIndex++)
@@ -76,7 +139,7 @@
 
                         <button type="button"
                                 class="tt-grid-slot-cell @slotClass"
-                                style="grid-column:@(dayIndex + 2);grid-row:@(slot.Index + 2);"
+                                style="grid-column:@(dayIndex + 2);grid-row:@(slot.Index + 3);"
                                 data-date="@day.Date.ToString("yyyy-MM-dd")"
                                 data-time="@slot.Start.ToString("HH:mm")"
                                 hx-get="@FeatureUri.Uri($"create?date={day.Date:yyyy-MM-dd}&time={slot.Start:HH\\:mm}&weekStart={Model.WeekStart:yyyy-MM-dd}")"
@@ -87,8 +150,5 @@
                 }
             </div>
         </div>
-    </div>
-
-    @await RenderPartialAsync(Apskaita.Feature.TimeTracking.Slices._CalendarPanel.Create(Model))
     </div>
 </div>

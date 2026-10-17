@@ -370,7 +370,7 @@ body.sidebar-collapsed button.side-nav-link {
   white-space: normal;
 }
 
-/* Time tracking: week layout with calendar side panel (Clockify-like) */
+/* Time tracking: week layout (grid + connections dock); events render inline in the grid. */
 .tt-week-layout {
   display: flex;
   gap: 0.75rem;
@@ -382,8 +382,9 @@ body.sidebar-collapsed button.side-nav-link {
   min-width: 0;
 }
 
-.tt-calendar-panel {
-  flex: 0 0 40px;
+/* Connections dock: a collapsed rail beside the grid; expands to one compact row per connection. */
+.tt-connections-dock {
+  flex: 0 0 32px;
   border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
   border-radius: 0.5rem;
   background: var(--bs-body-bg);
@@ -394,142 +395,247 @@ body.sidebar-collapsed button.side-nav-link {
   transition: flex-basis 0.15s ease;
 }
 
-.tt-calendar-panel.is-expanded {
-  flex-basis: 260px;
+.tt-connections-dock.is-expanded {
+  flex-basis: 196px;
 }
 
-.tt-calendar-toggle {
+.tt-connections-toggle {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 0.6rem 0.25rem;
+  padding: 0.5rem 0.2rem;
   border: 0;
   background: transparent;
   color: var(--bs-secondary-color);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   cursor: pointer;
   border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
 }
 
-.tt-calendar-toggle:hover {
+.tt-connections-toggle:hover {
   background: var(--bs-secondary-bg);
   color: var(--bs-emphasis-color);
 }
 
-.tt-calendar-toggle:focus-visible {
+.tt-connections-toggle:focus-visible {
   outline: 2px solid var(--bs-primary);
   outline-offset: -2px;
 }
 
-.tt-calendar-toggle-label {
+.tt-connections-toggle-label {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   white-space: nowrap;
 }
 
-.tt-calendar-panel.is-expanded .tt-calendar-toggle-label {
+.tt-connections-dock.is-expanded .tt-connections-toggle-label {
   writing-mode: horizontal-tb;
   transform: none;
 }
 
-.tt-calendar-body {
+.tt-connections-body {
   display: none;
   flex: 1 1 auto;
   overflow-y: auto;
 }
 
-.tt-calendar-panel.is-expanded .tt-calendar-body {
+.tt-connections-dock.is-expanded .tt-connections-body {
   display: block;
 }
 
-.tt-calendar-empty {
-  padding: 1rem 0.75rem;
-  font-size: 0.85rem;
-  color: var(--bs-secondary-color);
+.tt-connections-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
 }
 
-.tt-calendar-list {
-  padding: 0.25rem 0;
+.tt-connections-manage {
+  font-size: 0.76rem;
 }
 
-.tt-calendar-day {
+.tt-connections-list {
+  padding: 0.45rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.tt-connections-provider {
   margin-bottom: 0.5rem;
 }
 
-.tt-calendar-day-header {
-  padding: 0.2rem 0.75rem;
-  font-size: 0.75rem;
+.tt-connections-provider-label {
+  font-size: 0.68rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--bs-secondary-color);
+  margin-bottom: 0.1rem;
 }
 
-.tt-calendar-event {
-  margin: 0.15rem 0.5rem;
-  padding: 0.4rem 0.55rem;
-  border-radius: 0.4rem;
-  background: var(--bs-secondary-bg);
-  border-left: 3px solid var(--bs-primary);
-  font-size: 0.8rem;
+.tt-connections-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.05rem 0;
 }
 
-.tt-calendar-event-time {
-  color: var(--bs-secondary-color);
-  font-size: 0.72rem;
-}
-
-.tt-calendar-event-subject {
-  color: var(--bs-emphasis-color);
-  font-weight: 600;
+/* The name does not grow, so the action sits right beside it (left-aligned) instead of at the row end. */
+.tt-connections-name {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
 }
 
-.tt-calendar-event-meta {
+.tt-connections-muted {
   color: var(--bs-secondary-color);
+  font-size: 0.78rem;
+}
+
+.tt-connections-action {
+  font-size: 0.7rem;
+  color: var(--bs-link-color);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tt-connections-action:hover {
+  text-decoration: underline;
+}
+
+/* Health dot: green = usable for the displayed week, red = error or no coverage. Tooltip explains. */
+.tt-connections-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bs-secondary-color);
+}
+
+.tt-connections-dot.is-ok {
+  background: var(--bs-success);
+}
+
+.tt-connections-dot.is-bad {
+  background: var(--bs-danger);
+}
+
+/* Calendar read-failure notice shown above the grid. */
+.tt-calendar-notice {
+  margin: 0.5rem 0.75rem 0;
+}
+
+/* All-day row: a thin band row above the timed grid. */
+.tt-grid-allday-label {
+  grid-column: 1;
+  grid-row: 2;
   font-size: 0.72rem;
+  color: var(--bs-secondary-color);
+  padding: 0.3rem 0.45rem;
+  border-right: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+  background: var(--bs-body-bg);
+}
+
+.tt-grid-allday-cell {
+  min-height: 30px;
+  padding: 0.15rem;
+  border-right: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+  border-bottom: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color);
+  background: var(--bs-body-bg);
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
-.tt-calendar-event-online {
-  color: var(--bs-primary);
+.tt-grid-allday-cell.is-today {
+  background: color-mix(in srgb, var(--bs-primary) 6%, var(--bs-body-bg));
 }
 
-.tt-calendar-event-organizer {
+.tt-allday-band {
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  background: var(--bs-secondary-bg);
+  color: var(--bs-secondary-color);
+  border-left: 3px solid var(--bs-secondary-color);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Inline calendar events: grey cards behind the colored entry cards on the same timeline. */
+.tt-event-card {
+  position: absolute;
+  z-index: 1;
+  left: 2px;
+  right: 6px;
+  display: grid;
+  align-content: start;
+  gap: 0.1rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.3rem;
+  border-left: 3px solid var(--bs-secondary-color);
+  background: var(--bs-secondary-bg);
   color: var(--bs-secondary-color);
   font-size: 0.72rem;
-  margin-top: 0.1rem;
+  text-align: left;
+  pointer-events: auto;
+  overflow: hidden;
+  opacity: 0.9;
 }
 
-/* Clickable calendar events (single `event` URI; server decides create vs edit dialog). */
-.tt-calendar-event-clickable {
+.tt-event-time {
+  display: block;
+  font-size: 0.66rem;
+  line-height: 1.1;
+  opacity: 0.9;
+}
+
+.tt-event-subject {
+  display: -webkit-box;
+  font-weight: 600;
+  line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-event-overflow {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.05rem 0.22rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* Clickable events (single `event` URI; server decides create vs toast). */
+.tt-event-clickable {
   cursor: pointer;
 }
 
-.tt-calendar-event-clickable:hover {
-  filter: brightness(0.94);
+.tt-event-clickable:hover {
+  filter: brightness(0.95);
 }
 
-.tt-calendar-event-clickable:focus-visible {
+.tt-event-clickable:focus-visible {
   outline: 2px solid var(--bs-primary);
   outline-offset: 1px;
-}
-
-.tt-event-tracked-badge {
-  margin-left: 0.4rem;
-  padding: 0.05rem 0.4rem;
-  border-radius: 0.6rem;
-  background: var(--bs-success-bg-subtle);
-  color: var(--bs-success-text-emphasis);
-  border: 1px solid var(--bs-success-border-subtle);
-  font-size: 0.62rem;
-  font-weight: 600;
-  vertical-align: 0.05rem;
 }
 
 @media (max-width: 991px) {
@@ -537,18 +643,18 @@ body.sidebar-collapsed button.side-nav-link {
     flex-direction: column;
   }
 
-  .tt-calendar-panel {
+  .tt-connections-dock {
     flex-basis: auto;
     max-height: none;
   }
 
-  /* Small screens: the panel sits below the grid and is always expanded. */
-  .tt-calendar-toggle-label {
+  /* Small screens: the dock sits below the grid and is always expanded. */
+  .tt-connections-toggle-label {
     writing-mode: horizontal-tb;
     transform: none;
   }
 
-  .tt-calendar-body {
+  .tt-connections-body {
     display: block;
   }
 }

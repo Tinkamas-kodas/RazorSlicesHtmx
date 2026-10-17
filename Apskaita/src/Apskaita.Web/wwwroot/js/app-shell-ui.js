@@ -33,20 +33,20 @@
     setToggleAria();
   });
 
-  // Calendar side panel: expand/collapse via the vertical "Calendar" label. State is intentionally
-  // not persisted — the panel re-renders collapsed on every grid refresh.
+  // Connections dock: expand/collapse via the vertical "Connections" label. State is intentionally
+  // not persisted — the dock re-renders collapsed on every refresh.
   document.addEventListener("click", event => {
-    const toggle = event.target instanceof Element ? event.target.closest(".tt-calendar-toggle") : null;
+    const toggle = event.target instanceof Element ? event.target.closest(".tt-connections-toggle") : null;
     if (!toggle) {
       return;
     }
 
-    const panel = toggle.closest(".tt-calendar-panel");
-    if (!panel) {
+    const dock = toggle.closest(".tt-connections-dock");
+    if (!dock) {
       return;
     }
 
-    const expanded = panel.classList.toggle("is-expanded");
+    const expanded = dock.classList.toggle("is-expanded");
     toggle.setAttribute("aria-expanded", expanded.toString());
   });
 

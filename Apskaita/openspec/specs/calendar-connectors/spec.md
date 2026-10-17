@@ -42,20 +42,6 @@ Disconnecting a provider SHALL delete the connector row and forget all stored to
 - **THEN** the connector row is deleted
 - **AND** subsequent week views show the no-connector state
 
-### Requirement: Week page shows the connected user's events
-
-The time-tracking week page SHALL show the connected user's calendar events for the displayed week in a side panel grouped by day, reading events per page request with no background sync.
-
-#### Scenario: Connected user views a week
-
-- **WHEN** a user with a valid connector opens a week
-- **THEN** that week's events render grouped by day with subject, local time range, location/online hint, and organizer when not the user
-
-#### Scenario: No connector
-
-- **WHEN** a user has no connector for any provider
-- **THEN** the panel shows a hint linking to Settings
-
 ### Requirement: Token refresh and graceful degradation
 
 The system SHALL reuse a valid cached access token, refresh it when expired, and on any provider or network failure degrade gracefully without breaking the page.
@@ -68,7 +54,7 @@ The system SHALL reuse a valid cached access token, refresh it when expired, and
 #### Scenario: Provider unavailable
 
 - **WHEN** the calendar provider returns an error or is unreachable
-- **THEN** the panel shows an "unavailable" notice with a short reason
+- **THEN** the grid shows an "unavailable" notice with a short reason
 - **AND** time entries still render and the response is HTTP 200
 
 ### Requirement: Connector data is scoped to the session user
@@ -122,15 +108,6 @@ Re-uploading a file for an existing imported calendar SHALL replace its stored e
 - **WHEN** a user replaces an imported calendar's file
 - **THEN** its stored events are replaced with the newly parsed ones
 
-### Requirement: Imported events merge into the week panel
-
-The time-tracking week panel SHALL include events from imported calendars for the displayed week, in the same per-day grouping as connector events.
-
-#### Scenario: Imported event in range
-
-- **WHEN** a user views a week that contains events from an imported calendar
-- **THEN** those events render in the panel grouped by day
-
 ### Requirement: Delete an imported calendar
 
 The system SHALL allow a user to delete one of their imported calendars and its stored events, antiforgery-protected. Deleting an imported calendar SHALL NOT remove the calendar-event reference already stored on existing time entries, so re-importing the same `.ics` re-links those entries to the re-imported events.
@@ -145,3 +122,50 @@ The system SHALL allow a user to delete one of their imported calendars and its 
 - **WHEN** a user deletes an imported calendar that an existing time entry references
 - **THEN** the time entry keeps its stored event reference
 - **AND** re-importing the same `.ics` links that entry to the re-imported event again
+
+### Requirement: Connections dock lists connections with status
+
+The time-tracking view SHALL provide a connections dock that is collapsed by default, expands on demand,
+and lists each calendar connection as one compact row with a health dot. The dock SHALL be loaded
+independently of the entry grid, SHALL show no calendar events, SHALL show no import statistics, and SHALL
+offer only connect and import actions — disconnecting and calendar creation stay on the account page,
+which the dock links to.
+
+#### Scenario: Dock shows connections
+
+- **WHEN** a user opens the time-tracking view
+- **THEN** the dock is collapsed to a labelled rail
+- **AND** expanding it lists each connection with a health dot and, where applicable, a connect or import action
+- **AND** the rail's own label is not repeated inside the expanded body
+- **AND** no calendar events, no event statistics and no disconnect action are shown
+
+#### Scenario: Dock loads independently
+
+- **WHEN** the entry grid refreshes
+- **THEN** the dock is not re-fetched as part of that refresh
+
+#### Scenario: OAuth connection health
+
+- **WHEN** the dock lists a connector-backed account
+- **THEN** the dot is green when its last sync reported no error and red when it did, with the reason in the tooltip
+
+#### Scenario: Imported calendar health is week-relative
+
+- **WHEN** the dock lists an imported calendar whose stored events do not overlap the displayed week
+- **THEN** the dot is red and the tooltip shows the covered range
+- **AND** the dot is green when the stored events do overlap the displayed week
+
+#### Scenario: Importing from the dock
+
+- **WHEN** a user activates an imported calendar's import action in the dock
+- **THEN** a dialog offers the file picker and the calendar's events are replaced on submit
+- **AND** only the dock refreshes afterwards
+
+### Requirement: Imported events merge into the week grid
+
+The time-tracking grid SHALL include events from imported calendars for the displayed week, rendered exactly like connector events.
+
+#### Scenario: Imported event in range
+
+- **WHEN** a user views a week that contains events from an imported calendar
+- **THEN** those events render in the grid on the same day/time layout as connector events

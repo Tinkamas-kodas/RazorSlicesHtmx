@@ -122,6 +122,44 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             return Results.Challenge(properties: props, authenticationSchemes: [AuthConstants.ConnectEntraScheme]);
         }).RequireAuthorization(AuthPolicies.Operational);
 
+        // Connections dock fragment for the time-tracking page: one compact row per connection with a
+        // health dot, no events and no statistics (those stay on /account/me). Loaded by its own hx-get
+        // (outside the grid), so a grid refresh never re-fetches it.
+        //
+        // weekStart is required because an imported calendar's dot is week-relative: green only when its
+        // stored events actually cover the displayed week.
+        group.MapGet("connections", async (HttpContext ctx, IFeatureUri uri, string? weekStart, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, CancellationToken ct) =>
+        {
+            var cards = await BuildCardsAsync(registry, store, ics, ct);
+
+            var anchor = DateOnly.TryParse(weekStart, out var parsed)
+                ? parsed
+                : DateOnly.FromDateTime(DateTime.Now);
+
+            var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
+            var weekStartUtc = BrowserTimeZone.WallToUtc(anchor.ToDateTime(TimeOnly.MinValue), displayOffset);
+            var weekEndUtc = BrowserTimeZone.WallToUtc(anchor.AddDays(6).ToDateTime(new TimeOnly(23, 59, 59)), displayOffset);
+
+            var model = ConnectionsDockModelFactory.Create(
+                cards,
+                anchor,
+                weekStartUtc,
+                weekEndUtc,
+                connectionId => uri.Uri($"ics/{connectionId}/import-dialog"));
+
+            return Result.Fragment(_ConnectionsDock.Create(model));
+        }).RequireAuthorization(AuthPolicies.Operational);
+
+        // The dock's "Import" link target: the file picker for one imported calendar. The dialog posts to
+        // the existing import endpoint and marks the dock as the calling surface.
+        group.MapGet("ics/{id:guid}/import-dialog", async (Guid id, IcsConnectorStore ics, CancellationToken ct) =>
+        {
+            var connector = await ics.GetOwnByIdAsync(id, ct);
+            return connector is null
+                ? Results.NotFound()
+                : Result.ShowDialog(_IcsImportDialog.Create(new IcsImportDialogModel(id, connector.DisplayName)));
+        }).RequireAuthorization(AuthPolicies.Operational);
+
         group.MapPost("disconnect/{id:guid}", async (Guid id, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, CancellationToken ct) =>
         {
             var provider = await store.DisconnectByIdAsync(id, ct);
@@ -130,6 +168,8 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
                 return Results.NotFound();
             }
 
+            // Disconnecting happens on the account page only — the dock shows status and the import
+            // action, and links here for everything else.
             var cards = await BuildCardsAsync(registry, store, ics, ct);
 
             return Result.Fragment(_Empty.Create())
@@ -160,6 +200,7 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
         // Replaces the events of one imported calendar. The connector itself is never cleared — only its
         // stored event rows are swapped, in one transaction (SEC-005: the raw file is never persisted).
         group.MapPost("ics/{id:guid}/import", async (
+            HttpContext ctx,
             Guid id,
             IFormFile? file,
             IcsConnectorStore ics,
@@ -177,16 +218,20 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
 
             var logger = loggerFactory.CreateLogger("Apskaita.Calendar.Ics");
 
+            // An import that produced no change: the dock's dialog stays open (re-rendered with the
+            // message); the account page's inline form just toasts.
+            IResult ImportFailed(string message) => CalledFromDock(ctx)
+                ? Result.Fragment(_IcsImportDialog.Create(new IcsImportDialogModel(id, connector.DisplayName, message)))
+                : Result.Fragment(_Empty.Create()).WithToast(message, title: connector.DisplayName, tone: ToastTone.Error);
+
             if (file is null || file.Length == 0)
             {
-                return Result.Fragment(_Empty.Create())
-                    .WithToast("Choose an .ics file to import.", title: connector.DisplayName, tone: ToastTone.Error);
+                return ImportFailed("Choose an .ics file to import.");
             }
 
             if (file.Length > IcsCalendarImporter.MaxUploadBytes)
             {
-                return Result.Fragment(_Empty.Create())
-                    .WithToast($"The file is larger than {IcsCalendarImporter.MaxUploadBytes / (1024 * 1024)} MB.", title: connector.DisplayName, tone: ToastTone.Error);
+                return ImportFailed($"The file is larger than {IcsCalendarImporter.MaxUploadBytes / (1024 * 1024)} MB.");
             }
 
             IcsImportResult outcome;
@@ -198,20 +243,36 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
             if (!outcome.Success)
             {
                 logger.LogWarning("ics import rejected for calendar {Account}: {Error}", connector.AccountKey, outcome.Error);
-                return Result.Fragment(_Empty.Create())
-                    .WithToast(outcome.Error ?? "The calendar file could not be imported.", title: connector.DisplayName, tone: ToastTone.Error);
+                return ImportFailed(outcome.Error ?? "The calendar file could not be imported.");
             }
 
             await ics.ImportAsync(connector, outcome.Events, ct);
-            var cards = await BuildCardsAsync(registry, store, ics, ct);
 
             var message = $"{outcome.Events.Count} event(s) imported." + (outcome.Warning is null ? string.Empty : " " + outcome.Warning);
+
+            if (CalledFromDock(ctx))
+            {
+                return Result.Fragment(_Empty.Create())
+                    .ClearDialog()
+                    .WithTrigger("connections-refresh")
+                    .WithToast(message, title: connector.DisplayName, tone: ToastTone.Success);
+            }
+
+            var cards = await BuildCardsAsync(registry, store, ics, ct);
 
             return Result.Fragment(_Empty.Create())
                 .WithOob("#connectors-table", _ConnectorsTable.Create(cards))
                 .WithToast(message, title: connector.DisplayName, tone: ToastTone.Success);
         }).RequireAuthorization(AuthPolicies.Operational);
     }
+
+    /// <summary>
+    /// True when the request originated from the time-tracking page (the connections dock). htmx always
+    /// sends the browser URL, so the dock and the account page need no extra form field to be told apart —
+    /// the dock refreshes itself by trigger, the account page by the table's OOB swap.
+    /// </summary>
+    private static bool CalledFromDock(HttpContext ctx) =>
+        ctx.Request.Headers["HX-Current-URL"].ToString().Contains("/time-tracking", StringComparison.OrdinalIgnoreCase);
 
     private static async Task<AccountPageModel> CreatePageModelAsync(HttpContext ctx, IFeatureUri uri, CalendarConnectorRegistry registry, CalendarConnectorStore store, IcsConnectorStore ics, IOptions<ConnectorAuthOptions> options, CancellationToken ct)
     {

@@ -39,7 +39,7 @@
                         Sign in with Google
                     </a>
                 }
-                @if (!Model.EntraEnabled && !Model.GoogleOauthEnabled)
+                @if (Model is { EntraEnabled: false, GoogleOauthEnabled: false })
                 {
                     <p class="text-muted mb-0">No sign-in providers are configured on this server.</p>
                 }

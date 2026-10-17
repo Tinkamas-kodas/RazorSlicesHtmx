@@ -1,4 +1,14 @@
 @inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingPageModel>
+@inject FeatureRegistry FeatureRegistry
+@{
+    // The connections dock is a separate fragment (owned by the account feature, which holds the
+    // connector data) loaded independently of the grid, so a grid refresh never re-fetches it.
+    var accountRoute = FeatureRegistry.TryGetRouteItem("account", out var accountItem) && !string.IsNullOrWhiteSpace(accountItem.Route)
+        ? accountItem.Route
+        : "/account/me";
+    var accountBase = accountRoute.Contains('/') ? accountRoute[..accountRoute.LastIndexOf('/')] : accountRoute;
+    var dockUrl = accountBase + "/connections?weekStart=" + Model.WeekStart.ToString("yyyy-MM-dd");
+}
 <article class="section-panel">
     <div class="tt-controls-sticky">
         <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
@@ -40,15 +50,28 @@
         </div>
     </div>
 
-    @* Grid placeholder: the grid fragment arrives from `list` on load and on every refresh trigger.
-       _Grid's root carries the same attributes (minus "load", which must fire once) so the outerHTML
-       swap hands the refresh wiring to the incoming grid and week changes never leave a stale URL. *@
-    <div id="time-tracking-grid"
-         data-move-url="@FeatureUri.Uri("move")"
-         hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
-         hx-trigger="load, time-tracking-list-refresh from:document"
-         hx-target="this"
-         hx-swap="outerHTML">
-        <div class="p-3 text-muted" role="status">Loading week…</div>
+    @* Week layout: the grid (left) and the connections dock (right) are siblings. The dock loads from
+       its own route on page load only — it is NOT inside #time-tracking-grid, so time-tracking-list-refresh
+       never re-fetches it. *@
+    <div class="tt-week-layout">
+        <div class="tt-week-main">
+            <div id="time-tracking-grid"
+                 data-move-url="@FeatureUri.Uri("move")"
+                 hx-get="@FeatureUri.Uri($"list?weekStart={Model.WeekStart:yyyy-MM-dd}")"
+                 hx-trigger="load, time-tracking-list-refresh from:document"
+                 hx-target="this"
+                 hx-swap="outerHTML">
+                <div class="p-3 text-muted" role="status">Loading week…</div>
+            </div>
+        </div>
+
+        <div id="tt-connections-dock"
+             class="tt-connections-dock"
+             hx-get="@dockUrl"
+             hx-trigger="load"
+             hx-target="this"
+             hx-swap="outerHTML">
+            <div class="p-2 text-muted small" role="status">Loading connections…</div>
+        </div>
     </div>
 </article>

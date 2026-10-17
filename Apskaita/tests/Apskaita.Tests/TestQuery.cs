@@ -16,4 +16,7 @@ public sealed class TestQuery<T>(ApskaitaDbContext db) : IQuery<T>
 
     public Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken ct) =>
         db.Set<T>().AsNoTracking().AnyAsync(predicate, ct);
+
+    public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct) =>
+        db.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate, ct);
 }

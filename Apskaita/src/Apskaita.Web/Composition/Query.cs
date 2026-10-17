@@ -21,4 +21,7 @@ public sealed class Query<TEntity>(ApskaitaDbContext db) : IQuery<TEntity> where
 
     public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct) =>
         db.Set<TEntity>().AsNoTracking().AnyAsync(predicate, ct);
+
+    public Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct) =>
+        db.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(predicate, ct);
 }

@@ -106,7 +106,7 @@ public sealed class InvoiceTemplatesEndpoints(FeatureResultBuilder resultBuilder
         // GET edit — read seam (no-tracking find for display).
         group.MapGet("edit/{id:guid}", async (Guid id, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
         {
-            var row = await templates.All().FirstOrDefaultAsync(x => x.Id == id, ct);
+            var row = await templates.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.Page(_EditPage.Create(InvoiceTemplateUpsertRequest.FromEntity(row)));
         });
@@ -171,7 +171,7 @@ public sealed class InvoiceTemplatesEndpoints(FeatureResultBuilder resultBuilder
         // GET delete — read seam (no-tracking find for the dialog).
         group.MapGet("delete/{id:guid}", async (Guid id, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
         {
-            var row = await templates.All().FirstOrDefaultAsync(x => x.Id == id, ct);
+            var row = await templates.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_InvoiceTemplateDelete.Create(new InvoiceTemplateDeleteDialogModel(row.Id, row.Name)));
         });

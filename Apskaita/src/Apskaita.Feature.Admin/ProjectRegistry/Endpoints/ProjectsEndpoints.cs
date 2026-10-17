@@ -161,7 +161,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             IQuery<InvoiceTemplate> templates,
             CancellationToken ct) =>
         {
-            var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
+            var row = await projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
 
             var model = ProjectUpsertRequest.FromEntity(row);
@@ -228,7 +228,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
         // GET delete — read seam (no-tracking find for the dialog).
         group.MapGet("delete/{id:guid}", async (Guid id, IQuery<Project> projects, CancellationToken ct) =>
         {
-            var row = await projects.All().FirstOrDefaultAsync(p => p.Id == id, ct);
+            var row = await projects.FirstOrDefaultAsync(p => p.Id == id, ct);
             if (row is null) return Results.NotFound();
             return Result.ShowDialog(_ProjectDelete.Create(new ProjectDeleteDialogModel(row.Id, row.Name)));
         });

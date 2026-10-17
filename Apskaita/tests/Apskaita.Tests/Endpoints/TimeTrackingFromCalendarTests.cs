@@ -131,32 +131,69 @@ public sealed class TimeTrackingFromCalendarTests
     }
 
     [Fact]
-    public async Task Event_Tracked_ReturnsEditDialogForExistingEntry()
+    public async Task Event_Tracked_ReturnsAlreadyLoggedToastWithoutDialog()
     {
         await using var factory = new CalendarStubApiFactory();
         var (seeded, projectId) = await SetupAsync(factory);
 
-        await using (var db = seeded.NewDbContext())
+        await SeedEntryAsync(seeded, projectId, new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), "standup logged earlier");
+
+        var response = await GetAsHtmxAsync(seeded, EventUrl());
+
+        Assert.True(response.IsSuccessStatusCode, $"Expected 200, got {(int)response.StatusCode}.");
+        // The "already logged" toast arrives via the HX-Trigger header; the body is empty (no dialog).
+        Assert.True(response.Headers.TryGetValues("HX-Trigger", out var triggers), "Expected an HX-Trigger toast.");
+        Assert.Contains("already logged", string.Join(",", triggers));
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("Edit time entry", body);
+        Assert.DoesNotContain("Create time entry", body);
+    }
+
+    [Fact]
+    public async Task Event_TrackedInAnotherWeek_StillReturnsToast()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        var (seeded, projectId) = await SetupAsync(factory);
+
+        // The referencing entry sits weeks away from the clicked event's week — the check is global,
+        // so it must still toast (no redirect-to-edit, no doomed create dialog).
+        await SeedEntryAsync(seeded, projectId, new DateTime(2026, 9, 1, 6, 45, 0, DateTimeKind.Utc), "logged last month");
+
+        var response = await GetAsHtmxAsync(seeded, EventUrl());
+
+        Assert.True(response.IsSuccessStatusCode, $"Expected 200, got {(int)response.StatusCode}.");
+        Assert.True(response.Headers.TryGetValues("HX-Trigger", out var triggers), "Expected an HX-Trigger toast.");
+        Assert.Contains("already logged", string.Join(",", triggers));
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("Edit time entry", body);
+    }
+
+    /// <summary>GETs a URL as an HTMX request (an event card click always is) so headers are observable.</summary>
+    private static async Task<HttpResponseMessage> GetAsHtmxAsync(ApskaitaApiFactory factory, string url)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        return await factory.CreateClient().SendAsync(request);
+    }
+
+    private static async Task<Guid> SeedEntryAsync(
+        ApskaitaApiFactory factory, Guid projectId, DateTime startedAtUtc, string description)
+    {
+        var id = Guid.NewGuid();
+        await using var db = factory.NewDbContext();
+        db.TimeTrackings.Add(new TimeTracking
         {
-            db.TimeTrackings.Add(new TimeTracking
-            {
-                Id = Guid.NewGuid(),
-                ProjectId = projectId,
-                StartedAtUtc = new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc),
-                DurationInMinutes = 45,
-                Description = "standup logged earlier",
-                CalendarEvent = new CalendarEventReference(CalendarProvider.Outlook365, Account, EventId),
-                CreatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc),
-                UpdatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc)
-            });
-            await db.SaveChangesAsync(Ct);
-        }
-
-        var html = await seeded.CreateClient().GetStringAsync(EventUrl());
-
-        Assert.Contains("Edit time entry", html);
-        Assert.Contains("standup logged earlier", html);
-        Assert.DoesNotContain("name=\"EventId\"", html);
+            Id = id,
+            ProjectId = projectId,
+            StartedAtUtc = startedAtUtc,
+            DurationInMinutes = 45,
+            Description = description,
+            CalendarEvent = new CalendarEventReference(CalendarProvider.Outlook365, Account, EventId),
+            CreatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc),
+            UpdatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc)
+        });
+        await db.SaveChangesAsync(Ct);
+        return id;
     }
 
     [Fact]
@@ -299,7 +336,7 @@ public sealed class TimeTrackingFromCalendarTests
     }
 
     [Fact]
-    public async Task CalendarPanel_UntrackedEvent_IsClickableThroughSingleUri()
+    public async Task Grid_UntrackedEvent_RendersClickableCardThroughSingleUri()
     {
         await using var factory = new CalendarStubApiFactory();
         await SetupAsync(factory);
@@ -307,44 +344,58 @@ public sealed class TimeTrackingFromCalendarTests
 
         var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
-        var panelStart = html.IndexOf("tt-calendar-panel", StringComparison.Ordinal);
-        Assert.True(panelStart >= 0, "Calendar panel should be rendered.");
-        var panel = html[panelStart..];
-        Assert.Contains("hx-get=\"/time-tracking/event?", panel);
-        Assert.Contains("subject=FDMS%20standup", panel);
-        Assert.Contains("#dialog-host", panel);
-        Assert.DoesNotContain("hx-post", panel);
-        Assert.DoesNotContain("tt-event-tracked-badge", panel);
+        // The event renders inline in the grid as a grey card wired to the single `event` URI.
+        Assert.Contains("tt-event-card", html);
+        Assert.Contains("FDMS standup", html);
+        Assert.Contains("hx-get=\"/time-tracking/event?", html);
+        Assert.Contains("#dialog-host", html);
+        Assert.DoesNotContain("tt-event-tracked-badge", html);
     }
 
     [Fact]
-    public async Task CalendarPanel_TtrackedEvent_ShowsLoggedBadge()
+    public async Task Grid_TrackedEvent_IsHiddenWhileItsEntryShows()
     {
         await using var factory = new CalendarStubApiFactory();
         var (seeded, projectId) = await SetupAsync(factory);
         factory.Reader.Result = new CalendarReadResult(true, [Standup()], null);
 
-        await using (var db = seeded.NewDbContext())
-        {
-            db.TimeTrackings.Add(new TimeTracking
-            {
-                Id = Guid.NewGuid(),
-                ProjectId = projectId,
-                StartedAtUtc = new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc),
-                DurationInMinutes = 45,
-                Description = "standup",
-                CalendarEvent = new CalendarEventReference(CalendarProvider.Outlook365, Account, EventId),
-                CreatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc),
-                UpdatedAtUtc = new DateTime(2026, 10, 12, 8, 0, 0, DateTimeKind.Utc)
-            });
-            await db.SaveChangesAsync(Ct);
-        }
+        await SeedEntryAsync(seeded, projectId, new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), "standup");
 
         var html = await TestHtmx.GetHtmlAsync(seeded.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
-        Assert.Contains("tt-event-tracked-badge", html);
-        Assert.Contains("Logged", html);
-        // Same single URI either way (server decides the dialog).
-        Assert.Contains("hx-get=\"/time-tracking/event?", html);
+        // A same-week logged event is hidden (its entry represents it); the entry card renders instead.
+        Assert.DoesNotContain("tt-event-card", html);
+        Assert.DoesNotContain("/time-tracking/event?", html);
+        Assert.Contains("tt-entry-card", html);
+    }
+
+    [Fact]
+    public async Task DeletingTheReferencingEntry_ReleasesTheEventToTheGridAndCreate()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        var (seeded, projectId) = await SetupAsync(factory);
+        factory.Reader.Result = new CalendarReadResult(true, [Standup()], null);
+
+        var entryId = await SeedEntryAsync(seeded, projectId, new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), "standup");
+
+        // Hidden while the entry exists.
+        var hidden = await TestHtmx.GetHtmlAsync(seeded.CreateClient(), "/time-tracking/list", "time-tracking-grid");
+        Assert.DoesNotContain("tt-event-card", hidden);
+
+        // Delete through the endpoint (antiforgery-protected).
+        var http = seeded.CreateClient();
+        var token = await TestAntiforgery.GetTokenAsync(http, "/time-tracking");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/time-tracking/delete/{entryId}");
+        request.Headers.TryAddWithoutValidation("RequestVerificationToken", token);
+        request.Headers.TryAddWithoutValidation("HX-Request", "true");
+        var response = await http.SendAsync(request);
+        Assert.True(response.IsSuccessStatusCode, $"Expected success, got {(int)response.StatusCode}.");
+
+        // The event renders again, and its next activation opens the create dialog.
+        var html = await TestHtmx.GetHtmlAsync(http, "/time-tracking/list", "time-tracking-grid");
+        Assert.Contains("tt-event-card", html);
+
+        var dialog = await http.GetStringAsync(EventUrl());
+        Assert.Contains("Create time entry", dialog);
     }
 }

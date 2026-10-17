@@ -113,6 +113,12 @@ public sealed class CalendarConnectorTests
         Assert.Contains("Loading week", html);
         Assert.DoesNotContain("tt-week-grid", html);
         Assert.DoesNotContain("tt-calendar-panel", html);
+
+        // The connections dock is a sibling fragment with its own load-only trigger, so a grid
+        // refresh never re-fetches it. It carries the displayed week because an imported calendar's
+        // health dot is week-relative.
+        Assert.Contains("hx-get=\"/account/connections?weekStart=", html);
+        Assert.Contains("hx-trigger=\"load\"", html);
     }
 
     [Fact]
@@ -296,7 +302,7 @@ public sealed class CalendarConnectorTests
     }
 
     [Fact]
-    public async Task TimeTrackingList_RendersStubbedCalendarEvents()
+    public async Task TimeTrackingList_RendersStubbedCalendarEventsInGrid()
     {
         await using var factory = new CalendarStubApiFactory();
         factory.SetPrincipal(UserEmail, UserRole.User);
@@ -314,14 +320,226 @@ public sealed class CalendarConnectorTests
 
         var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
-        Assert.Contains("Calendar", html);
+        // Events render inline in the grid as grey cards on the day/time layout (no side panel).
+        Assert.Contains("tt-event-card", html);
         Assert.Contains("Sprint planning", html);
         Assert.Contains("09:00 - 09:30", html);
-        Assert.Contains("Meeting Room 1", html);
+        Assert.DoesNotContain("tt-calendar-panel", html);
     }
 
     [Fact]
-    public async Task TimeTrackingList_ShowsConnectHint_WhenNoConnector()
+    public async Task TimeTrackingList_RendersAllDayEventInAllDayRow()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        // Midnight-to-midnight = an all-day event: it belongs in the dedicated all-day row, not the
+        // timed slot grid.
+        factory.Reader.Result = new CalendarReadResult(true, [
+            new CalendarEventInfo(
+                "Public holiday",
+                new DateTime(2026, 10, 12),
+                new DateTime(2026, 10, 13),
+                null,
+                false,
+                null)
+        ], null);
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
+
+        Assert.Contains("tt-grid-allday-cell", html);
+        Assert.Contains("tt-allday-band", html);
+        Assert.Contains("Public holiday", html);
+        Assert.DoesNotContain("tt-event-card", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_ListsConnectorsWithoutEventsOrStats()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var userId = ConnectorUserId(factory);
+        await using (var db = factory.NewDbContext())
+        {
+            db.CalendarConnectors.Add(NewConnector(userId, "outlook-user@contoso.com", "Outlook User"));
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // The dock shows connection status only — even when the reader has events for the week.
+        factory.Reader.Result = new CalendarReadResult(true, [
+            new CalendarEventInfo(
+                "Sprint planning",
+                new DateTime(2026, 10, 12, 9, 0, 0),
+                new DateTime(2026, 10, 12, 9, 30, 0),
+                null,
+                false,
+                null)
+        ], null);
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2026-10-12", "tt-connections-dock");
+
+        Assert.Contains("Connections", html);
+        Assert.Contains("Outlook User", html);
+        Assert.Contains("tt-connections-dot is-ok", html);
+        Assert.Contains("/account/connect/outlook365", html);
+        Assert.Contains("/account/me", html);
+
+        // Managing (disconnect, calendar creation) happens on the account page, not in the dock.
+        Assert.DoesNotContain("disconnect/", html);
+
+        // No events, and no statistics (those stay on /account/me).
+        Assert.DoesNotContain("Sprint planning", html);
+        Assert.DoesNotContain("event(s)", html);
+        Assert.DoesNotContain("connectors-table", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_WithoutConnector_ShowsConnectAction()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2026-10-12", "tt-connections-dock");
+
+        Assert.Contains("Connect account", html);
+        Assert.Contains("/account/connect/outlook365", html);
+        Assert.Contains("None yet.", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_WithSyncError_ShowsRedDotWithReason()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var userId = ConnectorUserId(factory);
+        await using (var db = factory.NewDbContext())
+        {
+            var connector = NewConnector(userId, "outlook-user@contoso.com", "Outlook User");
+            connector.LastSyncError = "Calendar unavailable: Graph 500";
+            db.CalendarConnectors.Add(connector);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2026-10-12", "tt-connections-dock");
+
+        Assert.Contains("tt-connections-dot is-bad", html);
+        Assert.Contains("Calendar unavailable: Graph 500", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_ImportedCalendarCoveringWeek_ShowsGreenDot()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var userId = ConnectorUserId(factory);
+        Guid connectorId;
+        await using (var db = factory.NewDbContext())
+        {
+            var connector = NewConnector(userId, "nrd", "nrd");
+            connector.Provider = CalendarProvider.Ics;
+            connectorId = connector.Id;
+            db.CalendarConnectors.Add(connector);
+            db.CalendarImportedEvents.AddRange(
+                new CalendarImportedEvent { ConnectorId = connectorId, ExternalEventId = "e1", GroupId = null, StartUtc = new DateTime(2026, 1, 1, 9, 0, 0, DateTimeKind.Utc), EndUtc = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc), Subject = "Old", CreatedAtUtc = DateTime.UtcNow },
+                new CalendarImportedEvent { ConnectorId = connectorId, ExternalEventId = "e2", GroupId = null, StartUtc = new DateTime(2026, 10, 13, 9, 0, 0, DateTimeKind.Utc), EndUtc = new DateTime(2026, 10, 13, 10, 0, 0, DateTimeKind.Utc), Subject = "In week", CreatedAtUtc = DateTime.UtcNow });
+            await db.SaveChangesAsync(Ct);
+        }
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2026-10-12", "tt-connections-dock");
+
+        Assert.Contains("tt-connections-dot is-ok", html);
+        // The row links to the import dialog instead of carrying an inline file picker.
+        Assert.Contains($"/account/ics/{connectorId}/import-dialog", html);
+        Assert.DoesNotContain("type=\"file\"", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_ImportedCalendarOutsideWeek_ShowsRedDot()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var userId = ConnectorUserId(factory);
+        Guid connectorId;
+        await using (var db = factory.NewDbContext())
+        {
+            var connector = NewConnector(userId, "nrd", "nrd");
+            connector.Provider = CalendarProvider.Ics;
+            connectorId = connector.Id;
+            db.CalendarConnectors.Add(connector);
+            db.CalendarImportedEvents.Add(new CalendarImportedEvent
+            {
+                ConnectorId = connectorId,
+                ExternalEventId = "e1",
+                GroupId = null,
+                StartUtc = new DateTime(2026, 1, 1, 9, 0, 0, DateTimeKind.Utc),
+                EndUtc = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc),
+                Subject = "Long ago",
+                CreatedAtUtc = DateTime.UtcNow
+            });
+            await db.SaveChangesAsync(Ct);
+        }
+
+        // Displayed week is in 2027 while the calendar only covers January 2026.
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2027-01-11", "tt-connections-dock");
+
+        Assert.Contains("tt-connections-dot is-bad", html);
+        Assert.Contains("nothing in this week", html);
+    }
+
+    [Fact]
+    public async Task IcsImportDialog_RendersFilePickerPostingToImport()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var userId = ConnectorUserId(factory);
+        Guid connectorId;
+        await using (var db = factory.NewDbContext())
+        {
+            var connector = NewConnector(userId, "nrd", "nrd");
+            connector.Provider = CalendarProvider.Ics;
+            connectorId = connector.Id;
+            db.CalendarConnectors.Add(connector);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), $"/account/ics/{connectorId}/import-dialog", "dialog-host");
+
+        Assert.Contains("Import into", html);
+        Assert.Contains("type=\"file\"", html);
+        Assert.Contains($"/account/ics/{connectorId}/import", html);
+        Assert.Contains("name=\"surface\"", html);
+    }
+
+    [Fact]
+    public async Task ConnectionsDock_RefreshesItselfNotTheTable()
+    {
+        await using var factory = new CalendarStubApiFactory();
+        factory.SetPrincipal(UserEmail, UserRole.User);
+        await SeedUserAsync(factory);
+
+        var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/account/connections?weekStart=2026-10-12", "tt-connections-dock");
+
+        // The dock re-fetches on its own trigger; the account page's table OOB is not emitted here.
+        Assert.Contains("hx-trigger=\"connections-refresh from:document\"", html);
+
+        // Its refresh URL echoes the requested week (the display-zone date, never the UTC-shifted one).
+        Assert.Contains("hx-get=\"/account/connections?weekStart=2026-10-12\"", html);
+    }
+
+    [Fact]
+    public async Task TimeTrackingGridFragment_DoesNotCarryTheDock()
     {
         await using var factory = new CalendarStubApiFactory();
         factory.SetPrincipal(UserEmail, UserRole.User);
@@ -329,8 +547,10 @@ public sealed class CalendarConnectorTests
 
         var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
-        Assert.Contains("No calendar connected.", html);
-        Assert.Contains("/account", html);
+        // The dock lives in the page shell, outside #time-tracking-grid, so a grid refresh never
+        // re-fetches it.
+        Assert.DoesNotContain("tt-connections-dock", html);
+        Assert.DoesNotContain("/account/connections", html);
     }
 
     [Fact]
@@ -368,13 +588,13 @@ public sealed class CalendarConnectorTests
         var html = await TestHtmx.GetHtmlAsync(factory.CreateClient(), "/time-tracking/list", "time-tracking-grid");
 
         Assert.Contains("Standup", html);
-        Assert.Contains("Online", html);
 
-        // Superseded REQ-008 (display-only) still holds for identity-less events: no htmx wiring.
-        var panelStart = html.IndexOf("tt-calendar-panel", StringComparison.Ordinal);
-        Assert.True(panelStart >= 0, "Calendar panel should be rendered.");
-        var panel = html.Substring(panelStart);
-        Assert.DoesNotContain("hx-get", panel);
-        Assert.DoesNotContain("hx-post", panel);
+        // Events without an identity triple still render (display-only) but carry no click wiring.
+        var cardStart = html.IndexOf("tt-event-card", StringComparison.Ordinal);
+        Assert.True(cardStart >= 0, "The event card should render in the grid.");
+        var cardEnd = html.IndexOf("</div>", cardStart, StringComparison.Ordinal);
+        var card = html[cardStart..cardEnd];
+        Assert.DoesNotContain("hx-get", card);
+        Assert.DoesNotContain("hx-post", card);
     }
 }

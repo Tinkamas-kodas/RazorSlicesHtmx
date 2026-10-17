@@ -1,0 +1,65 @@
+@inherits RazorSlice<Apskaita.Feature.Account.Models.ConnectionsDockModel>
+
+@* Connections dock on the time-tracking page: a collapsed rail that expands into one row per connection
+   with a health dot. It shows NO calendar events (those render inline in the grid) and NO statistics
+   (those belong to /account/me). The root carries the refresh trigger (no "load" — that stays on the page
+   placeholder) so an action inside the dock re-fetches only the dock. *@
+
+<div id="tt-connections-dock"
+     class="tt-connections-dock"
+     hx-get="@FeatureUri.Uri($"connections?weekStart={Model.WeekStart}")"
+     hx-trigger="connections-refresh from:document"
+     hx-target="this"
+     hx-swap="outerHTML">
+
+    <button type="button" class="tt-connections-toggle" aria-expanded="false" title="Show or hide calendar connections">
+        <span class="tt-connections-toggle-label">Connections</span>
+    </button>
+
+    <div class="tt-connections-body">
+        @* The rail already names the dock, so the body carries only the link to the full page (where
+           disconnecting and calendar creation happen). *@
+        <div class="tt-connections-header">
+            <a class="tt-connections-manage" href="@FeatureUri.Uri("me")">Manage</a>
+        </div>
+
+        <div class="tt-connections-list">
+            @foreach (var provider in Model.Providers)
+            {
+                <div class="tt-connections-provider">
+                    <div class="tt-connections-provider-label">@provider.Label</div>
+
+                    @if (!provider.IsImplemented)
+                    {
+                        <div class="tt-connections-muted">Coming soon</div>
+                    }
+                    else if (!provider.IsImported)
+                    {
+                        <a class="tt-connections-action" href="@FeatureUri.Uri($"connect/{provider.Key}")">Connect account</a>
+                    }
+
+                    @if (provider.IsImported && provider.Connections.Count == 0)
+                    {
+                        <div class="tt-connections-muted">None yet.</div>
+                    }
+
+                    @foreach (var connection in provider.Connections)
+                    {
+                        <div class="tt-connections-row">
+                            <span class="tt-connections-dot @(connection.IsHealthy ? "is-ok" : "is-bad")" title="@connection.Tooltip"></span>
+                            <span class="tt-connections-name" title="@connection.Tooltip">@connection.Label</span>
+                            @if (provider.IsImported)
+                            {
+                                <a class="tt-connections-action"
+                                   href="@connection.ImportUrl"
+                                   hx-get="@connection.ImportUrl"
+                                   hx-target="#dialog-host"
+                                   hx-swap="innerHTML">Import</a>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

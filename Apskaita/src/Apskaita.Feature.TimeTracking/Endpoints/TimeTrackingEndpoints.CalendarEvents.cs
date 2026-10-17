@@ -1,8 +1,6 @@
 using Apskaita.Entities.Contracts;
 using Apskaita.Feature.TimeTracking.Slices;
 using Apskaita.Shared.Calendar;
-using Apskaita.Shared.Routing;
-using Microsoft.EntityFrameworkCore;
 using TimeTrackingEntry = Apskaita.Entities.TimeTracking;
 using TimeTrackingModel = Apskaita.Feature.TimeTracking.Models.TimeTrackingModel;
 
@@ -11,16 +9,17 @@ namespace Apskaita.Feature.TimeTracking.Endpoints;
 public sealed partial class TimeTrackingEndpoints
 {
     /// <summary>
-    /// Calendar-event entry point (REQ-001): one URI for every event click. The server decides which
-    /// dialog to return — the existing entry's edit dialog when an entry references the event, otherwise
-    /// a create dialog prefilled with the event's display-zone start, duration, and subject (description).
+    /// Calendar-event entry point (REQ-001): one URI for every event click. The server decides the response
+    /// — when no entry anywhere references the event it returns a create dialog prefilled with the event's
+    /// display-zone start, duration, and subject (description); when an entry anywhere already references it
+    /// it returns an empty response plus an "already logged" toast (the global unique index makes a
+    /// duplicate create impossible, so no dialog is opened). The reference is validated before either.
     /// </summary>
     private sealed class CalendarEventSection(TimeTrackingEndpoints owner)
     {
         public void Map(RouteGroupBuilder group)
         {
             group.MapGet("event", async (
-                IFeatureUri uri,
                 string provider,
                 string account,
                 string eventId,
@@ -39,11 +38,13 @@ public sealed partial class TimeTrackingEndpoints
                     return Results.NotFound();
                 }
 
-                var trackedId = await FindTrackedEntryIdAsync(entries, reference, ct);
-                if (trackedId is not null)
+                // Global check (no week filter): the unique index is the backstop, so a create would be
+                // doomed — clear the dialog host and toast instead of opening a form.
+                if (await FindTrackedEntryIdAsync(entries, reference, ct) is not null)
                 {
-                    // Reuse the edit route (route id is authoritative for the dialog's targets).
-                    return Results.Redirect(uri.Uri($"edit/{trackedId.Value}"));
+                    return owner.Result.Fragment(_Empty.Create())
+                        .WithTrigger("time-tracking-list-refresh")
+                        .WithToast("This calendar event is already logged.", title: "Time entry", tone: ToastTone.Warning);
                 }
 
                 var model = TimeTrackingModel.CreateFromEvent(date, time, duration, weekStart, reference.ProviderKey, reference.AccountKey, reference.ExternalEventId, subject);
@@ -54,19 +55,21 @@ public sealed partial class TimeTrackingEndpoints
 
     /// <summary>
     /// Id of the existing time entry referencing the event triple (unique index ⇒ at most one), or null.
+    /// Reads through the <see cref="IQuery{TEntity}"/> seam so this file needs no database-provider reference.
     /// </summary>
     private static async Task<Guid?> FindTrackedEntryIdAsync(
         IQuery<TimeTrackingEntry> entries,
         CalendarEventReference reference,
         CancellationToken ct)
     {
-        return await entries.All()
-            .Where(t => t.CalendarEvent != null
-                && t.CalendarEvent!.CalendarProvider == reference.CalendarProvider
+        var entry = await entries.FirstOrDefaultAsync(
+            t => t.CalendarEvent != null
+                && t.CalendarEvent.CalendarProvider == reference.CalendarProvider
                 && t.CalendarEvent.AccountKey == reference.AccountKey
-                && t.CalendarEvent.ExternalEventId == reference.ExternalEventId)
-            .Select(t => (Guid?)t.Id)
-            .FirstOrDefaultAsync(ct);
+                && t.CalendarEvent.ExternalEventId == reference.ExternalEventId,
+            ct);
+
+        return entry?.Id;
     }
 
     /// <summary>

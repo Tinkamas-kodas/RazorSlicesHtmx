@@ -26,7 +26,7 @@ MySQL is expected at `localhost:3306` (see `docker-compose.dev.yml`); connection
 ## Authentication (Entra ID / Google)
 
 Sign-in is cookie-based with external OpenID Connect providers; the provider-asserted email is the identity
-key (see `plan/feature-auth-providers-1.md`). Providers register only when their `ClientId` is configured.
+key (see `openspec/specs/authentication/spec.md`). Providers register only when their `ClientId` is configured.
 
 Dev secrets via user-secrets (`UserSecretsId` is set in `Apskaita.Web.csproj`):
 
@@ -42,7 +42,7 @@ Production hosts replace these with their public URLs.
 
 ## Calendar connectors (Outlook 365 + imported .ics)
 
-Per-user calendar connections (see `plan/feature-calendar-connectors-1.md`):
+Per-user calendar connections (see `openspec/specs/calendar-connectors/spec.md`):
 
 - The **Account** page (`/account/me`) connects the user's own Outlook 365 mailboxes via delegated Microsoft
   Graph consent (`Calendars.Read`, `offline_access`). A user can connect **several accounts of the same
@@ -55,8 +55,13 @@ Per-user calendar connections (see `plan/feature-calendar-connectors-1.md`):
   notice and an **admin consent** link (`https://login.microsoftonline.com/common/adminconsent?client_id=…`).
 - Tokens are stored encrypted (ASP.NET Core Data Protection) in `calendar_connectors`; disconnect deletes
   the row and forgets that account's tokens.
-- The time tracking week page merges events from **all** of the user's connectors (per-account failures are
-  isolated — one dead token does not blank the panel).
+- The time tracking week grid merges events from **all** of the user's connectors (per-account failures are
+  isolated — one dead token does not blank the grid).
+- The time tracking page also shows a **connections dock** (`GET /account/connections?weekStart=…`, loaded
+  by its own `hx-get` outside the grid): a collapsed rail that expands into one compact row per connection
+  with a green/red health dot — for an OAuth account the last sync outcome, for an imported calendar whether
+  its stored events cover the displayed week. It shows no calendar events and no statistics (those stay on
+  `/account/me`); `.ics` import opens a dialog. Actions refresh only the dock (`connections-refresh`).
 - Connector app setup (`az` CLI): audience `AzureADMultipleOrgs`, redirect URIs `…/signin-connect-entra`,
   delegated Graph `Calendars.Read` (`az ad app update --required-resource-accesses`), client secret.
 - The ASP.NET Core **Data Protection key ring is persisted to the database** (`data_protection_keys`,
@@ -94,8 +99,9 @@ Notes:
 - Each occurrence of a recurring series is stored as its own event (`<UID>@<utc start>`, with the shared
   series `UID` kept in `group_id`), so logging one date of a series does not mark the others as logged.
   A `RECURRENCE-ID` override in the file is ignored — the series' original time and text win.
-- Events appear in the time tracking week panel exactly like Graph events — clicking one opens the
-  create/edit dialog and links the entry to that event (`provider=ics`).
+- Events appear in the time tracking week grid exactly like Graph events — clicking one opens the create
+  dialog (or an "already logged" notice when an entry references it) and links the entry to that event
+  (`provider=ics`).
 - *Disconnect* removes the calendar and cascades to its stored events; time entries keep their reference.
 - No background cleanup job: an imported calendar keeps its events until the next import or disconnect.
 

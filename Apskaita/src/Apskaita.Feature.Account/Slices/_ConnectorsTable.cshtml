@@ -45,7 +45,7 @@
                 </td>
             </tr>
 
-            @if (card.IsImplemented && card.Connections.Count == 0)
+            @if (card is { IsImplemented: true, Connections.Count: 0 })
             {
                 <tr class="connector-empty-row">
                     <td colspan="3" class="text-body-secondary">

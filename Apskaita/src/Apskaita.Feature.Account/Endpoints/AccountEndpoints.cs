@@ -25,7 +25,15 @@ public sealed class AccountEndpoints(FeatureResultBuilder resultBuilder) : BaseF
 
     public override void MapEndpoints(RouteGroupBuilder group)
     {
-        group.MapGet("login", () => HtmxFragmentResult.Create(_LoginPage.Create()).Build())
+        group.MapGet("login", (IOptions<AuthOptions> options) =>
+        {
+            // Offer only providers whose credentials are configured, so an unconfigured provider never
+            // renders a button that would 400 on challenge.
+            var model = new LoginModel(
+                !string.IsNullOrWhiteSpace(options.Value.Entra.ClientId),
+                !string.IsNullOrWhiteSpace(options.Value.Google.ClientId));
+            return HtmxFragmentResult.Create(_LoginPage.Create(model)).Build();
+        })
             .AllowAnonymous();
 
         group.MapGet("challenge/{scheme}", async (string scheme, string? returnUrl, IAuthenticationSchemeProvider schemes, ILoggerFactory loggerFactory) =>

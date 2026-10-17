@@ -141,6 +141,82 @@ public sealed class IcsImportStoreTests
     }
 
     [Fact]
+    public async Task DeleteImportedCalendar_KeepsTimeEntryReference()
+    {
+        var (db, store) = Build();
+        var (connector, _) = await store.CreateOwnAsync("nrdcompanies", Ct);
+        await store.ImportAsync(connector!,
+            [Event("uid-1", new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), null)], Ct);
+
+        db.TimeTrackings.Add(new TimeTracking
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = Guid.NewGuid(),
+            StartedAtUtc = new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc),
+            DurationInMinutes = 45,
+            Description = "from ics",
+            CalendarEvent = new CalendarEventReference(CalendarProvider.Ics, "nrdcompanies", "uid-1"),
+            CreatedAtUtc = new DateTime(2026, 10, 13, 7, 0, 0, DateTimeKind.Utc),
+            UpdatedAtUtc = new DateTime(2026, 10, 13, 7, 0, 0, DateTimeKind.Utc)
+        });
+        await db.SaveChangesAsync(Ct);
+
+        // Deleting the imported calendar removes its connector and events but never the entry's reference.
+        db.CalendarConnectors.Remove(connector!);
+        await db.SaveChangesAsync(Ct);
+
+        Assert.Empty(db.CalendarConnectors.ToArray());
+        Assert.Empty(db.CalendarImportedEvents.ToArray());
+        var kept = Assert.Single(db.TimeTrackings.ToArray());
+        Assert.NotNull(kept.CalendarEvent);
+        Assert.Equal(CalendarProvider.Ics, kept.CalendarEvent!.CalendarProvider);
+        Assert.Equal("nrdcompanies", kept.CalendarEvent.AccountKey);
+        Assert.Equal("uid-1", kept.CalendarEvent.ExternalEventId);
+    }
+
+    [Fact]
+    public async Task ReimportSameCalendar_RelinksTheExistingTimeEntry()
+    {
+        var (db, store) = Build();
+        var (connector, _) = await store.CreateOwnAsync("nrdcompanies", Ct);
+        await store.ImportAsync(connector!,
+            [Event("uid-1", new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), null)], Ct);
+
+        db.TimeTrackings.Add(new TimeTracking
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = Guid.NewGuid(),
+            StartedAtUtc = new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc),
+            DurationInMinutes = 45,
+            Description = "from ics",
+            CalendarEvent = new CalendarEventReference(CalendarProvider.Ics, "nrdcompanies", "uid-1"),
+            CreatedAtUtc = new DateTime(2026, 10, 13, 7, 0, 0, DateTimeKind.Utc),
+            UpdatedAtUtc = new DateTime(2026, 10, 13, 7, 0, 0, DateTimeKind.Utc)
+        });
+        await db.SaveChangesAsync(Ct);
+
+        db.CalendarConnectors.Remove(connector!);
+        await db.SaveChangesAsync(Ct);
+
+        // Re-create the same named calendar and re-import the same event: the identity triple matches again,
+        // so the existing entry is tracked against the re-imported event.
+        var (again, _) = await store.CreateOwnAsync("nrdcompanies", Ct);
+        await store.ImportAsync(again!,
+            [Event("uid-1", new DateTime(2026, 10, 13, 6, 45, 0, DateTimeKind.Utc), null)], Ct);
+
+        var reimported = Assert.Single(db.CalendarImportedEvents.ToArray());
+        var entry = Assert.Single(db.TimeTrackings.ToArray());
+        Assert.Equal(reimported.ExternalEventId, entry.CalendarEvent!.ExternalEventId);
+        Assert.Equal(again!.AccountKey, entry.CalendarEvent.AccountKey);
+
+        var tracked = db.TimeTrackings.ToArray().Any(t => t.CalendarEvent is { } r
+            && r.CalendarProvider == CalendarProvider.Ics
+            && r.AccountKey == again.AccountKey
+            && r.ExternalEventId == reimported.ExternalEventId);
+        Assert.True(tracked);
+    }
+
+    [Fact]
     public async Task GetStats_ReportsCountAndCoveredRange()
     {
         var (_, store) = Build();

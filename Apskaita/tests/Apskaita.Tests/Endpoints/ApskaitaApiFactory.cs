@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Apskaita.Tests.Endpoints;
@@ -22,8 +23,20 @@ public class ApskaitaApiFactory : WebApplicationFactory<Program>
     /// <summary>The principal the stub handler authenticates. Defaults to an admin user.</summary>
     public TestPrincipalProvider Principals { get; } = new() { Principal = TestPrincipal.Build("admin@example.com", UserRole.Admin) };
 
+    /// <summary>
+    /// Optional in-memory configuration overrides layered after the app's own sources (e.g.
+    /// <c>Auth:Entra:ClientId</c> to make a provider appear configured). Empty by default, so the real
+    /// test config (no provider credentials) applies.
+    /// </summary>
+    public Dictionary<string, string?> ConfigOverrides { get; } = [];
+
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
+        if (ConfigOverrides.Count > 0)
+        {
+            builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(ConfigOverrides));
+        }
+
         builder.ConfigureTestServices(services =>
         {
             // AddDataAccess registers the MySQL/Microting provider (options action would auto-detect a MySQL

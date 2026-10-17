@@ -32,9 +32,37 @@ public sealed class AuthTests
     }
 
     [Fact]
-    public async Task LoginPage_IsAnonymousAndOffersBothProviders()
+    public async Task LoginPage_WithoutConfiguredProviders_OffersNeither()
     {
-        await using var factory = new ApskaitaApiFactory();
+        await using var factory = new ApskaitaApiFactory
+        {
+            ConfigOverrides =
+            {
+                ["Auth:Entra:ClientId"] = string.Empty,
+                ["Auth:Google:ClientId"] = string.Empty
+            }
+        };
+        factory.SetAnonymous();
+
+        // Both providers forced unconfigured (overrides dev user-secrets), so neither button is rendered.
+        var html = await factory.CreateClient().GetStringAsync("/account/login");
+
+        Assert.DoesNotContain("/account/challenge/entra", html);
+        Assert.DoesNotContain("/account/challenge/google", html);
+        Assert.Contains("No sign-in providers", html);
+    }
+
+    [Fact]
+    public async Task LoginPage_WithConfiguredProviders_OffersBoth()
+    {
+        await using var factory = new ApskaitaApiFactory
+        {
+            ConfigOverrides =
+            {
+                ["Auth:Entra:ClientId"] = "entra-test-client",
+                ["Auth:Google:ClientId"] = "google-test-client"
+            }
+        };
         factory.SetAnonymous();
 
         var html = await factory.CreateClient().GetStringAsync("/account/login");
@@ -44,13 +72,13 @@ public sealed class AuthTests
     }
 
     [Fact]
-    public async Task Challenge_UnconfiguredProvider_ReturnsBadRequest()
+    public async Task Challenge_UnknownScheme_ReturnsBadRequest()
     {
         await using var factory = new ApskaitaApiFactory();
         factory.SetAnonymous();
 
-        // No ClientId configured in test appsettings -> provider schemes are not registered.
-        var response = await factory.CreateClient().GetAsync("/account/challenge/google?returnUrl=/");
+        // Only 'entra' and 'google' are valid sign-in schemes; any other is rejected regardless of config.
+        var response = await factory.CreateClient().GetAsync("/account/challenge/facebook?returnUrl=/");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

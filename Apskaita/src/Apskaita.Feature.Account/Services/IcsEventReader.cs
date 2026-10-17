@@ -40,6 +40,7 @@ internal sealed class IcsEventReader(
         var toUtc = BrowserTimeZone.WallToUtc(toLocal.ToDateTime(TimeOnly.MaxValue), offset);
 
         var rows = await events.All()
+            // ReSharper disable once CSharp14OverloadResolutionWithSpanBreakingChange
             .Where(e => connectorIds.Contains(e.ConnectorId) && e.StartUtc >= fromUtc && e.StartUtc <= toUtc)
             .ToListAsync(ct);
 

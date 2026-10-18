@@ -33,6 +33,12 @@ public sealed partial class TimeTrackingModel : IHaveValidationResult
     /// <summary>True when the dialog originates from a calendar event: hides recurrence and carries the hidden reference fields.</summary>
     public bool FromCalendarEvent { get; set; }
 
+    /// <summary>
+    /// True when a work act certified this entry: the edit dialog then shows the values read-only (no save,
+    /// delete or copy), because only deleting the act can release the entry.
+    /// </summary>
+    public bool IsCertified { get; set; }
+
     public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } =
         new Dictionary<string, (string errorCode, string errorMessage)[]>();
 }

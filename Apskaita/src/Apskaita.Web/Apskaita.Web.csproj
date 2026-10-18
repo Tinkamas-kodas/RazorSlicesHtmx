@@ -36,6 +36,7 @@
     <ProjectReference Include="..\Apskaita.Feature.Account\Apskaita.Feature.Account.csproj" />
     <ProjectReference Include="..\Apskaita.Feature.Admin\Apskaita.Feature.Admin.csproj" />
     <ProjectReference Include="..\Apskaita.Feature.TimeTracking\Apskaita.Feature.TimeTracking.csproj" />
+    <ProjectReference Include="..\Apskaita.Feature.WorkActs\Apskaita.Feature.WorkActs.csproj" />
     <ProjectReference Include="..\Apskaita.Shared\Apskaita.Shared.csproj" />
   </ItemGroup>
 

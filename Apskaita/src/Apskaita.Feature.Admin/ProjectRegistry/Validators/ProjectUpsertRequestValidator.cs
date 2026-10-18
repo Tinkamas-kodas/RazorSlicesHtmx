@@ -1,3 +1,4 @@
+using Apskaita.Entities.Contracts;
 using Apskaita.Feature.Admin.ProjectRegistry.Models;
 using FluentValidation;
 
@@ -5,7 +6,7 @@ namespace Apskaita.Feature.Admin.ProjectRegistry.Validators;
 
 public sealed class ProjectUpsertRequestValidator : AbstractValidator<ProjectUpsertRequest>
 {
-    public ProjectUpsertRequestValidator()
+    public ProjectUpsertRequestValidator(IQuery<Project> projects)
     {
         RuleFor(x => x.ClientId)
             .NotNull().WithMessage("Client is required.");
@@ -15,7 +16,14 @@ public sealed class ProjectUpsertRequestValidator : AbstractValidator<ProjectUps
             .MaximumLength(FieldLengths.Project.Name).WithMessage($"Name must be {FieldLengths.Project.Name} characters or fewer.");
 
         RuleFor(x => x.Code)
+            .NotEmpty().WithMessage("Code is required.")
             .MaximumLength(FieldLengths.Project.Code).WithMessage($"Code must be {FieldLengths.Project.Code} characters or fewer.");
+
+        RuleFor(x => x.Code)
+            .MustAsync(async (request, code, ct) =>
+                !await projects.ExistsAsync(p => p.Code == code && p.Id != request.Id, ct))
+            .WithMessage("Another project already uses this code.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Code));
 
         RuleFor(x => x.HourlyRate)
             .GreaterThanOrEqualTo(0).WithMessage("Hourly rate must be 0 or greater.");

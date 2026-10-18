@@ -105,6 +105,40 @@ Notes:
 - *Disconnect* removes the calendar and cascades to its stored events; time entries keep their reference.
 - No background cleanup job: an imported calendar keeps its events until the next import or disconnect.
 
+## Work acts
+
+A work act (*darbų aktas*) certifies one project's work for a period, as the basis for an invoice later.
+
+- The act contains **work act lines** (`work_act_lines`): each line is a frozen copy of a time entry —
+  duration, hourly rate (never null: the entry's own rate, else the project rate, or an override), start
+  date/time and description — plus a reference to the entry it came from. Editing a line never changes the
+  entry, and the same entry may appear in the lines of several acts.
+- **Period**: the user picks local dates; they are stored as UTC instants (the end is the exclusive local
+  midnight after the last day) and shown converted back to the viewer's zone. Selection is a plain instant
+  comparison against `StartedAtUtc`, so the covered set never depends on who opens the act.
+- **Flow**: *New work act* → project + period dialog. Submitting a valid dialog creates the act with
+  status `Draft` and one line per covered entry (rate = the entry's rate, else the project rate) in one
+  save, then opens the act's **review page** (`/work-acts/review/{id}`) listing its lines; invalid fields
+  re-render the dialog with inline errors, and a period with no entries creates nothing (toast). Editing
+  a line on the review page changes only the work-act line — never the time entry behind it.
+- **Editing a Draft act** (`/work-acts/edit/{id}`) persists each line edit immediately and recomputes the
+  stored totals; the referenced entries are never modified from there. *Make final* freezes the lines.
+- **Status**: `Draft` (lines editable, act deletable) → `Final` (frozen). `Invoiced` is derived at read
+  time: a Final act that an `InvoiceLine` references is presented as Invoiced; nothing writes it yet.
+- **Entries in acts are locked**: edit, delete and drag-move of a time entry referenced by any work act
+  line are rejected in the time-tracking grid with a notice naming every act it belongs to; locked cards
+  are marked and their dialog offers no save or delete.
+- **Multi-act lines**: on the review, edit and detail screens a line whose entry also appears in other
+  acts is tinted and its tooltip names those acts (project · period).
+- **Totals** (`TotalHours`, `TotalAmount`) are stored and recomputed from the lines on every save.
+  Amount per line = hours × the line's rate, rounded to 2 decimals.
+- **Deletion** removes a Draft act and its lines; the entries themselves are untouched. Final and invoiced
+  acts cannot be deleted.
+- **Concurrency**: `Version` on `WorkAct`; a lost edit race refreshes with a notice.
+- List: `/work-acts`, filterable by any number of projects, newest period end first.
+- **Not yet built**: Excel/CSV export (planned separately), invoice creation from an act, adding or
+  removing lines after creation, and splitting one.
+
 ## Migrations
 
 ```powershell

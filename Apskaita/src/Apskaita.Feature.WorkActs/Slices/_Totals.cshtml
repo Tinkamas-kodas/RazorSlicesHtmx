@@ -1,0 +1,6 @@
+@inherits RazorSlice<WorkActTotalsModel>
+
+@* The review totals line; swapped by OOB whenever a row is saved. *@
+<span class="fw-semibold">@Model.Hours.ToString("0.##") h</span>
+<span class="text-body-secondary">·</span>
+<span class="fw-semibold">@Model.Amount.ToString("0.00") @Model.CurrencyCode</span>

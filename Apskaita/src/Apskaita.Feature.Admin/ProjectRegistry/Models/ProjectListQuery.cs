@@ -8,7 +8,7 @@ public sealed partial class ProjectListQuery : ListRequest<ProjectRowModel>
         new Dictionary<string, Expression<Func<ProjectRowModel, object?>>>(StringComparer.OrdinalIgnoreCase)
         {
             [nameof(ProjectRowModel.Name)] = x => x.Name,
-            [nameof(ProjectRowModel.Code)] = x => x.Code!,
+            [nameof(ProjectRowModel.Code)] = x => x.Code,
             [nameof(ProjectRowModel.ClientName)] = x => x.ClientName,
             [nameof(ProjectRowModel.HourlyRate)] = x => x.HourlyRate,
             [nameof(ProjectRowModel.CurrencyCode)] = x => x.CurrencyCode,

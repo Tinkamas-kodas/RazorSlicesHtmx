@@ -14,7 +14,10 @@ using FluentValidation;
 using Apskaita.Entities;
 using Apskaita.Feature.TimeTracking.Endpoints;
 using Apskaita.Feature.TimeTracking.Validators;
+using Apskaita.Feature.WorkActs.Endpoints;
+using Apskaita.Feature.WorkActs.Persistence;
 using Apskaita.Shared;
+using Apskaita.Shared.Lookups;
 using Apskaita.Shared.Routing;
 using Apskaita.Shared.Logging;
 using Apskaita.Web.Composition;
@@ -63,6 +66,7 @@ public static class Setup
     public static void Features(IServiceCollection services)
     {
         services.AddFeature<TimeTrackingEndpoints>("/time-tracking");
+        services.AddFeature<WorkActEndpoints>("/work-acts");
         services.AddFeature<ClientsEndpoints>("/admin/clients");
         services.AddFeature<IssuersEndpoints>("/admin/issuers");
         services.AddFeature<UnitsEndpoints>("/admin/units");
@@ -118,6 +122,7 @@ public static class Setup
     {
         services.AddValidatorsFromAssemblyContaining<AdminFeatureType>();
         services.AddValidatorsFromAssemblyContaining<TimeTrackingModelValidator>();
+        services.AddValidatorsFromAssemblyContaining<Apskaita.Feature.WorkActs.Validators.WorkActCreateRequestValidator>();
     }
 
     /// <summary>
@@ -135,6 +140,7 @@ public static class Setup
         // feature's internal store interface (visible via InternalsVisibleTo).
         services.AddScoped<IAccountStore, AccountStore>();
         services.AddScoped<IAdminStore, AdminStore>();
+        services.AddScoped<IWorkActStore, WorkActStore>();
         services.AddScoped<ITimeTrackingStore, TimeTrackingStore>();
     }
 
@@ -305,10 +311,11 @@ public static class Setup
         app.UseAntiforgery();
     }
 
-    /// <summary>Maps every feature module's endpoints and the feature page routes.</summary>
+    /// <summary>Maps every feature module's endpoints, the shared lookups and the feature page routes.</summary>
     public static void Endpoints(WebApplication app)
     {
         var features = app.Services.GetRequiredService<FeatureRegistry>();
+        app.MapLookupEndpoints();
         features.MapEndpoints(app);
         app.MapFeaturePages(features);
     }

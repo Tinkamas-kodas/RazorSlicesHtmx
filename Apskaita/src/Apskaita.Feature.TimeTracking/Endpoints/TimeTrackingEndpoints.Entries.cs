@@ -128,9 +128,9 @@ public sealed partial class TimeTrackingEndpoints
                     .WithToast(request.CreateSavedMessage(request.ProjectLabel ?? "", rows.Length), title: "Time entry", tone: ToastTone.Success);
             });
 
-            group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>
+            group.MapGet("edit/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, IQuery<WorkActLine> actLines, CancellationToken ct) =>
             {
-                var model = await CreateEditDialogModelAsync(entries, projects, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
+                var model = await CreateEditDialogModelAsync(entries, projects, actLines, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
                 if (model is null)
                 {
                     return Results.NotFound();
@@ -147,12 +147,23 @@ public sealed partial class TimeTrackingEndpoints
                 [FromForm] TimeTrackingModel request,
                 [FromServices] IValidator<TimeTrackingModel> validator,
                 ITimeTrackingStore store,
+                IQuery<WorkActLine> actLines,
+                IQuery<WorkAct> acts,
+                IQuery<Project> projects,
                 CancellationToken ct) =>
             {
                 var row = await store.TimeTrackings.FindAsync([id], ct);
                 if (row is null)
                 {
                     return Results.NotFound();
+                }
+
+                // An entry referenced by a work act line is locked: only deleting that act releases it.
+                if (await actLines.ExistsAsync(l => l.TimeTrackingId == id, ct))
+                {
+                    return owner.Result.Fragment(_Empty.Create())
+                        .WithToast(await LockedNoticeAsync(actLines, acts, projects, id, BrowserTimeZone.GetDisplayOffset(ctx), ct),
+                            title: "Work act", tone: ToastTone.Warning);
                 }
 
                 var validationResult = await validator.ValidateAsync(request, ct);
@@ -178,20 +189,27 @@ public sealed partial class TimeTrackingEndpoints
                     .WithToast($"Updated time entry for '{request.ProjectLabel}'.", title: "Time entry", tone: ToastTone.Success);
             });
 
-            group.MapGet("delete/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, CancellationToken ct) =>
+            group.MapGet("delete/{id:guid}", async (Guid id, HttpContext ctx, IQuery<TimeTrackingEntry> entries, IQuery<Project> projects, IQuery<WorkActLine> actLines, CancellationToken ct) =>
             {
-                var model = await CreateEditDialogModelAsync(entries, projects, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
+                var model = await CreateEditDialogModelAsync(entries, projects, actLines, id, BrowserTimeZone.GetDisplayOffset(ctx), ct);
                 return model is null
                     ? Results.NotFound()
                     : owner.Result.Fragment(_DeleteDialog.Create(model));
             });
 
-            group.MapPost("delete/{id:guid}", async (Guid id, ITimeTrackingStore store, CancellationToken ct) =>
+            group.MapPost("delete/{id:guid}", async (Guid id, HttpContext ctx, ITimeTrackingStore store, IQuery<WorkActLine> actLines, IQuery<WorkAct> acts, IQuery<Project> projects, CancellationToken ct) =>
             {
                 var row = await store.TimeTrackings.FindAsync([id], ct);
                 if (row is null)
                 {
                     return Results.NotFound();
+                }
+
+                if (await actLines.ExistsAsync(l => l.TimeTrackingId == id, ct))
+                {
+                    return owner.Result.Fragment(_Empty.Create())
+                        .WithToast(await LockedNoticeAsync(actLines, acts, projects, id, BrowserTimeZone.GetDisplayOffset(ctx), ct),
+                            title: "Work act", tone: ToastTone.Warning);
                 }
 
                 store.TimeTrackings.Remove(row);
@@ -209,12 +227,22 @@ public sealed partial class TimeTrackingEndpoints
                 string date,
                 string time,
                 ITimeTrackingStore store,
+                IQuery<WorkActLine> actLines,
+                IQuery<WorkAct> acts,
+                IQuery<Project> projects,
                 CancellationToken ct) =>
             {
                 var row = await store.TimeTrackings.FindAsync([id], ct);
                 if (row is null)
                 {
                     return Results.NotFound();
+                }
+
+                if (await actLines.ExistsAsync(l => l.TimeTrackingId == id, ct))
+                {
+                    return owner.Result.Fragment(_Empty.Create())
+                        .WithToast(await LockedNoticeAsync(actLines, acts, projects, id, BrowserTimeZone.GetDisplayOffset(ctx), ct),
+                            title: "Work act", tone: ToastTone.Warning);
                 }
 
                 if (!DateOnly.TryParse(date, out var newDate) || !TimeOnly.TryParse(time, out var newTime))
@@ -236,6 +264,7 @@ public sealed partial class TimeTrackingEndpoints
         private static async Task<TimeTrackingModel?> CreateEditDialogModelAsync(
             IQuery<TimeTrackingEntry> entries,
             IQuery<Project> projects,
+            IQuery<WorkActLine> actLines,
             Guid id,
             TimeSpan displayOffset,
             CancellationToken ct)
@@ -250,7 +279,7 @@ public sealed partial class TimeTrackingEndpoints
                     time.DurationInMinutes,
                     time.HourlyRate,
                     time.ProjectId,
-                    ProjectLabel = project.Code == null ? project.Name : $"{project.Name} ({project.Code})",
+                    ProjectLabel = string.IsNullOrWhiteSpace(project.Code) ? project.Name : $"{project.Name} ({project.Code})",
                     time.Description
                 })
                 .SingleOrDefaultAsync(ct);
@@ -272,8 +301,56 @@ public sealed partial class TimeTrackingEndpoints
                 ProjectId = row.ProjectId,
                 ProjectLabel = row.ProjectLabel,
                 Description = row.Description,
+                IsCertified = await actLines.ExistsAsync(l => l.TimeTrackingId == id, ct),
                 Errors = new Dictionary<string, (string errorCode, string errorMessage)[]>()
             };
+        }
+
+        /// <summary>
+        /// The notice shown when a locked entry is touched: it names every work act whose lines reference
+        /// the entry (by project and period) so the user knows which act to delete to release it. The act
+        /// tables are read through the cross-feature <see cref="IQuery{TEntity}"/> seam.
+        /// </summary>
+        private static async Task<string> LockedNoticeAsync(
+            IQuery<WorkActLine> actLines,
+            IQuery<WorkAct> acts,
+            IQuery<Project> projects,
+            Guid entryId,
+            TimeSpan displayOffset,
+            CancellationToken ct)
+        {
+            var infos = await (
+                from line in actLines.All()
+                where line.TimeTrackingId == entryId
+                join act in acts.All() on line.WorkActId equals act.Id
+                join project in projects.All() on act.ProjectId equals project.Id
+                select new
+                {
+                    act.PeriodStartUtc,
+                    act.PeriodEndUtc,
+                    Label = string.IsNullOrWhiteSpace(project.Code) ? project.Name : $"{project.Name} ({project.Code})"
+                })
+                .ToListAsync(ct);
+
+            if (infos.Count == 0)
+            {
+                return "This entry belongs to a work act and can no longer be changed.";
+            }
+
+            // The stored end is exclusive; show the last covered day.
+            var names = infos
+                .Select(i =>
+                {
+                    var from = DateOnly.FromDateTime(BrowserTimeZone.UtcToWall(i.PeriodStartUtc, displayOffset));
+                    var to = DateOnly.FromDateTime(BrowserTimeZone.UtcToWall(i.PeriodEndUtc, displayOffset).AddTicks(-1));
+                    return $"{i.Label} · {from:yyyy-MM-dd} → {to:yyyy-MM-dd}";
+                })
+                .Distinct()
+                .ToArray();
+
+            return names.Length == 1
+                ? $"This entry belongs to work act {names[0]} and can no longer be changed."
+                : $"This entry belongs to work acts {string.Join(", ", names)} and can no longer be changed.";
         }
     }
 }

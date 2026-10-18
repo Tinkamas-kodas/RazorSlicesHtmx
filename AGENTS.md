@@ -8,6 +8,9 @@ RazorSlicesHtmx is a .NET library for building server-rendered HTMX applications
 It provides feature module discovery, hierarchical navigation with authorization filtering,
 HTMX response composition, and Roslyn source generators for forms and state management.
 
+The `Apskaita/` subfolder is a separate application built on this library — for its conventions,
+see [`Apskaita/AGENTS.md`](Apskaita/AGENTS.md).
+
 ## Repository Structure
 
 ```

@@ -7,6 +7,7 @@ public sealed partial class ProjectUpsertRequest : IHaveValidationResult
 {
     public Guid? Id { get; set; }
     public Guid? ClientId { get; set; }
+    public string? ClientLabel { get; set; }
     public string? Name { get; set; }
     public string? Code { get; set; }
     public int HourlyRate { get; set; }
@@ -16,7 +17,6 @@ public sealed partial class ProjectUpsertRequest : IHaveValidationResult
     public Guid? InvoiceTemplateId { get; set; }
     public bool IsActive { get; set; }
 
-    public List<ProjectOptionModel> Clients { get; set; } = [];
     public List<ProjectOptionModel> Templates { get; set; } = [];
 
     public IReadOnlyDictionary<string, (string errorCode, string errorMessage)[]> Errors { get; set; } =

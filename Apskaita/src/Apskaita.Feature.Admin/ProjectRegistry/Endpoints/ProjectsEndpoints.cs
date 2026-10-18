@@ -49,7 +49,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (!string.IsNullOrWhiteSpace(search.Search))
             {
                 var term = search.Search.Trim();
-                items = items.Where(x => x.Name.Contains(term) || (x.Code != null && x.Code.Contains(term)) || x.CurrencyCode.Contains(term));
+                items = items.Where(x => x.Name.Contains(term) || x.Code.Contains(term) || x.CurrencyCode.Contains(term));
             }
 
             var paged = await items.ToPagedListAsync(query, ct);
@@ -67,11 +67,11 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                 .WithState(query);
         });
 
-        // GET create — read seam for the client/template option lists.
-        group.MapGet("create", async (IQuery<Client> clients, IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
+        // GET create — read seam for the template option list; the client picker is the shared lookup.
+        group.MapGet("create", async (IQuery<InvoiceTemplate> templates, CancellationToken ct) =>
         {
             var model = ProjectUpsertRequest.CreateDefault();
-            await PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, templates, ct);
             return Result.Page(_CreatePage.Create(model));
         });
 
@@ -114,7 +114,6 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             ProjectUpsertRequest request,
             IValidator<ProjectUpsertRequest> validator,
             IAdminStore store,
-            IQuery<Client> clients,
             IQuery<InvoiceTemplate> templates,
             CancellationToken ct) =>
         {
@@ -123,7 +122,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (!validationResult.IsValid)
             {
                 request.Errors = validationResult.ToErrorDictionary();
-                await PopulateOptionsAsync(request, clients, templates, ct);
+                await PopulateOptionsAsync(request, templates, ct);
                 return Result.Page(_CreatePage.Create(request));
             }
 
@@ -133,7 +132,7 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
                 Id = Guid.NewGuid(),
                 ClientId = request.ClientId ?? Guid.Empty,
                 Name = request.Name ?? string.Empty,
-                Code = request.Code,
+                Code = request.Code ?? string.Empty,
                 HourlyRate = request.HourlyRate,
                 ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb),
                 CurrencyCode = request.CurrencyCode ?? "EUR",
@@ -147,13 +146,13 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             await store.SaveChangesAsync(ct);
 
             var model = ProjectUpsertRequest.CreateDefault();
-            await PopulateOptionsAsync(model, clients, templates, ct);
+            await PopulateOptionsAsync(model, templates, ct);
             return Result.Page(_CreatePage.Create(model))
                 .WithTrigger("Projects.ListRefresh")
                 .WithToast($"Project '{request.Name}' was created.");
         });
 
-        // GET edit — read seam (no-tracking find for display).
+        // GET edit — read seam (no-tracking find for display); the client echo comes from the shared lookup.
         group.MapGet("edit/{id:guid}", async (
             Guid id,
             IQuery<Project> projects,
@@ -165,7 +164,8 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             if (row is null) return Results.NotFound();
 
             var model = ProjectUpsertRequest.FromEntity(row);
-            await PopulateOptionsAsync(model, clients, templates, ct);
+            model.ClientLabel = await LookupEndpoints.ClientLabelAsync(clients, row.ClientId, ct);
+            await PopulateOptionsAsync(model, templates, ct);
             return Result.Page(_EditPage.Create(model));
         });
 
@@ -188,13 +188,13 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             {
                 request.Errors = validationResult.ToErrorDictionary();
                 request.IsActive = row.IsActive;
-                await PopulateOptionsAsync(request, clients, templates, ct);
+                await PopulateOptionsAsync(request, templates, ct);
                 return Result.Page(_EditPage.Create(request));
             }
 
             row.ClientId = request.ClientId ?? Guid.Empty;
             row.Name = request.Name ?? string.Empty;
-            row.Code = request.Code;
+            row.Code = request.Code ?? string.Empty;
             row.HourlyRate = request.HourlyRate;
             row.ColorRgb = ProjectColorCatalog.NormalizeOrDefault(request.ColorRgb);
             row.CurrencyCode = request.CurrencyCode ?? "EUR";
@@ -204,7 +204,8 @@ public sealed class ProjectsEndpoints(FeatureResultBuilder resultBuilder) : Base
             await store.SaveChangesAsync(ct);
 
             var model = ProjectUpsertRequest.FromEntity(row);
-            await PopulateOptionsAsync(model, clients, templates, ct);
+            model.ClientLabel = await LookupEndpoints.ClientLabelAsync(clients, row.ClientId, ct);
+            await PopulateOptionsAsync(model, templates, ct);
             return Result.Page(_EditPage.Create(model)).WithTrigger("Projects.ListRefresh").WithToast($"Project '{request.Name}' was updated.");
         });
 

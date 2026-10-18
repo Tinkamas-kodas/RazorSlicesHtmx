@@ -1,0 +1,63 @@
+@inherits RazorSlice<WorkActDetailModel>
+
+@* Act detail: the header and its lines, all read-only. A Draft act can be opened for editing from here;
+   a line whose entry is in other acts too is marked and its tooltip names those acts. Swapped into the
+   list page's detail slot, or rendered as a page. *@
+<div id="work-acts-detail" class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+            <div>
+                <h3 class="h5 mb-1">@Model.ProjectLabel</h3>
+                <div class="text-body-secondary small">
+                    @Model.PeriodStart.ToString("yyyy-MM-dd") – @Model.PeriodEnd.ToString("yyyy-MM-dd")
+                    · @Model.StatusLabel · created @Model.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="fw-semibold">@Model.TotalHours.ToString("0.##") h</div>
+                <div class="text-body-secondary small">@Model.TotalAmount.ToString("0.00") @Model.CurrencyCode</div>
+                @if (Model.IsDraft)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                            hx-get="@FeatureUri.Uri($"edit/{Model.Id}")"
+                            hx-target="#work-acts-detail"
+                            hx-swap="outerHTML"
+                            hx-params="none">Edit</button>
+                }
+            </div>
+        </div>
+
+        @if (Model.Lines.Count == 0)
+        {
+            <p class="text-muted mb-0">This act has no lines.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr class="text-body-secondary">
+                            <th scope="col" class="fw-semibold small">When</th>
+                            <th scope="col" class="fw-semibold small">Minutes</th>
+                            <th scope="col" class="fw-semibold small">Description</th>
+                            <th scope="col" class="text-end fw-semibold small">Rate</th>
+                            <th scope="col" class="text-end fw-semibold small">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in Model.Lines)
+                        {
+                            <tr class="@(line.IsShared ? "wa-line-shared" : null)" title="@(line.IsShared ? line.SharedTooltip : null)">
+                                <td class="small">@line.WhenLabel</td>
+                                <td class="small">@line.DurationMinutes</td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(line.Description) ? "No description" : line.Description)</td>
+                                <td class="small text-end">@line.HourlyRate</td>
+                                <td class="small text-end">@line.Amount.ToString("0.00") @line.CurrencyCode</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

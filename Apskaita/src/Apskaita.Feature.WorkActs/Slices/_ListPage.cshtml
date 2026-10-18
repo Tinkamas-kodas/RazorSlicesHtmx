@@ -1,0 +1,24 @@
+@inherits RazorSlice<WorkActListModel>
+
+@* Work acts page: the heading, the create action, and the list fragment (which owns the filter so a
+   refresh keeps it). The fragment re-fetches itself on work-acts-list-refresh. *@
+<article class="section-panel">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+        <div>
+            <h2 class="mb-1">Work acts</h2>
+            <p class="text-muted mb-0">Certify a project's time entries for a period.</p>
+        </div>
+
+        <button type="button" class="btn btn-dark"
+                hx-get="@FeatureUri.Uri("create")"
+                hx-target="#dialog-host"
+                hx-swap="innerHTML">
+            New work act
+        </button>
+    </div>
+
+    @await RenderPartialAsync(_ActsList.Create(Model))
+
+    @* The detail fragment swaps in here when a row's View action is used. *@
+    <div id="work-acts-detail" class="mt-4"></div>
+</article>

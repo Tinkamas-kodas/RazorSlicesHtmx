@@ -42,13 +42,14 @@ Laukai:
 | 254 | ContactEmail, Email |
 | 200 | CompanyInfo.Name, AddressLine1, AddressLine2, ContactName, BankName, DisplayName, Project.Name, InvoiceTemplate.Name, Unit.Name |
 | 100 | EntraObjectId, City, ExternalId, InvoiceNumberTemplate, Description, PrefixContext |
-| 50 | CompanyCode, VatCode, ContactPhone, VatPayerCode, Unit.Code, InvoiceTemplate.Code, Project.Code, WorkAct.Number, Invoice.Number |
+| 50 | CompanyCode, VatCode, ContactPhone, VatPayerCode, Unit.Code, InvoiceTemplate.Code, Project.Code, Invoice.Number |
 | 34 | BankAccount |
 | 20 | PostalCode |
 | 11 | BankSwift |
 | 3 | CountryCode, LanguageCode, CurrencyCode |
-| 500 | WorkActLine.Description, InvoiceLine.Description |
-| 1000 | TotalAmountInText, WorkActLine.Notes, Invoice.Notes |
+| 500 | InvoiceLine.Description |
+| 1000 | TotalAmountInText, Invoice.Notes |
+| 2000 | WorkActLine.Description |
 | 20000 | InvoiceTemplate.Content |
 
 ### Unit
@@ -72,7 +73,7 @@ Laukai:
 5. InvoiceTemplate
 6. Project
 7. WorkAct
-8. WorkActLine
+8. WorkActLine (aktų eilutės — pakeitimas `add-work-acts`)
 9. Unit
 10. Invoice
 11. InvoiceLine
@@ -148,7 +149,7 @@ Laukai:
 - Id (uuid, PK)
 - ClientId (uuid, FK -> Client.Id, not null)
 - Name (string, max 200, not null)
-- Code (string, max 50, null)
+- Code (string, max 50, unique, not null)
 - HourlyRate (decimal(18, 4), not null)
 - CurrencyCode (string(3), not null, default EUR, ISO 4217)
 - InvoiceTemplateId (uuid, FK -> InvoiceTemplate.Id, not null)
@@ -168,43 +169,45 @@ Paskirtis: darbų aktas.
 
 Laukai:
 - Id (uuid, PK)
-- Number (string, max 50, unique, not null)
 - ProjectId (uuid, FK -> Project.Id, not null)
-- ClientId (uuid, FK -> Client.Id, not null)
+- ClientId (uuid, FK -> Client.Id, not null) — denormalizuotas iš projekto
 - CurrencyCode (string(3), not null)
+- PeriodStartUtc (datetime, not null) — laikomosios zonos vidurnaktis, paverstas UTC
+- PeriodEndUtc (datetime, not null) — paskutinės dienos +1 vidurnaktis (IMKLIUZINIS)
 - TotalHours (decimal(18, 2), not null)
 - TotalAmount (decimal(18, 2), not null)
 - Status (enum: DRAFT, FINAL, INVOICED, not null, default DRAFT)
 - InvoicedAtUtc (datetime, null)
-- CreatedAtUtc (datetime, not null)
-- CreatedByUserId (uuid, FK -> User.Id, not null)
-- UpdatedAtUtc (datetime, not null)
-- UpdatedByUserId (uuid, FK -> User.Id, not null)
+- Version (int, not null) — optimistinis konkurencijos žymeklis
+- CreatedAtUtc / CreatedByUserId / UpdatedAtUtc / UpdatedByUserId (kaip BaseEntity)
 
 Pastabos:
-- Suskaidant aktą, sukuriami du nauji aktai.
+- Akto numeris (`Number`) NĖRA — aktas atpažįstamas iš projekto ir laikotarpio.
+- Akto turinys yra jo `WorkActLine` eilutės — įšaldytos darbo įrašų kopijos su nuoroda į įrašą.
+- DRAFT — eilutės redaguojamos, aktas trinamas; FINAL — užšaldytas; INVOICED rodomas, kai aktą
+  naudoja SF eilutė (`InvoiceLine.WorkActId`), atskiro lauko nereikia.
+- Redaguojant aktą keičiamos tik eilutės — `TimeTracking` įrašas lieka nepaliestas.
 
 ### 3.8 WorkActLine
-Paskirtis: darbų akto eilutės.
+Paskirtis: akto eilutė — įšaldyta darbo įrašo kopija su nuoroda į šaltinį.
 
 Laukai:
 - Id (uuid, PK)
-- WorkActId (uuid, FK -> WorkAct.Id, not null)
-- ExternalId (string, max 100, null)
-- Source (enum: CLOCKIFY, MANUAL, not null)
-- Description (string, max 500, not null)
-- WorkDate (date, not null)
-- DurationInHours (decimal(18, 2), not null)
-- Notes (string, max 1000, null)
-- HourlyRate (decimal(18, 4), not null)
-- Amount (decimal(18, 2), not null)
-- CreatedAtUtc (datetime, not null)
-- CreatedByUserId (uuid, FK -> User.Id, not null)
-- UpdatedAtUtc (datetime, not null)
-- UpdatedByUserId (uuid, FK -> User.Id, not null)
+- WorkActId (uuid, FK -> WorkAct.Id, not null, CASCADE)
+- TimeTrackingId (uuid, FK -> TimeTracking.Id, not null, RESTRICT)
+- DurationMinutes (int, not null)
+- HourlyRate (int, not null) — įrašo įkainis, projekto įkainis arba override kūrimo metu
+- StartedAtUtc (datetime, not null) — įrašo pradžios kopija
+- Description (string(2000), not null)
+- CreatedAtUtc / CreatedByUserId / UpdatedAtUtc / UpdatedByUserId (kaip BaseEntity)
 
 Skaičiavimo taisyklė:
-- Amount = round(DurationInHours * HourlyRate, 2)
+- Amount = round(DurationMinutes / 60 * HourlyRate, 2)
+
+Taisyklės:
+- Tas pats TimeTracking įrašas gali būti kelių aktų eilutėse; kol bent viena eilutė jį laiko, įrašas
+  nekeičiamas (redagavimas, trynimas, perkelimas atmesti).
+- Aktas trinamas tik DRAFT; trynus aktą jo eilutės ištrinamos (CASCADE), įrašai lieka.
 
 ### 3.9 Invoice
 Paskirtis: sąskaita faktūra.
@@ -320,7 +323,7 @@ Pastabos:
 1. Client 1:N Project
 2. Client 1:N WorkAct
 3. Project 1:N WorkAct
-4. WorkAct 1:N WorkActLine
+4. WorkAct N:M TimeTracking (per WorkActLine; vienas įrašas gali būti keliuose aktuose)
 5. Issuer 1:N Invoice
 6. Unit 1:N InvoiceLine
 7. Invoice 1:N InvoiceLine
@@ -337,7 +340,7 @@ Pastabos:
 6. SF trynimas leidžiamas tik jei SF.SequenceNumber yra maksimalus.
 7. Project.CurrencyCode pagal nutylėjimą EUR.
 8. Invoice kalba nustatoma pagal InvoiceTemplate.LanguageCode.
-9. Clockify/importo identifikatorius saugomas WorkActLine.ExternalId.
+9. Clockify/importo identifikatorius anksčiau saugotas `WorkActLine.ExternalId`; dabar `WorkActLine` yra akto eilučių lentelė (be ExternalId), o darbo įrašų šaltinio nuoroda saugoma `time_trackings.calendar_*`.
 10. Invoice turi saugoti išrašytojo rekvizitų kopiją ir nuorodą į Issuer.
 11. InvoiceLine.UnitId, jei nurodytas, turi rodyti į aktyvų Unit įrašą.
 12. Invoice turi saugoti ir kliento rekvizitų kopiją bei nuorodą į Client.
@@ -345,10 +348,12 @@ Pastabos:
 ## 6. Rekomenduojami indeksai
 - Client(Name)
 - Project(ClientId, IsActive)
+- Project(Code) unique
 - Company(IsActive)
 - Issuer(IsActive)
 - WorkAct(ProjectId, Status)
-- WorkActLine(WorkActId, WorkDate)
+- WorkActLine(WorkActId, StartedAtUtc)
+- WorkActLine(TimeTrackingId)
 - Unit(Code) unique
 - Invoice(IssuerId, IssueDate)
 - Invoice(ClientId, IssueDate)

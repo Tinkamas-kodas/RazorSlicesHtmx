@@ -46,14 +46,12 @@ public static class FieldLengths
 
     public static class WorkAct
     {
-        public const int Number = 50;
         public const int CurrencyCode = 3;
     }
 
     public static class WorkActLine
     {
-        public const int ExternalId = 100;
-        public const int Description = 500;
+        public const int Description = 2000;
     }
 
     public static class Unit

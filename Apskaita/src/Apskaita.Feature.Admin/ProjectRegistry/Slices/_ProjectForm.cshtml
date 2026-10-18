@@ -1,6 +1,7 @@
 @inherits RazorSlice<ProjectUpsertRequest>
 @using RazorSlicesHtmx.Bootstrap5.Extensions
 @using Apskaita.Shared.ProjectColors
+@using Apskaita.Shared.Lookups
 
 @{ var f = Model.For(); }
 @{ var selectedColorLabel = string.IsNullOrWhiteSpace(Model.ColorLabel) ? ProjectColorCatalog.GetLookupText(Model.ColorRgb) : Model.ColorLabel; }
@@ -20,21 +21,16 @@
 
 <div class="row g-3">
     <div class="col-md-6">
-        <label class="form-label" for="ClientId">Client</label>
-        <select id="ClientId" name="ClientId" class="form-select">
-            <option value="">Select client</option>
-            @foreach (var client in Model.Clients)
-            {
-                if (Model.ClientId == client.Id)
-                {
-                    <option value="@client.Id" selected>@client.Label</option>
-                }
-                else
-                {
-                    <option value="@client.Id">@client.Label</option>
-                }
-            }
-        </select>
+        <div class="position-relative">
+            @f.ClientId.Label("Client")
+            @f.ClientId.LookupSelect(
+                path: LookupRoutes.Clients,
+                selectedValueTextFieldName: f.ClientLabel.Name,
+                selectedValueResolvePath: LookupRoutes.ClientsSelected,
+                placeholder: "Type client name or code",
+                selectedText: Model.ClientLabel,
+                pageSize: 20)
+        </div>
         @f.ClientId.Validation()
     </div>
 
@@ -102,7 +98,7 @@
                 path: FeatureUri.Uri("color-lookup"),
                 selectedValueTextFieldName: f.ColorLabel.Name,
                 selectedValueResolvePath: FeatureUri.Uri("color-lookup-selected"),
-                placeholder: "Select pastel color",
+                placeholder: "Select color",
                 selectedText: selectedColorLabel,
                 pageSize: 20)
         </div>

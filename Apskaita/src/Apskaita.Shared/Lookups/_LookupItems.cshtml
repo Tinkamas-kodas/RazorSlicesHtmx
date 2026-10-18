@@ -1,0 +1,42 @@
+@inherits RazorSlice<RazorSlicesHtmx.AspNetCore.Models.LookupResponse>
+
+@* Generic lookup result fragment: one row per item (value/text drive the picker component), an
+   entity-neutral empty state, and a load-more form that re-requests the next page into the same
+   results container. Used by every entity lookup; pickers with custom item markup keep their own. *@
+@if (Model.Items.Count == 0 && Model.Page == 1)
+{
+    <button type="button"
+            class="list-group-item list-group-item-action rsh-lookup-item text-muted"
+            disabled>
+        No items found
+    </button>
+}
+else
+{
+    foreach (var item in Model.Items)
+    {
+        <button type="button"
+                class="list-group-item list-group-item-action rsh-lookup-item"
+                role="option"
+                data-rsh-lookup-value="@item.Value"
+                data-rsh-lookup-text="@item.Text">
+            @item.Text
+        </button>
+    }
+
+    @if (Model.HasMore)
+    {
+        <form class="rsh-lookup-more-wrap border-0"
+              hx-get="@Model.Path"
+              hx-target="closest .rsh-lookup-results"
+              hx-swap="beforeend">
+            <input type="hidden" name="query" value="@Model.Query" />
+            <input type="hidden" name="page" value="@Model.NextPage" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <input type="hidden" name="path" value="@Model.Path" />
+            <button type="submit" class="rsh-lookup-more list-group-item list-group-item-action text-center">
+                Load more
+            </button>
+        </form>
+    }
+}

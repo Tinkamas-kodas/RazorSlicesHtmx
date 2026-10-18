@@ -79,9 +79,10 @@ public static class ApskaitaEntityModelBuilderExtensions
         modelBuilder.Entity<Project>(entity =>
         {
             entity.Property(x => x.Name).HasMaxLength(FieldLengths.Project.Name).IsRequired();
-            entity.Property(x => x.Code).HasMaxLength(FieldLengths.Project.Code);
+            entity.Property(x => x.Code).HasMaxLength(FieldLengths.Project.Code).IsRequired();
             entity.Property(x => x.ColorRgb).HasMaxLength(FieldLengths.Project.ColorRgb).IsRequired().HasDefaultValue("#FF0000");
             entity.Property(x => x.CurrencyCode).HasMaxLength(FieldLengths.Project.CurrencyCode).IsRequired();
+            entity.HasIndex(x => x.Code).IsUnique();
             entity.HasIndex(x => new { x.ClientId, x.IsActive });
             entity.HasOne(x => x.Client)
                 .WithMany()
@@ -98,15 +99,18 @@ public static class ApskaitaEntityModelBuilderExtensions
     {
         modelBuilder.Entity<WorkAct>(entity =>
         {
-            entity.Property(x => x.Number).HasMaxLength(FieldLengths.WorkAct.Number).IsRequired();
             entity.Property(x => x.CurrencyCode).HasMaxLength(FieldLengths.WorkAct.CurrencyCode).IsRequired();
             entity.Property(x => x.TotalHours).HasPrecision(18, 2);
             entity.Property(x => x.TotalAmount).HasPrecision(18, 2);
             entity.Property(x => x.Status)
                 .HasColumnType(WorkActStatus.Draft.ToMySqlDefinition())
                 .HasConversion<string>();
-            entity.HasIndex(x => x.Number).IsUnique();
-            entity.HasIndex(x => new { x.ProjectId, x.Status });
+
+            // Optimistic concurrency: a stale save loses instead of silently overwriting.
+            entity.Property(x => x.Version).IsConcurrencyToken();
+
+            entity.HasIndex(x => new { x.ProjectId, x.PeriodEndUtc });
+            entity.HasIndex(x => new { x.ClientId, x.Status });
         });
     }
 
@@ -114,14 +118,22 @@ public static class ApskaitaEntityModelBuilderExtensions
     {
         modelBuilder.Entity<WorkActLine>(entity =>
         {
-            entity.Property(x => x.ExternalId).HasMaxLength(FieldLengths.WorkActLine.ExternalId);
-            entity.Property(x => x.Source)
-                .HasColumnType(WorkActLineSource.Clockify.ToMySqlDefinition())
-                .HasConversion<string>();
             entity.Property(x => x.Description).HasMaxLength(FieldLengths.WorkActLine.Description).IsRequired();
-            entity.Property(x => x.WorkDate).HasColumnType("date");
-            entity.Property(x => x.Amount).HasPrecision(18, 2);
-            entity.HasIndex(x => new { x.WorkActId, x.WorkDate });
+
+            // Deleting the act removes its lines; the entries they reference are untouched.
+            entity.HasOne<WorkAct>()
+                .WithMany()
+                .HasForeignKey(x => x.WorkActId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // The entry is locked while a line references it, so the database refuses to delete it outright.
+            entity.HasOne<TimeTracking>()
+                .WithMany()
+                .HasForeignKey(x => x.TimeTrackingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.TimeTrackingId);
+            entity.HasIndex(x => new { x.WorkActId, x.StartedAtUtc });
         });
     }
 

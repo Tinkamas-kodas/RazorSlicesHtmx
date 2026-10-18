@@ -581,6 +581,7 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnName("client_id");
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("code");
@@ -635,6 +636,10 @@ namespace Apskaita.Data.Migrations.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_projects");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_projects_code");
 
                     b.HasIndex("InvoiceTemplateId")
                         .HasDatabaseName("ix_projects_invoice_template_id");
@@ -878,11 +883,13 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("invoiced_at_utc");
 
-                    b.Property<string>("Number")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("number");
+                    b.Property<DateTime>("PeriodEndUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("period_end_utc");
+
+                    b.Property<DateTime>("PeriodStartUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("period_start_utc");
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("char(36)")
@@ -911,15 +918,19 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("updated_by_user_id");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int")
+                        .HasColumnName("version");
+
                     b.HasKey("Id")
                         .HasName("pk_work_acts");
 
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasDatabaseName("ix_work_acts_number");
+                    b.HasIndex("ClientId", "Status")
+                        .HasDatabaseName("ix_work_acts_client_id_status");
 
-                    b.HasIndex("ProjectId", "Status")
-                        .HasDatabaseName("ix_work_acts_project_id_status");
+                    b.HasIndex("ProjectId", "PeriodEndUtc")
+                        .HasDatabaseName("ix_work_acts_project_id_period_end_utc");
 
                     b.ToTable("work_acts", (string)null);
                 });
@@ -931,11 +942,6 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("id");
 
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("amount");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime(6)")
                         .HasColumnName("created_at_utc");
@@ -946,31 +952,25 @@ namespace Apskaita.Data.Migrations.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)")
                         .HasColumnName("description");
 
-                    b.Property<int>("DurationInMinutes")
+                    b.Property<int>("DurationMinutes")
                         .HasColumnType("int")
-                        .HasColumnName("duration_in_minutes");
-
-                    b.Property<string>("ExternalId")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("external_id");
+                        .HasColumnName("duration_minutes");
 
                     b.Property<int>("HourlyRate")
                         .HasColumnType("int")
                         .HasColumnName("hourly_rate");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext")
-                        .HasColumnName("notes");
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("started_at_utc");
 
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("enum('Clockify', 'Manual')")
-                        .HasColumnName("source");
+                    b.Property<Guid>("TimeTrackingId")
+                        .HasColumnType("char(36)")
+                        .HasColumnName("time_tracking_id");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("datetime(6)")
@@ -984,15 +984,14 @@ namespace Apskaita.Data.Migrations.Migrations
                         .HasColumnType("char(36)")
                         .HasColumnName("work_act_id");
 
-                    b.Property<DateOnly>("WorkDate")
-                        .HasColumnType("date")
-                        .HasColumnName("work_date");
-
                     b.HasKey("Id")
                         .HasName("pk_work_act_lines");
 
-                    b.HasIndex("WorkActId", "WorkDate")
-                        .HasDatabaseName("ix_work_act_lines_work_act_id_work_date");
+                    b.HasIndex("TimeTrackingId")
+                        .HasDatabaseName("ix_work_act_lines_time_tracking_id");
+
+                    b.HasIndex("WorkActId", "StartedAtUtc")
+                        .HasDatabaseName("ix_work_act_lines_work_act_id_started_at_utc");
 
                     b.ToTable("work_act_lines", (string)null);
                 });
@@ -1406,6 +1405,23 @@ namespace Apskaita.Data.Migrations.Migrations
                         });
 
                     b.Navigation("CalendarEvent");
+                });
+
+            modelBuilder.Entity("Apskaita.Entities.WorkActLine", b =>
+                {
+                    b.HasOne("Apskaita.Entities.TimeTracking", null)
+                        .WithMany()
+                        .HasForeignKey("TimeTrackingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_act_lines_time_trackings_time_tracking_id");
+
+                    b.HasOne("Apskaita.Entities.WorkAct", null)
+                        .WithMany()
+                        .HasForeignKey("WorkActId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_act_lines_work_acts_work_act_id");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,23 @@
+@inherits RazorSlice<WorkActDeleteModel>
+
+@* Deleting an act releases its entries rather than deleting them: they become editable and can be
+   certified again by a newer act. *@
+<div class="modal-content border-0 shadow-lg">
+    <form hx-post="@FeatureUri.Uri($"delete/{Model.Id}")" hx-target="closest .modal-content" hx-swap="outerHTML">
+        <div class="modal-header">
+            <h5 class="modal-title">Delete work act</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p class="mb-2">This deletes the act and releases its entries, which stay in the system and become editable again:</p>
+            <p class="mb-0">
+                <strong>@Model.ProjectLabel</strong><br>
+                @Model.PeriodStart.ToString("yyyy-MM-dd") – @Model.PeriodEnd.ToString("yyyy-MM-dd")
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Yes, delete</button>
+        </div>
+    </form>
+</div>

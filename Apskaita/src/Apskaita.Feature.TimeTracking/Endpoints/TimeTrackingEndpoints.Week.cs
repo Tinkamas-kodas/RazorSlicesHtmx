@@ -37,6 +37,7 @@ public sealed partial class TimeTrackingEndpoints
                 string? weekStart,
                 IQuery<TimeTrackingEntry> entries,
                 IQuery<Project> projects,
+                IQuery<WorkActLine> actLines,
                 ICalendarEventReader calendarReader,
                 CancellationToken ct) =>
             {
@@ -50,7 +51,7 @@ public sealed partial class TimeTrackingEndpoints
                 var (weekStartDay, weekEndDay) = TimeTrackingModel.CreateWeekBounds(weekStart);
                 var displayOffset = BrowserTimeZone.GetDisplayOffset(ctx);
                 var calendar = await calendarReader.ReadAsync(weekStartDay, weekEndDay, ct);
-                var model = await CreatePageModelAsync(entries, projects, weekStart, calendar, displayOffset, ct);
+                var model = await CreatePageModelAsync(entries, projects, actLines, weekStart, calendar, displayOffset, ct);
 
                 return owner.Result.Fragment(_Grid.Create(model));
             });
@@ -81,6 +82,7 @@ public sealed partial class TimeTrackingEndpoints
         private static async Task<TimeTrackingPageModel> CreatePageModelAsync(
             IQuery<TimeTrackingEntry> entries,
             IQuery<Project> projects,
+            IQuery<WorkActLine> actLines,
             string? weekStartRaw,
             CalendarReadResult? calendar,
             TimeSpan displayOffset,
@@ -110,6 +112,18 @@ public sealed partial class TimeTrackingEndpoints
                 )
                 .ToListAsync(ct);
 
+            // An entry referenced by a work act line is locked; the grid marks those cards.
+            var rowIds = rows.Select(r => r.Id).ToArray();
+            var lockedIds = (await actLines.All()
+                    .Where(l => rowIds.Contains(l.TimeTrackingId))
+                    .Select(l => l.TimeTrackingId)
+                    .Distinct()
+                    .ToListAsync(ct))
+                .ToHashSet();
+            var gridRows = rows
+                .Select(r => lockedIds.Contains(r.Id) ? r with { InWorkAct = true } : r)
+                .ToArray();
+
             // References of entries in the displayed week: an event whose identity triple matches is
             // already represented by that entry, so it is hidden from the grid (the unique index guarantees
             // at most one entry per event). Global correctness is the event endpoint's job, not the grid's.
@@ -134,7 +148,7 @@ public sealed partial class TimeTrackingEndpoints
                 weekStart.AddDays(7),
                 TimeTrackingDayModel.WeekOf(weekStart, todayDisplay),
                 TimeTrackingSlotModel.WorkSlots(),
-                rows.Select(row => TimeTrackingEntryViewModel.From(row, displayOffset)).ToArray(),
+                gridRows.Select(row => TimeTrackingEntryViewModel.From(row, displayOffset)).ToArray(),
                 (calendar?.Events ?? [])
                     .Where(e => !trackedSet.Contains((e.ProviderKey.ToLowerInvariant(), e.AccountKey, e.EventId)))
                     .Select(TimeTrackingCalendarEventViewModel.From)

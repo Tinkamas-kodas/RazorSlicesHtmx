@@ -6,7 +6,8 @@ public class Project : BaseEntity
     public Guid ClientId { get; set; }
     public Client Client { get; set; } = null!;
     public string Name { get; set; } = string.Empty;
-    public string? Code { get; set; }
+    /// <summary>Required and unique across projects; the database enforces it with a unique index.</summary>
+    public string Code { get; set; } = string.Empty;
     public int HourlyRate { get; set; }
     public string ColorRgb { get; set; } = "#FF0000";
     public string CurrencyCode { get; set; } = string.Empty;

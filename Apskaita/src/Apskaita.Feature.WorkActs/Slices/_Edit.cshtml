@@ -1,0 +1,49 @@
+@inherits RazorSlice<WorkActReviewModel>
+
+@* Draft act edit screen: the act's persisted lines. Each row saves immediately — the change lands on the
+   work-act line, never on the time entry behind it — and swaps only itself plus the totals. "Make final"
+   freezes every line. Shared entries (in other acts too) are marked with a tooltip naming those acts. *@
+<div id="work-acts-detail" class="card border-0 shadow-sm wa-edit">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+            <div>
+                <h3 class="h5 mb-1">@Model.ProjectLabel</h3>
+                <div class="text-body-secondary small">
+                    @Model.DateFrom.ToString("yyyy-MM-dd") – @Model.DateTo.ToString("yyyy-MM-dd") · Draft
+                </div>
+            </div>
+            <div class="text-end">
+                <div id="wa-totals">
+                    @await RenderPartialAsync(_Totals.Create(new WorkActTotalsModel(Model.TotalHours, Model.TotalAmount, Model.CurrencyCode)))
+                </div>
+            </div>
+        </div>
+
+        <div class="wa-review-head d-flex gap-2 pb-2 text-body-secondary small">
+            <span class="wa-col-when">When</span>
+            <span class="wa-col-min">Min</span>
+            <span class="wa-col-desc">Description</span>
+            <span class="wa-col-rate">Rate</span>
+            <span class="wa-col-amount">Amount</span>
+            <span class="wa-col-save"></span>
+        </div>
+
+        @foreach (var line in Model.Lines)
+        {
+            @await RenderPartialAsync(_EditRow.Create(new WorkActLineRowViewModel(Model.ActId, line)))
+        }
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-outline-secondary"
+                    hx-get="@FeatureUri.Uri($"detail/{Model.ActId}")"
+                    hx-target="#work-acts-detail"
+                    hx-swap="outerHTML"
+                    hx-params="none">Cancel</button>
+            <button type="button" class="btn btn-dark"
+                    hx-post="@FeatureUri.Uri($"final/{Model.ActId}")"
+                    hx-target="#work-acts-detail"
+                    hx-swap="outerHTML"
+                    hx-params="none">Make final</button>
+        </div>
+    </div>
+</div>

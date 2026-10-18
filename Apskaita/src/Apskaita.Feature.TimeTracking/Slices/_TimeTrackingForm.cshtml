@@ -1,5 +1,6 @@
 @inherits RazorSlice<Apskaita.Feature.TimeTracking.Models.TimeTrackingModel>
 @using RazorSlicesHtmx.Bootstrap5.Extensions
+@using Apskaita.Shared.Lookups
 
 @{ var f = Model.For(); }
 @{ var isHourlyRateOverride = Model.HourlyRate.HasValue; }
@@ -49,9 +50,9 @@
     <div class="position-relative">
         @f.ProjectId.Label("Project")
         @f.ProjectId.LookupSelect(
-            path: FeatureUri.Uri("project-lookup"),
+            path: LookupRoutes.Projects,
             selectedValueTextFieldName: f.ProjectLabel.Name,
-            selectedValueResolvePath: FeatureUri.Uri("project-lookup-selected"),
+            selectedValueResolvePath: LookupRoutes.ProjectsSelected,
             placeholder: "Type project name or code",
             selectedText: Model.ProjectLabel,
             pageSize: 20)

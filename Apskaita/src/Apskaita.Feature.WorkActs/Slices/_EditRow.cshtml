@@ -1,0 +1,32 @@
+@inherits RazorSlice<WorkActLineRowViewModel>
+
+@* One persisted line of a Draft act: the form saves the line itself — never the time entry behind it —
+   and swaps only this row plus the totals. Shared entries are marked with a tooltip naming other acts. *@
+<div class="wa-line-row d-flex gap-2 align-items-center py-2 border-top @(Model.Line.IsShared ? "is-shared" : null)"
+     id="wa-line-@Model.Line.LineId"
+     title="@(Model.Line.IsShared ? Model.Line.SharedTooltip : null)">
+    @if (!string.IsNullOrEmpty(Model.Line.Error))
+    {
+        <div class="alert alert-danger w-100 py-2 px-3 small" role="alert">@Model.Line.Error</div>
+    }
+
+    <form class="d-flex gap-2 align-items-center flex-grow-1"
+          hx-post="@FeatureUri.Uri("edit/line")"
+          hx-target="closest .wa-line-row"
+          hx-swap="outerHTML">
+        <input type="hidden" name="ActId" value="@Model.ActId" />
+        <input type="hidden" name="LineId" value="@Model.Line.LineId" />
+
+        <span class="wa-col-when small">@Model.Line.WhenLabel</span>
+        <input class="wa-col-min form-control form-control-sm" type="number" name="DurationMinutes"
+               min="1" max="1440" value="@Model.Line.DurationMinutes" aria-label="Duration in minutes" />
+        <input class="wa-col-desc form-control form-control-sm" type="text" name="Description"
+               value="@Model.Line.Description" aria-label="Description" />
+        <input class="wa-col-rate form-control form-control-sm" type="number" name="HourlyRate"
+               min="1" value="@Model.Line.HourlyRate" aria-label="Hourly rate" />
+        <span class="wa-col-amount small text-end">@Model.Line.Amount.ToString("0.00") @Model.Line.CurrencyCode</span>
+        <span class="wa-col-save">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+        </span>
+    </form>
+</div>

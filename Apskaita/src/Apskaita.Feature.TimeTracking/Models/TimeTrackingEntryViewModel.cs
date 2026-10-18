@@ -20,7 +20,8 @@ public sealed record TimeTrackingEntryViewModel(
     double OffsetTopPx,
     double HeightPx,
     decimal OverflowHours,
-    int DescriptionLineClamp)
+    int DescriptionLineClamp,
+    bool IsCertified)
 {
     /// <summary>
     /// Builds the card for <paramref name="row"/>. Stored UTC is converted to display-zone wall time;
@@ -65,6 +66,7 @@ public sealed record TimeTrackingEntryViewModel(
             offsetTopPx,
             effectiveHeightPx,
             overflowHours,
-            descriptionLineClamp);
+            descriptionLineClamp,
+            row.InWorkAct);
     }
 }

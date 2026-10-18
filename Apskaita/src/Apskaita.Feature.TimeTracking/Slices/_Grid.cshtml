@@ -109,12 +109,12 @@
                             var leftInset = 4 + (overlappingEntries % 10) * 25;
 
                                 <button type="button"
-                                    class="tt-entry-card"
+                                    class="tt-entry-card @(entry.IsCertified ? "is-certified" : null)"
                                     data-entry-id="@entry.Id"
                                     style="top:@($"{entryTop:0.##}px");height:@($"{entry.HeightPx:0.##}px");left:@($"{leftInset}px");right:2px;border-left-color:@entry.AccentColorRgb;background-color:@entry.ProjectColorRgb;color:@entry.TextColorRgb;--tt-desc-lines:@entry.DescriptionLineClamp;"
                                     hx-get="@FeatureUri.Uri($"edit/{entry.Id}")"
                                     hx-target="#dialog-host"
-                                    aria-label="Edit time entry @entry.Start.ToString("HH:mm") to @entry.DisplayEnd.ToString("HH:mm"): @entry.Description">
+                                    aria-label="@(entry.IsCertified ? "View certified time entry" : "Edit time entry") @entry.Start.ToString("HH:mm") to @entry.DisplayEnd.ToString("HH:mm"): @entry.Description">
                                 <span class="tt-entry-time">@entry.Start.ToString("HH:mm") - @entry.DisplayEnd.ToString("HH:mm")</span>
                                 <span class="tt-entry-description">@entry.Description</span>
                                 @if (entry.OverflowHours > 0)
